@@ -22,11 +22,38 @@ use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\PayoutController;
 use App\Http\Controllers\Admin\PayoutApiController;
 use App\Http\Controllers\Admin\AdminOfferController;
+use App\Http\Controllers\admin\SubscriptionController;
+use App\Http\Controllers\Auth\TwoFactorChallengeController;
+use App\Http\Controllers\TwoFactorController;
 use App\Http\Controllers\WebBlogController;
 use Illuminate\Support\Facades\Route;
 
+
+
+
+
 // Admin Auth Routes
 Route::prefix('admin')->name('admin.')->group(function () {
+
+    // 2FA Challenge Routes (guest)
+
+    Route::get('/two-factor-challenge', [TwoFactorChallengeController::class, 'show'])
+        ->name('two-factor.challenge');
+    Route::post('/two-factor-challenge', [TwoFactorChallengeController::class, 'store'])
+        ->name('two-factor-verify');
+
+    // 2FA Management Routes (authenticated)
+    Route::get('/user/two-factor-authentication', [TwoFactorController::class, 'index'])
+        ->name('two-factor.index');
+    Route::post('/user/two-factor-authentication', [TwoFactorController::class, 'enable'])
+        ->name('two-factor.enable');
+    Route::post('/user/confirmed-two-factor-authentication', [TwoFactorController::class, 'confirm'])
+        ->name('two-factor.confirm');
+    Route::delete('/user/two-factor-authentication', [TwoFactorController::class, 'disable'])
+        ->name('two-factor.disable');
+    Route::post('/user/two-factor-recovery-codes', [TwoFactorController::class, 'regenerateRecoveryCodes'])
+        ->name('two-factor.regenerate');
+
     // Guest Routes
     Route::middleware('custom_guest')->group(function () {
         Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -42,7 +69,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     //Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
     // Authenticated Admin Routes
-    Route::middleware(['admin'])->group(function () {
+    Route::middleware(['admin',])->group(function () {
 
         // Dashboard access
         //Route::middleware(['permission:dashboard_view_dashboard'])->group(function () {
@@ -53,7 +80,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
 
         // User Management
-        Route::middleware(['permission:users_view_users'])->group(function () {
+        Route::middleware(['permission:users_view_users', 'permission:deleted_user'])->group(function () {
             Route::middleware(['permission:users_create_users'])->group(function () {
                 Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
                 Route::post('/users', [UserController::class, 'store'])->name('users.store');
@@ -71,7 +98,27 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/users', [UserController::class, 'index'])->name('users.index');
             Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
             Route::get('/vendors', [UserController::class, 'vendors'])->name('users.vendors');
+
+            Route::get('/deleted-vendors', [UserController::class, 'deletedVendors'])->name('users.deleted.vendors');
+
             Route::get('/customers', [UserController::class, 'customers'])->name('users.customers');
+            Route::get('/deleted-customers', [UserController::class, 'deletedCustomers'])->name('users.deleted.customers');
+
+            Route::middleware(['permission:export_vendors'])->group(function () {
+                Route::get('/vendors/export', [UserController::class, 'exportVendors'])->name('vendor.export');
+            });
+
+            Route::middleware(['permission:export_customers'])->group(function () {
+                Route::get('/customers/export', [UserController::class, 'exportCustomers'])->name('customer.export');
+            });
+
+            Route::middleware(['permission:export_deleted_vendors'])->group(function () {
+                Route::get('/deleted-vendors/export', [UserController::class, 'exportDeletedVendors'])->name('deletedVendor.export');
+            });
+
+            Route::middleware(['permission:export_deleted_customers'])->group(function () {
+                Route::get('/deleted-customers/export', [UserController::class, 'exportDeletedCustomers'])->name('deletedCustomer.export');
+            });
         });
 
         // KYC Management
@@ -378,6 +425,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::delete('/permissions/{permission}', [PermissionController::class, 'destroy'])->name('permissions.destroy');
             });
             Route::get('/permissions/{permission}', [PermissionController::class, 'show'])->name('permissions.show');
+        });
+
+        // Permission Management
+        Route::middleware(['permission:subscriptions'])->group(function () {
+            Route::get('/subscriptions', [SubscriptionController::class, 'index'])->name('subscription.index');
         });
     });
 

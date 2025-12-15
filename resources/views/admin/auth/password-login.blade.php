@@ -45,7 +45,7 @@
 
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-paper-plane me-1"></i> Send OTP
+                            <i class="fas fa-paper-plane me-1"></i> Submit
                         </button>
                     </div>
                 </form>

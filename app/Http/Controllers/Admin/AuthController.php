@@ -51,7 +51,6 @@ class AuthController extends Controller
             ->where('role', 'admin')->where('status', 1);
 
         $user = $query->first();
-
         if (!$user) {
             throw ValidationException::withMessages([
                 'login_field' => ['The provided credentials are incorrect or you do not have admin access.'],
@@ -252,6 +251,19 @@ class AuthController extends Controller
                 ->with('error', 'Enter correct password');
         }
 
+        // Store user ID in session for 2FA challenge
+        session(['2fa:user:id' => $user->id]);
+        //session(['2fa:user:id' => 123456]);
+        session(['2fa:remember' => $request->boolean('remember')]);
+
+        // Check if user has 2FA enabled
+        if ($user->hasTwoFactorEnabled()) {
+            Auth::logout();
+            return redirect()->route('admin.two-factor.challenge');
+        } else {
+            return redirect()->route('admin.two-factor.index');
+        }
+
         Auth::login($user);
         Session::forget(['admin_login_field', 'admin_login_type']);
 
@@ -262,11 +274,11 @@ class AuthController extends Controller
     /**
      * Logout admin
      */
-    public function logout(Request $request)
+    public function logout()
     {
         Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        request()->session()->invalidate();
+        request()->session()->regenerateToken();
 
         return redirect()->route('admin.login')
             ->with('success', 'You have been successfully logged out.');

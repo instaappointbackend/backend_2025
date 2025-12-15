@@ -15,11 +15,8 @@
 @endsection
 
 @section('page-actions')
-    <a href="{{ route('admin.users.create') }}" class="btn btn-primary">
-        <i class="fas fa-plus-circle me-1"></i> Add New Vendor
-    </a>
 
-    <a href="{{ route('admin.vendor.export') }}" class="btn btn-primary">
+    <a href="{{ route('admin.deletedVendor.export') }}" class="btn btn-primary">
         <i class="fas fa-download me-1"></i> Export
     </a>
 @endsection
@@ -27,10 +24,10 @@
 @section('content')
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">All Vendors</h5>
+            <h5 class="mb-0">All Deleted Vendors</h5>
 
             <div class="search-filter">
-                <form action="{{ route('admin.users.vendors') }}" method="GET" class="d-flex gap-2">
+                <form action="{{ route('admin.users.deleted.vendors') }}" method="GET" class="d-flex gap-2">
                     <div class="input-group">
                         <input type="text" name="search" class="form-control" placeholder="Search vendors..."
                             value="{{ request('search') }}">
@@ -67,7 +64,7 @@
                             <th>KYC Status</th>
                             <th>Status</th>
                             <th>Registered</th>
-                            <th>Actions</th>
+                            {{-- <th>Actions</th> --}}
                         </tr>
                     </thead>
                     <tbody>
@@ -107,7 +104,7 @@
                                     @endif
                                 </td>
                                 <td>{{ $vendor->created_at->format('M d, Y') }}</td>
-                                <td>
+                                {{-- <td>
                                     <div class="d-flex">
                                         <a href="{{ route('admin.users.show', $vendor->id) }}"
                                             class="btn btn-sm btn-info me-1" data-bs-toggle="tooltip" title="View Details">
@@ -128,13 +125,8 @@
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
-                                        <a target="blank"
-                                            href="{{ route('admin.services.index', ['vendor_id' => $vendor->id]) }}"
-                                            class="btn btn-sm btn-primary me-1" data-bs-toggle="tooltip" title="Services">
-                                            <i class="fas fa-concierge-bell"></i>
-                                        </a>
                                     </div>
-                                </td>
+                                </td> --}}
                             </tr>
                         @empty
                             <tr>

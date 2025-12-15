@@ -18,6 +18,7 @@ class Service extends Model
         'duration',
         'price',
         'is_active',
+        'image',
     ];
 
     protected $casts = [
@@ -66,14 +67,14 @@ class Service extends Model
         if ($this->duration < 60) {
             return $this->duration . ' minutes';
         }
-        
+
         $hours = floor($this->duration / 60);
         $minutes = $this->duration % 60;
-        
+
         if ($minutes === 0) {
             return $hours . ' hour' . ($hours > 1 ? 's' : '');
         }
-        
+
         return $hours . ' hour' . ($hours > 1 ? 's' : '') . ' ' . $minutes . ' minute' . ($minutes > 1 ? 's' : '');
     }
 }

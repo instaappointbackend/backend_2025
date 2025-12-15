@@ -40,7 +40,14 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        'admin' => [
+            'driver' => 'session',
+            'provider' => 'users', // or 'admins' if you have a separate admin model/table
+        ],
     ],
+
+
 
     /*
     |--------------------------------------------------------------------------
@@ -111,5 +118,7 @@ return [
     */
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
+
+
 
 ];
