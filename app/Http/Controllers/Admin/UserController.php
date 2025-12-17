@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\BusinessCategory;
+use App\Models\DeletedUser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -297,6 +298,244 @@ class UserController extends Controller
         return view('admin.users.vendors', compact('vendors', 'businessCategories'));
     }
 
+    public function exportVendors(Request $request)
+    {
+        $query = User::where('role', 'vendor')->with(['businessCategory']);
+
+        // Status filter
+        if ($request->has('status') && $request->status !== '' && $request->status != 'all') {
+            $query->where('status', $request->status == '1');
+        }
+
+        // KYC Status filter
+        if ($request->has('kyc_status') && $request->kyc_status !== '') {
+            if ($request->kyc_status == 'verified') {
+                $query->where('is_kyc_completed', true);
+            } elseif ($request->kyc_status == 'pending') {
+                $query->where('is_kyc_completed', false);
+            }
+        }
+
+        // Business category filter
+        if ($request->has('business_category_id') && $request->business_category_id) {
+            $query->where('business_category_id', $request->business_category_id);
+        }
+
+        // Search filter
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('mobile', 'like', "%{$search}%");
+            });
+        }
+
+        // Recent vendors (today)
+        if ($request->has('recent') && $request->recent == 'today') {
+            $query->whereDate('created_at', today());
+        }
+
+        // Fetch vendors
+        $vendors = $query->get();
+
+        // CSV data
+        $csvData = [];
+
+        // CSV headers
+        $csvData[] = [
+            'Vendor ID',
+            'Name',
+            'Email',
+            'Mobile',
+            'Business Category',
+            'Status',
+            'KYC Status',
+            'Created Date'
+        ];
+
+        // Data rows
+        foreach ($vendors as $vendor) {
+            $csvData[] = [
+                $vendor->id,
+                $vendor->name,
+                $vendor->email,
+                $vendor->mobile,
+                $vendor->businessCategory ? $vendor->businessCategory->name : 'N/A',
+                $vendor->status ? 'Active' : 'Inactive',
+                $vendor->is_kyc_completed ? 'Verified' : 'Pending',
+                $vendor->created_at->format('Y-m-d H:i:s')
+            ];
+        }
+
+        // Create filename
+        $filename = 'vendors_export_' . date('Y-m-d_H-i-s') . '.csv';
+        $filepath = storage_path('app/public/exports/' . $filename);
+
+        // Ensure directory exists
+        if (!file_exists(storage_path('app/public/exports/'))) {
+            mkdir(storage_path('app/public/exports/'), 0755, true);
+        }
+
+        // Write CSV file
+        $file = fopen($filepath, 'w');
+        foreach ($csvData as $row) {
+            fputcsv($file, $row);
+        }
+        fclose($file);
+
+        // Download response
+        return response()->download($filepath, $filename, [
+            'Content-Type' => 'text/csv',
+        ]);
+    }
+
+
+    /**
+     * Show vendors list.
+     */
+    public function deletedVendors(Request $request)
+    {
+        $query = DeletedUser::where('data->role', 'vendor');
+
+        // Filter by status
+        if ($request->has('status') && $request->status !== '') {
+            $query->where('data->status', $request->status == '1');
+        }
+
+        // Filter by KYC status
+        if ($request->has('kyc_status') && $request->kyc_status !== '') {
+            if ($request->kyc_status == 'verified') {
+                $query->where('data->is_kyc_completed', true);
+            } elseif ($request->kyc_status == 'pending') {
+                $query->where('data->is_kyc_completed', false);
+            }
+        }
+
+        // Filter by business category
+        if ($request->has('business_category_id') && $request->business_category_id) {
+            $query->where('data->business_category_id', $request->business_category_id);
+        }
+
+        // Search by name, email, or mobile inside JSON
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+                $q->where('data->name', 'like', "%{$search}%")
+                    ->orWhere('data->email', 'like', "%{$search}%")
+                    ->orWhere('data->mobile', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter today's records
+        if ($request->has('recent') && $request->recent == 'today') {
+            $query->whereDate('created_at', today());
+        }
+
+        $vendors = $query->latest()->paginate(15);
+
+        $businessCategories = BusinessCategory::all();
+
+        //dd($vendors);
+
+        return view('admin.users.deletedVendors', compact('vendors', 'businessCategories'));
+    }
+
+    public function exportDeletedVendors(Request $request)
+    {
+        $query = DeletedUser::where('data->role', 'vendor');
+
+        // Status filter
+        if ($request->has('status') && $request->status !== '' && $request->status != 'all') {
+            $query->where('data->status', $request->status == '1');
+        }
+
+        // KYC status filter
+        if ($request->has('kyc_status') && $request->kyc_status !== '') {
+            if ($request->kyc_status == 'verified') {
+                $query->where('data->is_kyc_completed', true);
+            } elseif ($request->kyc_status == 'pending') {
+                $query->where('data->is_kyc_completed', false);
+            }
+        }
+
+        // Business category filter
+        if ($request->has('business_category_id') && $request->business_category_id) {
+            $query->where('data->business_category_id', $request->business_category_id);
+        }
+
+        // Search inside JSON
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('data->name', 'like', "%{$search}%")
+                    ->orWhere('data->email', 'like', "%{$search}%")
+                    ->orWhere('data->mobile', 'like', "%{$search}%");
+            });
+        }
+
+        // Recent (today)
+        if ($request->has('recent') && $request->recent == 'today') {
+            $query->whereDate('created_at', today());
+        }
+
+        // Get vendors
+        $vendors = $query->get();
+
+        // CSV data array
+        $csvData = [];
+
+        // Headers
+        $csvData[] = [
+            'Deleted Vendor ID',
+            'Name',
+            'Email',
+            'Mobile',
+            'Business Category',
+            'Status',
+            'KYC Status',
+            'Deleted At'
+        ];
+
+        // Rows
+        foreach ($vendors as $vendor) {
+            $csvData[] = [
+                $vendor->id,
+                $vendor->data->name ?? 'N/A',
+                $vendor->data->email ?? 'N/A',
+                $vendor->data->mobile ?? 'N/A',
+                $vendor->businessCategory->name
+                    ?? ($vendor->data->business_category_name ?? 'N/A'),
+                ($vendor->data->status ?? 0) == 1 ? 'Active' : 'Inactive',
+                !empty($vendor->data->is_kyc_completed) ? 'Verified' : 'Pending',
+                $vendor->created_at->format('Y-m-d H:i:s'),
+            ];
+        }
+
+        // File name + path
+        $filename = 'deleted_vendors_export_' . date('Y-m-d_H-i-s') . '.csv';
+        $filepath = storage_path('app/public/exports/' . $filename);
+
+        // Ensure directory exists
+        if (!file_exists(storage_path('app/public/exports/'))) {
+            mkdir(storage_path('app/public/exports/'), 0755, true);
+        }
+
+        // Create CSV
+        $file = fopen($filepath, 'w');
+        foreach ($csvData as $row) {
+            fputcsv($file, $row);
+        }
+        fclose($file);
+
+        // Download CSV
+        return response()->download($filepath, $filename, [
+            'Content-Type' => 'text/csv',
+        ]);
+    }
+
+
 // Also update your customers() method for consistency:
 
     /**
@@ -329,5 +568,170 @@ class UserController extends Controller
         $customers = $query->latest()->paginate(15);
 
         return view('admin.users.customers', compact('customers'));
+    }
+
+    public function exportCustomers(Request $request)
+    {
+        $query = User::where('role', 'customer');
+
+        // Search by name, email, mobile
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('mobile', 'like', "%{$search}%");
+            });
+        }
+
+        // Recent customers (today)
+        if ($request->has('recent') && $request->recent == 'today') {
+            $query->whereDate('created_at', today());
+        }
+
+        // Fetch customers
+        $customers = $query->get();
+
+        // CSV data array
+        $csvData = [];
+
+        // CSV headers
+        $csvData[] = [
+            'Customer ID',
+            'Name',
+            'Email',
+            'Mobile',
+            'Status',
+            'Created Date'
+        ];
+
+        // Add each customer row
+        foreach ($customers as $customer) {
+            $csvData[] = [
+                $customer->id,
+                $customer->name,
+                $customer->email,
+                $customer->mobile,
+                $customer->status ? 'Active' : 'Inactive',
+                $customer->created_at->format('Y-m-d H:i:s'),
+            ];
+        }
+
+        // File name + path
+        $filename = 'customers_export_' . date('Y-m-d_H-i-s') . '.csv';
+        $filepath = storage_path('app/public/exports/' . $filename);
+
+        // Ensure directory exists
+        if (!file_exists(storage_path('app/public/exports/'))) {
+            mkdir(storage_path('app/public/exports/'), 0755, true);
+        }
+
+        // Create CSV file
+        $file = fopen($filepath, 'w');
+        foreach ($csvData as $row) {
+            fputcsv($file, $row);
+        }
+        fclose($file);
+
+        // Download file
+        return response()->download($filepath, $filename, [
+            'Content-Type' => 'text/csv',
+        ]);
+    }
+
+
+
+    public function deletedCustomers(Request $request)
+    {
+        $query = DeletedUser::where('data->role', 'customer');
+
+
+        // Search by name, email or mobile
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('data->name', 'like', "%{$search}%")
+                    ->orWhere('data->email', 'like', "%{$search}%")
+                    ->orWhere('data->mobile', 'like', "%{$search}%");
+            });
+        }
+
+        // Add recent filter from dashboard notifications
+        if ($request->has('recent') && $request->recent == 'today') {
+            $query->whereDate('created_at', today());
+        }
+
+        $customers = $query->latest()->paginate(15);
+
+        return view('admin.users.deletedCustomers', compact('customers'));
+    }
+
+    public function exportDeletedCustomers(Request $request)
+    {
+        $query = DeletedUser::where('data->role', 'customer');
+
+        // Search by name, email, mobile inside JSON
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('data->name', 'like', "%{$search}%")
+                    ->orWhere('data->email', 'like', "%{$search}%")
+                    ->orWhere('data->mobile', 'like', "%{$search}%");
+            });
+        }
+
+        // Recent filter (today)
+        if ($request->has('recent') && $request->recent == 'today') {
+            $query->whereDate('created_at', today());
+        }
+
+        // Fetch deleted customers
+        $customers = $query->get();
+
+        // CSV content array
+        $csvData = [];
+
+        // Headers
+        $csvData[] = [
+            'Deleted Customer ID',
+            'Name',
+            'Email',
+            'Mobile',
+            'Status',
+            'Deleted At'
+        ];
+
+        // Rows
+        foreach ($customers as $customer) {
+            $csvData[] = [
+                $customer->id,
+                $customer->data->name ?? 'N/A',
+                $customer->data->email ?? 'N/A',
+                $customer->data->mobile ?? 'N/A',
+                isset($customer->data->status) && $customer->data->status == 1 ? 'Active' : 'Inactive',
+                $customer->created_at->format('Y-m-d H:i:s'),
+            ];
+        }
+
+        // Filename + path
+        $filename = 'deleted_customers_export_' . date('Y-m-d_H-i-s') . '.csv';
+        $filepath = storage_path('app/public/exports/' . $filename);
+
+        // Ensure directory exists
+        if (!file_exists(storage_path('app/public/exports/'))) {
+            mkdir(storage_path('app/public/exports/'), 0755, true);
+        }
+
+        // Create CSV
+        $file = fopen($filepath, 'w');
+        foreach ($csvData as $row) {
+            fputcsv($file, $row);
+        }
+        fclose($file);
+
+        // Return CSV download
+        return response()->download($filepath, $filename, [
+            'Content-Type' => 'text/csv',
+        ]);
     }
 }

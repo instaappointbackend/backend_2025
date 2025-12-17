@@ -2,12 +2,6 @@
 
 @section('title', 'Customers Management')
 
-@section('page-actions')
-    <a href="{{ route('admin.customer.export') }}" class="btn btn-primary">
-        <i class="fas fa-download me-1"></i> Export
-    </a>
-@endsection
-
 @section('content')
     <div class="container-fluid px-4">
         <h1 class="mt-4">Customers Management</h1>
@@ -24,8 +18,8 @@
                         <i class="fas fa-users me-1"></i>
                         All Customers
                     </div>
-                    <a href="{{ route('admin.users.create') }}?role=customer" class="btn btn-primary btn-sm">
-                        <i class="fas fa-plus me-1"></i> Add New Customer
+                    <a href="{{ route('admin.deletedCustomer.export') }}" class="btn btn-primary">
+                        <i class="fas fa-download me-1"></i> Export
                     </a>
                 </div>
             </div>
@@ -37,12 +31,12 @@
                                 placeholder="Search by name, email or mobile" value="{{ request('search') }}">
                         </div>
                         <!--<div class="col-md-3">
-                                                                                    <select name="status" class="form-select">
-                                                                                        <option value="">All Status</option>
-                                                                                        <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
-                                                                                        <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
-                                                                                    </select>
-                                                                                </div>-->
+                                                                            <select name="status" class="form-select">
+                                                                                <option value="">All Status</option>
+                                                                                <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
+                                                                                <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                                                                            </select>
+                                                                        </div>-->
                         <div class="col-md-1">
                             <button type="submit" class="btn btn-primary w-100">Filter</button>
                         </div>

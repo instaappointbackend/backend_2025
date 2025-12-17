@@ -32,8 +32,8 @@ class ServiceController extends Controller
         $data = $request->validated();
         $data['user_id'] = Auth::id();
         if ($request->hasFile('image')) {
-            $file = $request->file('image');
-                $data['image'] = $file->store('image', 'public');
+            $imagePath = $request->file('image')->store('services', 'public');
+            $data['image'] = $imagePath;
         }
         $service = Service::create($data);
         return $this->success(new ServiceResponse($service), 'Service created successfully.', 201);
@@ -84,14 +84,13 @@ class ServiceController extends Controller
         }
 
         if ($request->hasFile('image')) {
-            $file = $request->file('image');
-
-            // Delete existing file before updating
-            if ($service->image) {
+            // Delete old image if exists
+            if ($service->image && Storage::disk('public')->exists($service->image)) {
                 Storage::disk('public')->delete($service->image);
             }
 
-            $data['image'] = $file->store('image', 'public');
+            $path = $request->file('image')->store('services', 'public');
+            $validated['image'] = $path;
         }
 
 
