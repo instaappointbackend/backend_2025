@@ -7,6 +7,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rule;
+
 class AuthRequest extends FormRequest
 {
 
@@ -69,7 +70,8 @@ class AuthRequest extends FormRequest
                             return request()->role === 'vendor';
                         }),
                         'nullable',
-                        'string'
+                        'string',
+                        'in:beginner,intermediate,experienced,advanced,expert,master'
                     ],
 
                     // Terms and conditions acceptance

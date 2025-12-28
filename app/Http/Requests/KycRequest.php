@@ -25,11 +25,12 @@ class KycRequest extends FormRequest
      */
     public function rules()
     {
+
         return [
             // Personal Identification
-            'aadhar_number' => 'required|string|max:12',
+            'aadhar_number' => 'required|digits:12',
             'aadhar_attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
-            'pan_number' => 'required|string|max:10',
+            'pan_number' => 'required|regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/',
             'pan_attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
 
             // Bank Details
@@ -66,6 +67,18 @@ class KycRequest extends FormRequest
      */
     protected function failedValidation(Validator $validator)
     {
-        throw new HttpResponseException($this->error($validator->errors(), $validator->errors()->first(), 422));
+        // API request → return JSON
+        if ($this->expectsJson()) {
+            throw new HttpResponseException(
+                $this->error(
+                    $validator->errors(),
+                    $validator->errors()->first(),
+                    422
+                )
+            );
+        }
+
+        // Web request → default Laravel behavior (redirect back)
+        parent::failedValidation($validator);
     }
 }

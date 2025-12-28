@@ -67,6 +67,7 @@ Route::post('/payment/webhook', [PhonePeController::class, 'handleWebhook'])->na
 
 // Home page
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/download-mobile', [HomeController::class, 'downloadApk'])->name('downloadApk');
 
 //Blogs
 Route::get('/blogs', [WebBlogController::class, 'blogs'])->name('blogs');
@@ -83,11 +84,13 @@ Route::get('/linkstorage', function () {
     Artisan::call('storage:link');
 });
 
+// Include admin routes
+require __DIR__ . '/admin.php';
+
+// Include vendor routes
+require __DIR__ . '/vendor.php';
+
+// ⚠️ ALWAYS LAST
 Route::get('{page:slug}', [\App\Http\Controllers\HomeController::class, 'show'])
     ->where('page', '(?!admin|login|register|password|home|dashboard).*')
     ->name('page.show');
-
-
-
-// Include admin routes
-require __DIR__ . '/admin.php';

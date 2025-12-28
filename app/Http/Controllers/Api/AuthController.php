@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
 use App\Traits\ApiResponseTrait;
 use App\Http\Requests\AuthRequest;
+use App\Services\User\UserRegistrationService;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -477,19 +478,138 @@ class AuthController extends Controller
     /**
      * Register user details after OTP verification.
      */
-    public function register(AuthRequest $request)
+    // public function register(AuthRequest $request)
+    // {
+    //     try {
+    //         $user = User::where('mobile', $request->mobile)->first();
+
+    //         if (!$user) {
+    //             return $this->error([], 'User not found. Please verify OTP first.', 404);
+    //         }
+
+    //         // $user1 = User::where('email', $request->email)->first();
+
+    //         // if ($user1) {
+    //         //     return $this->error([], 'Duplicate Email Found.', 400);
+    //         // }
+
+    //         // Check if user is already registered
+    //         if ($user->is_registered) {
+    //             return $this->error([], 'User is already registered.', 400);
+    //         }
+
+    //         DB::beginTransaction();
+
+    //         // Handle profile picture upload
+    //         if ($request->hasFile('profile_picture')) {
+    //             $path = $request->file('profile_picture')->store('profile_pictures', 'public');
+    //             $user->profile_picture = $path;
+    //         }
+
+    //         // Generate a unique referral code if not already set
+    //         if (empty($user->referral_code)) {
+    //             $user->referral_code = $this->generateUniqueReferralCode();
+    //         }
+
+    //         // Convert reference_code to reference_user_id
+    //         if ($request->filled('reference_code')) {
+    //             $referrer = User::where('referral_code', $request->reference_code)->first();
+    //             if ($referrer) {
+    //                 $user->reference_id = $referrer->id;
+    //                 Log::info('User linked to referrer', [
+    //                     'user_id' => $user->id,
+    //                     'referrer_id' => $referrer->id,
+    //                     'reference_code' => $request->reference_code
+    //                 ]);
+    //             } else {
+    //                 Log::warning('Invalid reference code provided', [
+    //                     'user_id' => $user->id,
+    //                     'reference_code' => $request->reference_code
+    //                 ]);
+    //             }
+    //         }
+
+    //         // Update user with registration data
+    //         $updateData = $request->only([
+    //             'name',
+    //             'email',
+    //             'gender',
+    //             'dob',
+    //             'address',
+    //             'full_address',
+    //             'street',
+    //             'city',
+    //             'state',
+    //             'country',
+    //             'postal_code',
+    //             'latitude',
+    //             'longitude',
+    //             'terms_accepted'
+    //         ]);
+
+    //         // Add role-specific fields
+    //         if ($request->role === 'vendor') {
+    //             if ($request->has('business_category_id')) {
+    //                 $updateData['business_category_id'] = $request->business_category_id;
+    //             }
+    //             if ($request->has('experience')) {
+    //                 $updateData['experience'] = $request->experience;
+    //             }
+    //         }
+
+    //         // Set role if provided
+    //         if ($request->has('role')) {
+    //             $updateData['role'] = $request->role;
+    //         }
+
+    //         // Mark as registered
+    //         $updateData['is_registered'] = true;
+
+    //         // Update user
+    //         //dd($updateData);
+    //         $user->update($updateData);
+
+    //         // Register push notification token if provided
+    //         if ($request->has('token') && !empty($request->token)) {
+    //             $this->registerNotificationToken(
+    //                 $user->id,
+    //                 $request->token,
+    //                 $user->role,
+    //                 $request->device_info
+    //             );
+    //         }
+
+    //         DB::commit();
+
+    //         Log::info('User registered successfully', [
+    //             'user_id' => $user->id,
+    //             'mobile' => $user->mobile,
+    //             'role' => $user->role
+    //         ]);
+
+    //         return $this->success(new ProfileResponse($user), 'User registered successfully.');
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Registration error', [
+    //             'mobile' => $request->mobile,
+    //             'error' => $e->getMessage(),
+    //             'trace' => $e->getTraceAsString()
+    //         ]);
+
+    //         return $this->error([
+    //             'mobile' => $request->mobile,
+    //             'error' => $e->getMessage(),
+    //             'trace' => $e->getTraceAsString()
+    //         ], 'Registration failed. Please try again.', 500);
+    //     }
+    // }
+    public function register(AuthRequest $request, UserRegistrationService $service)
     {
         try {
             $user = User::where('mobile', $request->mobile)->first();
-
             if (!$user) {
                 return $this->error([], 'User not found. Please verify OTP first.', 404);
-            }
-
-            $user1 = User::where('email', $request->email)->first();
-
-            if ($user1) {
-                return $this->error([], 'Duplicate Email Found.', 400);
             }
 
             // Check if user is already registered
@@ -497,77 +617,8 @@ class AuthController extends Controller
                 return $this->error([], 'User is already registered.', 400);
             }
 
-            DB::beginTransaction();
+            $service->register($request->all(), $user);
 
-            // Handle profile picture upload
-            if ($request->hasFile('profile_picture')) {
-                $path = $request->file('profile_picture')->store('profile_pictures', 'public');
-                $user->profile_picture = $path;
-            }
-
-            // Generate a unique referral code if not already set
-            if (empty($user->referral_code)) {
-                $user->referral_code = $this->generateUniqueReferralCode();
-            }
-
-            // Convert reference_code to reference_user_id
-            if ($request->filled('reference_code')) {
-                $referrer = User::where('referral_code', $request->reference_code)->first();
-                if ($referrer) {
-                    $user->reference_id = $referrer->id;
-                    Log::info('User linked to referrer', [
-                        'user_id' => $user->id,
-                        'referrer_id' => $referrer->id,
-                        'reference_code' => $request->reference_code
-                    ]);
-                } else {
-                    Log::warning('Invalid reference code provided', [
-                        'user_id' => $user->id,
-                        'reference_code' => $request->reference_code
-                    ]);
-                }
-            }
-
-            // Update user with registration data
-            $updateData = $request->only([
-                'name',
-                'email',
-                'gender',
-                'dob',
-                'address',
-                'full_address',
-                'street',
-                'city',
-                'state',
-                'country',
-                'postal_code',
-                'latitude',
-                'longitude',
-                'terms_accepted'
-            ]);
-
-            // Add role-specific fields
-            if ($request->role === 'vendor') {
-                if ($request->has('business_category_id')) {
-                    $updateData['business_category_id'] = $request->business_category_id;
-                }
-                if ($request->has('experience')) {
-                    $updateData['experience'] = $request->experience;
-                }
-            }
-
-            // Set role if provided
-            if ($request->has('role')) {
-                $updateData['role'] = $request->role;
-            }
-
-            // Mark as registered
-            $updateData['is_registered'] = true;
-
-            // Update user
-            $user->update($updateData);
-
-            // Register push notification token if provided
             if ($request->has('token') && !empty($request->token)) {
                 $this->registerNotificationToken(
                     $user->id,
@@ -577,28 +628,20 @@ class AuthController extends Controller
                 );
             }
 
-            DB::commit();
-
-            Log::info('User registered successfully', [
-                'user_id' => $user->id,
-                'mobile' => $user->mobile,
-                'role' => $user->role
-            ]);
-
             return $this->success(new ProfileResponse($user), 'User registered successfully.');
-        } catch (\Exception $e) {
-            DB::rollBack();
+        } catch (\Throwable $th) {
+
 
             Log::error('Registration error', [
                 'mobile' => $request->mobile,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'error' => $th->getMessage(),
+                'trace' => $th->getTraceAsString()
             ]);
 
             return $this->error([
                 'mobile' => $request->mobile,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'error' => $th->getMessage(),
+                'trace' => $th->getTraceAsString()
             ], 'Registration failed. Please try again.', 500);
         }
     }
