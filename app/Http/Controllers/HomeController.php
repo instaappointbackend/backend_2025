@@ -65,4 +65,9 @@ class HomeController extends Controller
         return $settings[$key] ?? $default;
         //}
     }
+
+    public function downloadApk()
+    {
+        return view('downloadApk');
+    }
 }

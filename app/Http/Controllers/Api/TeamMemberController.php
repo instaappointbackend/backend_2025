@@ -39,9 +39,10 @@ class TeamMemberController extends Controller
 
 
         $data = $request->only(['name', 'email', 'mobile',  'gender', 'dob', 'address', 'full_address', 'street', 'city', 'state', 'country', 'postal_code', 'latitude', 'longitude']);
-        
+
         $data['vendor_id']  = $vendor->id;
         $data['role']       = 'vendor_team';
+        $data['business_category_id']  = $vendor->business_category_id;
         if ($request->hasFile('profile_picture')) {
             $path = $request->file('profile_picture')->store('profile_pictures', 'public');
             $data['profile_picture'] = $path;
@@ -84,7 +85,7 @@ class TeamMemberController extends Controller
 
             $data['profile_picture'] = $path;
         }
-
+        $data['business_category_id']  = $loggedInUser->business_category_id;
         $teamMember->update($data);
 
         return $this->success(new TeamMemberResponse($teamMember), 'Team member updated successfully.');
