@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\AppointmentSettingsController;
 use App\Http\Controllers\Api\OfferController;
 use App\Http\Controllers\Api\PayoutController;
 use App\Http\Controllers\Api\CustomerController;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 
