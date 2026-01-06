@@ -543,8 +543,28 @@
                 @endif
 
 
-                <form action="{{ route('subscribe.process') }}" method="POST" id="subscriptionForm">
+                <form action="{{ route('subscription.process') }}" method="POST" id="subscriptionForm">
                     @csrf
+                    <div class="mb-3">
+                        <label for="payment_method" class="form-label">Payment Method</label>
+
+                        <select class="form-control {{ $errors->has('payment_method') ? 'is-invalid' : '' }}"
+                            id="payment_method" name="payment_gateway" required>
+                            <option value="">-- Select Payment Method --</option>
+                            <option value="phonepe" {{ old('payment_gateway') == 'phonepe' ? 'selected' : '' }}>
+                                PhonePe
+                            </option>
+                            <option value="razorpay" {{ old('payment_gateway') == 'razorpay' ? 'selected' : '' }}>
+                                Razorpay
+                            </option>
+                        </select>
+
+                        @if ($errors->has('payment_gateway'))
+                            <div class="invalid-feedback">
+                                {{ $errors->first('payment_gateway') }}
+                            </div>
+                        @endif
+                    </div>
                     <div class="mb-3">
                         <label for="name" class="form-label">Full Name</label>
                         <input type="text"
@@ -644,11 +664,10 @@
                     </div>
 
 
-                    <button type="submit" class="btn btn-pay">Subscribe & Pay with PhonePe</button>
+                    <button type="submit" class="btn btn-pay">Subscribe</button>
                 </form>
 
-                <p class="footer-text">&copy; 2025 InstAppoint. Secured by <a href="https://www.phonepe.com"
-                        target="_blank">PhonePe</a>.</p>
+                <p class="footer-text">&copy; 2025 InstAppoint. Secured by </p>
             </div>
         </div>
         <div>&nbsp;</div>

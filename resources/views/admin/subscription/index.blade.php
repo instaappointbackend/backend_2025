@@ -77,7 +77,7 @@
                                 </td>
 
                                 <td>{{ $user->plan_name ?? '-' }}</td>
-                                <td>{{ $user->phonepe_transaction_id }}</td>
+                                <td>{{ $user->transaction_id }}</td>
                                 <td>{{ $user->payment_status ?? '-' }}</td>
 
                                 <td>{{ $user->starts_at ?? '-' }}</td>

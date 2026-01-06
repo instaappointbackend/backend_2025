@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AppointmentController;
+use App\Http\Controllers\Api\AppointmentPayments\RazorpayMobileController;
 use App\Http\Controllers\Api\AppSettingController;
 use App\Http\Controllers\Api\BlogController;
 use App\Http\Controllers\Api\ComboServiceController;
@@ -229,10 +230,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Update the payment/phonepe/bridge-url route in api.php
     Route::get('/payment/phonepe/bridge-url', function (Request $request) {
+
         $validator = Validator::make($request->all(), [
             'appointment_id' => 'required|integer|exists:appointments,id',
             'return_scheme' => 'required|string',
             'dev_server' => 'nullable|string',
+            'payment_gateway' => 'required|in:razorpay,phonepe',
         ]);
 
         if ($validator->fails()) {
@@ -263,9 +266,10 @@ Route::middleware('auth:sanctum')->group(function () {
         }
 
         // Generate the bridge URL
-        $bridgeUrl = route('phonepe.bridge', [
+        $bridgeUrl = route('phonepe.bridge.page', [
             'appointment_id' => $request->appointment_id,
-            'app_return_url' => $returnUrl
+            'app_return_url' => $returnUrl,
+            'payment_gateway' => request()->get('payment_gateway')
         ]);
 
         return response()->json([
@@ -273,10 +277,26 @@ Route::middleware('auth:sanctum')->group(function () {
             'message' => 'Bridge URL generated successfully',
             'data' => [
                 'bridge_url' => $bridgeUrl,
-                'return_url' => $returnUrl
+                'return_url' => $returnUrl,
+                'payment_gateway' => request()->get('payment_gateway')
             ]
         ]);
     })->name('api.payment.phonepe.bridge-url');
+
+    // Razorpay Mobile SDK Routes (Protected)
+    Route::middleware(['auth:sanctum'])->prefix('razorpay/mobile')->group(function () {
+        Route::post('create-order', [RazorpayMobileController::class, 'createOrder'])
+            ->name('razorpay.mobile.create-order');
+
+        Route::post('verify-payment', [RazorpayMobileController::class, 'verifyPayment'])
+            ->name('razorpay.mobile.verify-payment');
+
+        Route::post('payment-failed', [RazorpayMobileController::class, 'handleFailure'])
+            ->name('razorpay.mobile.payment-failed');
+
+        Route::get('payment-status/{paymentId}', [RazorpayMobileController::class, 'getPaymentStatus'])
+            ->name('razorpay.mobile.payment-status');
+    });
 
     Route::prefix('providers')->group(function () {
         // Add these new routes
