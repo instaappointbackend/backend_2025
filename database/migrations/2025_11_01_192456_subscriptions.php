@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id');
             $table->string('plan_name');
             $table->decimal('amount', 10, 2);
-            $table->string('phonepe_transaction_id')->nullable();
+            $table->string('transaction_id')->nullable();
             $table->enum('payment_status', ['pending', 'completed', 'failed', 'expired'])->default('pending');
             $table->enum('status', ['active', 'inactive'])->default('inactive');
             $table->timestamp('starts_at')->nullable();
