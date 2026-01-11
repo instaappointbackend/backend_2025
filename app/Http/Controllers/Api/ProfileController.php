@@ -32,25 +32,32 @@ class ProfileController extends Controller
      */
     public function updateProfile(ProfileRequest $request)
     {
-
         $user = Auth::user();
 
+        DB::transaction(function () use ($request, $user) {
+
+            // Update profile image
             if ($request->hasFile('profile_picture')) {
-                $path = $request->file('profile_picture')->store('profile_pictures', 'public');
-                $user->profile_picture = $path;
+
+                // Delete old image (extra safety)
+                if ($user->profile_picture) {
+                    Storage::disk('public')->delete($user->profile_picture);
+                }
+
+                $user->profile_picture = $request
+                    ->file('profile_picture')
+                    ->store('profile_pictures', 'public');
             }
 
+            // Update other fields
+            $user->fill($request->safe()->except('profile_picture'));
+
+            $user->save();
+        });
 
 
-
-            $user->update($request->only(['name', 'email', 'gender', 'dob','address','full_address',
-        'street','city','state','country','postal_code','latitude','longitude','business_category_id','experience']));
-
-            return $this->success(new ProfileResponse($user), 'Profile updated successfully.');
-
-
+        return $this->success(new ProfileResponse($user), 'Profile updated successfully.');
     }
-
     /**
      * Delete the current user's account.
      * This will permanently delete the user and all associated data.
@@ -59,7 +66,7 @@ class ProfileController extends Controller
     {
         try {
             $user = Auth::user();
-            
+
             DB::beginTransaction();
 
             // Log the deletion attempt
@@ -169,10 +176,9 @@ class ProfileController extends Controller
             ]);
 
             return $this->success([], 'Account deleted successfully.');
-
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             Log::error('Error deleting user account', [
                 'user_id' => Auth::id(),
                 'error' => $e->getMessage(),
