@@ -175,7 +175,8 @@ class RazorpayMobileController extends Controller
 
             // Update appointment status
             if ($payment->appointment) {
-                $payment->appointment->update(['status' => 'confirmed']);
+                $payment->appointment->update(['status' => 'confirmed', 'payment_status' => 'paid']);
+                $this->paymentService->sendPaymentSuccessNotifications($payment->appointment);
             }
 
             Log::info('Payment verified successfully', [
@@ -393,7 +394,7 @@ class RazorpayMobileController extends Controller
             ]);
 
             if ($payment->appointment) {
-                $payment->appointment->update(['status' => 'confirmed']);
+                $payment->appointment->update(['status' => 'confirmed', 'payment_status' => 'completed']);
             }
 
             Log::info('Payment updated via webhook', [
@@ -425,6 +426,8 @@ class RazorpayMobileController extends Controller
                 'status' => 'failed',
                 'payment_details' => json_encode($paymentDetails)
             ]);
+
+
 
             Log::warning('Payment failed via webhook', [
                 'payment_id' => $payment->id

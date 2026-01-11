@@ -282,7 +282,8 @@
 
             // Send to callback URL
             const form = document.createElement('form');
-            form.method = 'POST';
+            // form.method = 'POST';
+            form.method = 'get';
             form.action = '{{ $callbackUrl }}';
 
             const csrfToken = document.createElement('input');

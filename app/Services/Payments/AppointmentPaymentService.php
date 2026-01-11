@@ -306,7 +306,7 @@ class AppointmentPaymentService
     /**
      * Send notifications after successful payment
      */
-    private function sendPaymentSuccessNotifications(Appointment $appointment): void
+    public function sendPaymentSuccessNotifications(Appointment $appointment): void
     {
         $serviceName = $appointment->service->name
             ?? $appointment->comboService->name
