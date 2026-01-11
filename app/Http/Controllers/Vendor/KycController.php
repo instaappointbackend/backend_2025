@@ -30,9 +30,34 @@ class KycController extends Controller
                 $userId = session('registration_token');
             }
 
+            // $kycService->upload(
+            //     $request->validated(),
+            //     $request->allFiles(),
+            //     $userId
+            // );
+
             $kycService->upload(
-                $request->validated(),
-                $request->allFiles(),
+                $request->only([
+                    'aadhar_number',
+                    'pan_number',
+                    'bank_name',
+                    'bank_account',
+                    'ifsc_code',
+                    'business_name',
+                    'business_category_id',
+                    'business_established_date',
+                    'description',
+                    'address',
+                    'full_address',
+                    'street',
+                    'city',
+                    'state',
+                    'country',
+                    'postal_code',
+                    'latitude',
+                    'longitude'
+                ]),
+                $request->file(),   // ✅ IMPORTANT
                 $userId
             );
 
