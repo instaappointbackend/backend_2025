@@ -105,7 +105,8 @@ class RazorpayTestController extends Controller
                 'key_id' => $orderResult['key_id'],
                 'payment_id' => $payment->id,
                 'appointment' => $payment->appointment,
-                'callbackUrl' => route('razorpay.test.callback')
+                //'callbackUrl' => route('razorpay.test.callback')
+                'callbackUrl' => route('razorpay.test.api-tester')
             ]);
         } catch (\Exception $e) {
             Log::error('Test payment creation failed', [
@@ -200,8 +201,12 @@ class RazorpayTestController extends Controller
     /**
      * Test API endpoints page
      */
-    public function showApiTestPage()
+    public function showApiTestPage(Request $request)
     {
-        return view('razorpay-api-test');
+        $razorpayPaymentId = $request->razorpay_payment_id ?? $request->query('razorpay_payment_id');
+        $razorpayOrderId = $request->razorpay_order_id ?? $request->query('razorpay_order_id');
+        $razorpaySignature = $request->razorpay_signature ?? $request->query('razorpay_signature');
+        //dd($razorpaySignature);
+        return view('razorpay-api-test', compact('razorpayPaymentId', 'razorpayOrderId', 'razorpaySignature'));
     }
 }

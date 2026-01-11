@@ -286,15 +286,18 @@
                 <form id="verifyPaymentForm">
                     <div class="form-group">
                         <label>Razorpay Order ID</label>
-                        <input type="text" name="razorpay_order_id" placeholder="order_xxx" required>
+                        <input type="text" name="razorpay_order_id" placeholder="order_xxx"
+                            value="{{ $razorpayOrderId ?? '' }}" required>
                     </div>
                     <div class="form-group">
                         <label>Razorpay Payment ID</label>
-                        <input type="text" name="razorpay_payment_id" placeholder="pay_xxx" required>
+                        <input type="text" name="razorpay_payment_id" placeholder="pay_xxx" required
+                            value="{{ $razorpayPaymentId ?? '' }}">
                     </div>
                     <div class="form-group">
                         <label>Razorpay Signature</label>
-                        <input type="text" name="razorpay_signature" placeholder="signature" required>
+                        <input type="text" name="razorpay_signature" placeholder="signature" required
+                            value="{{ $razorpaySignature ?? '' }}">
                     </div>
                     <button type="submit" class="btn btn-secondary">Verify Payment</button>
                 </form>
@@ -334,7 +337,7 @@
                 <form id="paymentStatusForm">
                     <div class="form-group">
                         <label>Payment ID</label>
-                        <input type="number" name="payment_id" required>
+                        <input type="text" name="payment_id" required>
                     </div>
                     <button type="submit" class="btn btn-info">Check Status</button>
                 </form>
