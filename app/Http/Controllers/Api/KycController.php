@@ -85,9 +85,33 @@ class KycController extends Controller
     {
         try {
 
-            $kyc = $kycService->upload(
-                $request->validated(),
-                $request->allFiles()
+            // $kyc = $kycService->upload(
+            //     $request->validated(),
+            //     $request->allFiles()
+            // );
+
+            $kyc =  $kycService->upload(
+                $request->only([
+                    'aadhar_number',
+                    'pan_number',
+                    'bank_name',
+                    'bank_account',
+                    'ifsc_code',
+                    'business_name',
+                    'business_category_id',
+                    'business_established_date',
+                    'description',
+                    'address',
+                    'full_address',
+                    'street',
+                    'city',
+                    'state',
+                    'country',
+                    'postal_code',
+                    'latitude',
+                    'longitude'
+                ]),
+                $request->file(),   // ✅ IMPORTANT
             );
 
             return $this->success(

@@ -4,6 +4,7 @@ namespace App\Services\User;
 
 use App\Models\KycDocument;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -14,11 +15,11 @@ class KycService
     public function upload(array $data, array $files,  $user_id = null): KycDocument
     {
         try {
+
             return DB::transaction(function () use ($data, $files, $user_id) {
 
-
                 // Resolve user
-                $userId = $user_id ?? Auth::user()->id;
+                $userId = $user_id ?? Auth::id();
                 $user = User::find($userId);
 
                 if (!$user) {
@@ -38,15 +39,25 @@ class KycService
                 ];
 
                 foreach ($fileFields as $field) {
-                    if (isset($files[$field])) {
-                        if ($kyc->$field) {
+
+                    // Ensure this is a real uploaded file
+                    if (isset($files[$field]) && $files[$field] instanceof UploadedFile) {
+
+                        // Delete old file if exists
+                        if (!empty($kyc->$field)) {
                             Storage::disk('public')->delete($kyc->$field);
                         }
-                        $kyc->$field = $files[$field]->store('kyc_documents', 'public');
+
+                        // Store new file and save relative path
+                        $path = $files[$field]->store('kyc_documents', 'public');
+
+                        $kyc->$field = $path;
                     }
                 }
 
+                // Fill non-file data
                 $kyc->fill($data);
+
 
                 // Reset verification flags
                 $kyc->is_aadhar_verified = false;
