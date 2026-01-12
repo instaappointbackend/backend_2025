@@ -10,6 +10,7 @@ class SubscriptionController extends Controller
 {
     public function index()
     {
+        //new
         //$users =  Subscription::with('user')->orderBy('created_at', 'desc')->get();
         $users = Subscription::latest()
             ->paginate(3)
