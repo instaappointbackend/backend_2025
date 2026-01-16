@@ -11,12 +11,16 @@ class Subscription extends Model
         'user_id',
         'plan_name',
         'amount',
-        'phonepe_transaction_id',
+        'transaction_id',
         //'phonepe_merchant_transaction_id',
         'status',
         'starts_at',
         'expires_at',
-        'last_notification_sent_at'
+        'last_notification_sent_at',
+        'payment_status',
+        'response',
+        'payment_method',
+        'razorpay_payment_id'
     ];
 
     protected $casts = [

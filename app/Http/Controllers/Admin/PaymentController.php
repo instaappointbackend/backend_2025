@@ -181,7 +181,6 @@ class PaymentController extends Controller
 
             return redirect()->route('admin.payments.show', $payment->id)
                 ->with('success', 'Payment status updated successfully.');
-
         } catch (\Exception $e) {
             // Rollback transaction on error
             DB::rollBack();
@@ -255,7 +254,6 @@ class PaymentController extends Controller
 
             return redirect()->route('admin.payments.show', $payment->id)
                 ->with('success', 'Payment refunded successfully.');
-
         } catch (\Exception $e) {
             // Rollback transaction on error
             DB::rollBack();
@@ -504,15 +502,19 @@ class PaymentController extends Controller
     private function sendPaymentStatusNotifications(Payment $payment, $oldStatus, $newStatus)
     {
         // Load needed relations if not already loaded
-        if (!$payment->relationLoaded('appointment') ||
+        if (
+            !$payment->relationLoaded('appointment') ||
             !$payment->relationLoaded('user') ||
-            !$payment->relationLoaded('provider')) {
+            !$payment->relationLoaded('provider')
+        ) {
             $payment->load(['appointment', 'user', 'provider']);
         }
 
         if ($payment->appointment) {
-            if (!$payment->appointment->relationLoaded('service') &&
-                !$payment->appointment->relationLoaded('comboService')) {
+            if (
+                !$payment->appointment->relationLoaded('service') &&
+                !$payment->appointment->relationLoaded('comboService')
+            ) {
                 $payment->appointment->load(['service', 'comboService']);
             }
         }
@@ -626,15 +628,19 @@ class PaymentController extends Controller
     private function sendRefundNotification(Payment $payment, $refundAmount, $reason)
     {
         // Load needed relations if not already loaded
-        if (!$payment->relationLoaded('appointment') ||
+        if (
+            !$payment->relationLoaded('appointment') ||
             !$payment->relationLoaded('user') ||
-            !$payment->relationLoaded('provider')) {
+            !$payment->relationLoaded('provider')
+        ) {
             $payment->load(['appointment', 'user', 'provider']);
         }
 
         if ($payment->appointment) {
-            if (!$payment->appointment->relationLoaded('service') &&
-                !$payment->appointment->relationLoaded('comboService')) {
+            if (
+                !$payment->appointment->relationLoaded('service') &&
+                !$payment->appointment->relationLoaded('comboService')
+            ) {
                 $payment->appointment->load(['service', 'comboService']);
             }
         }

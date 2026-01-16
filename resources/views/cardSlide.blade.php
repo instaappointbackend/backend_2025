@@ -56,119 +56,16 @@
         </div>
     </div>
 </div>
+@php
+    $cards = collect(config('business_categories'))->map(function ($c) {
+        $c['src'] = asset($c['src']);
+        return $c;
+    });
 
+@endphp
 <script>
     // ✅ 1. Define cards
-    const cards = [{
-            title: "Advocate",
-            src: "{{ asset('cardSlid/Advocate.png') }}"
-        },
-        {
-            title: "Agriculture",
-            src: "{{ asset('cardSlid/Agriculture.png') }}"
-        },
-        {
-            title: "Arts & Entertainment",
-            src: "{{ asset('cardSlid/Arts-&-Entertainment.png') }}"
-        },
-        {
-            title: "Automotive",
-            src: "{{ asset('cardSlid/Automotive.png') }}"
-        },
-        {
-            title: "Business Consultant",
-            src: "{{ asset('cardSlid/Business-Consultant.png') }}"
-
-        },
-        {
-            title: "Carpenter",
-            src: "{{ asset('cardSlid/Carpenter.png') }}"
-
-        },
-        {
-            title: "Dietitian",
-            src: "{{ asset('cardSlid/Dietitiatian.png') }}"
-        },
-        {
-            title: "DJ Service",
-            src: "{{ asset('cardSlid/DJ Service.png') }}"
-        },
-        {
-            title: "Driving Instructor",
-            src: "{{ asset('cardSlid/Driving Instructor.png') }}"
-        },
-        {
-            title: "E-commerce services",
-            src: "{{ asset('cardSlid/E-commerce services.png') }}"
-        }, {
-            title: "Finance & Insurance",
-            src: "{{ asset('cardSlid/Finance & Insurance.png') }}"
-        },
-        {
-            title: "food and be",
-            src: "{{ asset('cardSlid/food-and-be.webp') }}"
-        },
-        {
-            title: "Gardening",
-            src: "{{ asset('cardSlid/Gardening.png') }}"
-        },
-        {
-            title: "Gym Personal Trainer",
-            src: "{{ asset('cardSlid/Gym Personal Trainer.png') }}"
-        },
-        {
-            title: "Health and Wellness",
-            src: "{{ asset('cardSlid/Health and Wellness.png') }}"
-        },
-        {
-            title: "House Cleaning",
-            src: "{{ asset('cardSlid/House Cleaning.png') }}"
-        },
-        {
-            title: "Manufacturing",
-            src: "{{ asset('cardSlid/Manufacturing.png') }}"
-        },
-        {
-            title: "Mobile Repairing",
-            src: "{{ asset('cardSlid/Mobile Repairing.png') }}"
-        },
-        {
-            title: "Pet Grooming",
-            src: "{{ asset('cardSlid/Pet Grooming.png') }}"
-        },
-        {
-            title: "Photo,Videography",
-            src: "{{ asset('cardSlid/Photo,Videography.png') }}"
-        },
-        {
-            title: "Plumber",
-            src: "{{ asset('cardSlid/Plumber.png') }}"
-        },
-        {
-            title: "Real Estate",
-            src: "{{ asset('cardSlid/Real Estate.png') }}"
-        },
-        {
-            title: "Sofa Cleaning",
-            src: "{{ asset('cardSlid/Sofa Cleaning.png') }}"
-        },
-        {
-            title: "Technology",
-            src: "{{ asset('cardSlid/Technology.png') }}"
-        },
-        {
-            title: "Tiles & Sanitary",
-            src: "{{ asset('cardSlid/Tiles & Sanitary.png') }}"
-        },
-        {
-            title: "Travel & hospitality",
-            src: "{{ asset('cardSlid/Travel & hospitality.png') }}"
-        },
-        {
-            title: "Water Purifier",
-            src: "{{ asset('cardSlid/Water Purifier.png') }}"
-        }
-    ];
+    const cards = @json($cards);
     const carousel = document.getElementById('carousel');
     const track = document.getElementById('carouselTrack');
     let scrollSpeed = 0.5;

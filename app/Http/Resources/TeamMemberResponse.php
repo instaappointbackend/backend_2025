@@ -6,6 +6,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class TeamMemberResponse extends JsonResource
 {
+
     /**
      * Transform the resource into an array.
      */
@@ -18,13 +19,13 @@ class TeamMemberResponse extends JsonResource
             'mobile'          => $this->mobile,
             'bio'             => $this->bio,
             'gender'          => $this->gender,
-            'dob'             => date('d-m-Y',strtotime($this->dob)),
+            'dob'             => date('d-m-Y', strtotime($this->dob)),
             'role'            => $this->role,
             'profile_picture' => $this->profile_picture ? asset('storage/' . $this->profile_picture) : null,
             'rating'          => $this->rating ?? null,
             'referral_code'   => $this->referral_code,
             'is_registered'   => (bool) $this->name,
-            'is_kyc_completed'=> (bool) $this->is_kyc_completed,
+            'is_kyc_completed' => (bool) $this->is_kyc_completed,
             'status'            => (bool) $this->status,
             'created_at'      => $this->created_at,
             'updated_at'      => $this->updated_at,
@@ -38,7 +39,12 @@ class TeamMemberResponse extends JsonResource
             'postal_code'      => $this->postal_code,
             'latitude'      => $this->latitude,
             'longitude'      => $this->longitude,
-            'member_since'      => date('m Y',strtotime($this->created_at)),
+            'member_since'      => date('m Y', strtotime($this->created_at)),
+            'business_category_details' => $this->businessCategory ? [
+                'id'   => $this->businessCategory->id,
+                'name' => $this->businessCategory->name,
+                'description' => $this->businessCategory->description, // optional
+            ] : null,
         ];
     }
 }

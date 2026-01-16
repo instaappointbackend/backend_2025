@@ -7,4 +7,11 @@ return [
         'salt_index' => env('PHONEPE_SALT_INDEX', '1'),
         'production' => env('PHONEPE_PRODUCTION', false),
     ],
+
+    'razorpay' => [
+        // 'merchant_id' => env('PHONEPE_MERCHANT_ID', 'PGTESTPAYUAT86'),
+        'key_id' => env('RAZORPAY_KEY_ID'),
+        'key_secret' => env('RAZORPAY_KEY_SECRET'),
+        'production' => env('PHONEPE_PRODUCTION', false),
+    ],
 ];

@@ -41,4 +41,8 @@ return [
         'production' => env('PHONEPE_PRODUCTION', false),
     ],
 
+    'razorpay' => [
+        'key' => env('RAZORPAY_KEY_ID'),
+        'secret' => env('RAZORPAY_KEY_SECRET'),
+    ],
 ];

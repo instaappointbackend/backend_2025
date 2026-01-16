@@ -72,12 +72,12 @@
         @endif
 
         <!-- User Management -->
-        @if (hasPermission('users_view_users') || hasPermission('kyc_view_kyc_submissions'))
+        @if (hasPermission('users_view_users') || hasPermission('kyc_view_kyc_submissions') || hasPermission('deleted_user'))
             <li class="menu-header">User Management</li>
         @endif
 
         <!-- System Users with submenu -->
-        @if (hasPermission('users_view_users'))
+        @if (hasPermission('users_view_users') || hasPermission('deleted_user'))
             <li
                 class="menu-item has-submenu {{ request()->routeIs('admin.users*') || request()->routeIs('admin.vendors*') || request()->routeIs('admin.customers*') ? 'active open' : '' }}">
                 <a href="#" class="submenu-toggle">
@@ -92,12 +92,30 @@
                             <span>Vendors</span>
                         </a>
                     </li>
+                    {{-- delete vendor --}}
+                    @if (hasPermission('deleted_user'))
+                        <li class="{{ request()->routeIs('admin.users.deleted.vendors') ? 'active' : '' }}">
+                            <a href="{{ route('admin.users.deleted.vendors') }}">
+                                <i class="fas fa-store"></i>
+                                <span>Deleted Vendors</span>
+                            </a>
+                        </li>
+                    @endif
                     <li class="{{ request()->routeIs('admin.customers*') ? 'active' : '' }}">
                         <a href="{{ route('admin.users.customers') }}">
                             <i class="fas fa-user-friends"></i>
                             <span>Customers</span>
                         </a>
                     </li>
+                    @if (hasPermission('deleted_user'))
+                        {{-- customer --}}
+                        <li class="{{ request()->routeIs('admin.users.deleted.customers') ? 'active' : '' }}">
+                            <a href="{{ route('admin.users.deleted.customers') }}">
+                                <i class="fas fa-store"></i>
+                                <span>Deleted Customers</span>
+                            </a>
+                        </li>
+                    @endif
                     @if (hasPermission('users_manage_user_roles'))
                         <li class="{{ request()->routeIs('admin.users.index') ? 'active' : '' }}">
                             <a href="{{ route('admin.users.index') }}">
@@ -218,6 +236,21 @@
             </li>
         @endif
 
+        <!-- Subscription Management -->
+        @if (hasPermission('subscriptions'))
+            <li class="menu-header">Subscriptions Management</li>
+        @endif
+        @if (hasPermission('subscriptions'))
+            <li class="menu-item {{ request()->routeIs('admin.blogs*') ? 'active' : '' }}">
+                <a href="{{ route('admin.subscription.index') }}">
+                    <i class="fas  fa-user-check"></i>
+                    <span>Subscriptions</span>
+                </a>
+            </li>
+        @endif
+
+
+
         <!-- Content Management -->
         @if (hasPermission('content_manage_blogs') ||
                 hasPermission('content_manage_faqs') ||
@@ -251,6 +284,7 @@
                 </a>
             </li>
         @endif
+
 
         @if (hasPermission('content_manage_pages'))
             <li class="menu-item {{ request()->routeIs('admin.pages*') ? 'active' : '' }}">
