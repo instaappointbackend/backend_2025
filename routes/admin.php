@@ -22,7 +22,7 @@ use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\PayoutController;
 use App\Http\Controllers\Admin\PayoutApiController;
 use App\Http\Controllers\Admin\AdminOfferController;
-use App\Http\Controllers\admin\SubscriptionController;
+use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\TwoFactorController;
 use App\Http\Controllers\WebBlogController;
