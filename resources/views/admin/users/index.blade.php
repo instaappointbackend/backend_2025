@@ -83,11 +83,22 @@
                                 <td>{{ $user->id }}</td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <div class="me-2">
-                                            <img src="{{ $user->profile_picture ? asset('storage/' . $user->profile_picture) : asset('admin/images/default-avatar.png') }}"
-                                                alt="{{ $user->name }}" class="avatar-img rounded-circle" width="40"
-                                                height="40">
-                                        </div>
+                                        {{-- @dd($user->profile_picture) --}}
+                                        @if ($user->profile_picture && Storage::disk('public')->exists($user->profile_picture))
+                                            <div class="me-2">
+
+                                                <img src="{{ $user->profile_picture ? asset('storage/' . $user->profile_picture) : asset('admin/images/default-avatar.png') }}"
+                                                    alt="{{ $user->name }}" class="avatar-img rounded-circle"
+                                                    width="40" height="40">
+                                            </div>
+                                        @else
+                                            <div class="me-2">
+
+                                                <img src="{{ asset('admin/images/default-avatar.png') }}"
+                                                    alt="{{ $user->name }}" class="avatar-img rounded-circle"
+                                                    width="40" height="40">
+                                            </div>
+                                        @endif
                                         <div>
                                             <h6 class="mb-0">{{ $user->name }}</h6>
                                         </div>

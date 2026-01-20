@@ -61,6 +61,7 @@
                         <tr>
                             <th>Sr No</th>
                             <th>ID</th>
+                            <th>Category</th>
                             <th>Vendor</th>
                             <th>Email</th>
                             <th>Mobile</th>
@@ -75,6 +76,7 @@
                             <tr>
                                 <td>{{ $vendors->firstItem() + $index }}</td>
                                 <td>{{ $vendor->id }}</td>
+                                <td>{{ $vendor?->businessCategory?->name }}</td>
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="me-2">

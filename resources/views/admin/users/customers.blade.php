@@ -37,12 +37,12 @@
                                 placeholder="Search by name, email or mobile" value="{{ request('search') }}">
                         </div>
                         <!--<div class="col-md-3">
-                                                                                    <select name="status" class="form-select">
-                                                                                        <option value="">All Status</option>
-                                                                                        <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
-                                                                                        <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
-                                                                                    </select>
-                                                                                </div>-->
+                                                                                                    <select name="status" class="form-select">
+                                                                                                        <option value="">All Status</option>
+                                                                                                        <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
+                                                                                                        <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                                                                                                    </select>
+                                                                                                </div>-->
                         <div class="col-md-1">
                             <button type="submit" class="btn btn-primary w-100">Filter</button>
                         </div>
@@ -70,7 +70,7 @@
                                     <td>{{ $customer->id }}</td>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            @if ($customer->profile_picture)
+                                            @if ($customer->profile_picture && Storage::disk('public')->exists($customer->profile_picture))
                                                 <img src="{{ asset('storage/' . $customer->profile_picture) }}"
                                                     alt="{{ $customer->name }}" class="rounded-circle me-2" width="40"
                                                     height="40">

@@ -154,7 +154,7 @@ class UserController extends Controller
                 'string',
                 'email',
                 'max:255',
-                Rule::unique('users')->ignore($user->id),
+                //Rule::unique('users')->ignore($user->id),
             ],
             'mobile' => [
                 'required',
@@ -253,7 +253,7 @@ class UserController extends Controller
      */
     public function vendors(Request $request)
     {
-        $query = User::where('role', 'vendor');
+        $query = User::with('businessCategory')->where('role', 'vendor');
 
         // Filter by status if provided
         if (!empty($request->has('status')) && $request->has('status') && $request->status !== '') {

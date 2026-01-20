@@ -57,6 +57,7 @@
                 <table class="table table-hover">
                     <thead>
                         <tr>
+                            <th>Sr No</th>
                             <th>ID</th>
                             <th>Service</th>
                             <th>Vendor</th>
@@ -67,16 +68,19 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($services as $service)
+                        @forelse($services as $index=>$service)
                             <tr>
+                                <td>{{ $services->firstItem() + $index }}</td>
                                 <td>{{ $service->id }}</td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <div class="me-2">
-                                            <img src="{{ $service->image ? asset('storage/' . $service->image) : '' }}"
-                                                alt="{{ $service->name }}" class="avatar-img" width="30"
-                                                height="30">
-                                        </div>
+                                        @if ($service->image && Storage::disk('public')->exists($service->image))
+                                            <div class="me-2">
+                                                <img src="{{ $service->image ? asset('storage/' . $service->image) : '' }}"
+                                                    alt="{{ $service->name }}" class="avatar-img" width="30"
+                                                    height="30">
+                                            </div>
+                                        @endif
                                         <div>
                                             {{ $service->name }}
                                         </div>
@@ -84,11 +88,13 @@
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <div class="me-2">
-                                            <img src="{{ $service->user->profile_picture ? asset('storage/' . $service->user->profile_picture) : asset('admin/images/default-avatar.png') }}"
-                                                alt="{{ $service->user->name }}" class="avatar-img" width="30"
-                                                height="30">
-                                        </div>
+                                        @if ($service->user->profile_picture && Storage::disk('public')->exists($service->user->profile_picture))
+                                            <div class="me-2">
+                                                <img src="{{ $service->user->profile_picture ? asset('storage/' . $service->user->profile_picture) : asset('admin/images/default-avatar.png') }}"
+                                                    alt="{{ $service->user->name }}" class="avatar-img" width="30"
+                                                    height="30">
+                                            </div>
+                                        @endif
                                         <div>
                                             {{ $service->user->name }}
                                         </div>
@@ -136,9 +142,22 @@
                 </table>
             </div>
 
-            <div class="d-flex justify-content-end mt-3">
+            {{-- <div class="d-flex justify-content-end mt-3">
                 {{ $services->onEachSide(5)->links() }}
-            </div>
+            </div> --}}
+
+            @if ($services->hasPages())
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>
+                        Showing {{ $services->firstItem() ?? 0 }} to {{ $services->lastItem() ?? 0 }} of
+                        {{ $services->total() }}
+                        users
+                    </div>
+                    <div class="d-flex justify-content-end mt-3">
+                        {{ $services->onEachSide(5)->links() }}
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 @endsection
