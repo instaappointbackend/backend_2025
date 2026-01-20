@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\admin;
+namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Subscription;
@@ -13,7 +13,7 @@ class SubscriptionController extends Controller
         //new
         //$users =  Subscription::with('user')->orderBy('created_at', 'desc')->get();
         $users = Subscription::latest()
-            ->paginate(3)
+            ->paginate(10)
             ->withQueryString();
 
         return view('admin.subscription.index', compact('users'));
