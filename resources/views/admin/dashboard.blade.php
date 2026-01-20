@@ -235,19 +235,52 @@
             </div>
         </div>
     </div>
-
-    <!-- Stats Cards -->
     <div class="row">
+        <div class="col-md-3 col-sm-6 mb-4">
+
+            <div class="stat-card position-relative bg-white">
+                <div class="stat-card-body">
+                    <div class="stat-card-icon bg-primary">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h6 class="stat-card-title">TOTAL USERS</h6>
+                    <h2 class="stat-card-value">{{ $totalCustomers + $totalVendors }}</h2>
+                    <div class="stat-card-trend trend-up">
+                        <i class="fas fa-arrow-up me-1"></i> 12.5% from last month
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="col-md-3 col-sm-6 mb-4">
             <a href="{{ route('admin.users.index') }}" class="stat-card position-relative bg-white text-decoration-none"
                 data-card="users">
                 <div class="stat-card position-relative bg-white">
                     <div class="stat-card-body">
                         <div class="stat-card-icon bg-primary">
-                            <i class="fas fa-users"></i>
+                            <i class="fas fa-user-cog"></i>
                         </div>
-                        <h6 class="stat-card-title">TOTAL USERS</h6>
+                        <h6 class="stat-card-title">TOTAL ADMIN USERS</h6>
                         <h2 class="stat-card-value">{{ $totalUsers }}</h2>
+                        <div class="stat-card-trend trend-up">
+                            <i class="fas fa-arrow-up me-1"></i> 12.5% from last month
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+    <!-- Stats Cards -->
+    <div class="row">
+        <div class="col-md-3 col-sm-6 mb-4">
+            <a href="{{ route('admin.users.customers') }}" class="stat-card position-relative bg-white text-decoration-none"
+                data-card="users">
+                <div class="stat-card position-relative bg-white">
+                    <div class="stat-card-body">
+                        <div class="stat-card-icon bg-primary">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <h6 class="stat-card-title">TOTAL Customers</h6>
+                        <h2 class="stat-card-value">{{ $totalCustomers }}</h2>
                         <div class="stat-card-trend trend-up">
                             <i class="fas fa-arrow-up me-1"></i> 12.5% from last month
                         </div>

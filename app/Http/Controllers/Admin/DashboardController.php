@@ -19,7 +19,7 @@ class DashboardController extends Controller
     public function index()
     {
         // Get counts for dashboard
-        $totalUsers = User::where('role', '!=', 'admin')->count();
+        $totalUsers = User::where('role', '=', 'admin')->count();
         $totalVendors = User::where('role', 'vendor')->count();
         $totalCustomers = User::where('role', 'customer')->count();
         $totalServices = Service::count();
