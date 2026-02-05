@@ -27,22 +27,22 @@ class UserController extends Controller
             });
 
         // Filter by role ID if provided
-        if ($request->has('role_id') && $request->role_id) {
+        if ($request->filled('role_id') && $request->role_id) {
             $query->where('role_id', $request->role_id);
         }
 
         // Filter by system role if provided
-        if ($request->has('system_role') && $request->system_role) {
+        if ($request->filled('system_role') && $request->system_role) {
             $query->where('role', $request->system_role);
         }
 
         // Filter by status if provided
-        if ($request->has('status')) {
+        if ($request->filled('status')) {
             $query->where('status', $request->status == 'active');
         }
 
         // Search by name, email or mobile
-        if ($request->has('search') && $request->search) {
+        if ($request->filled('search') && $request->search) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
@@ -256,12 +256,12 @@ class UserController extends Controller
         $query = User::with('businessCategory')->where('role', 'vendor');
 
         // Filter by status if provided
-        if (!empty($request->has('status')) && $request->has('status') && $request->status !== '') {
+        if (!empty($request->filled('status')) && $request->filled('status') && $request->status !== '') {
             $query->where('status', $request->status == '1');
         }
 
         // Filter by KYC status if provided
-        if ($request->has('kyc_status') && $request->kyc_status !== '') {
+        if ($request->filled('kyc_status') && $request->kyc_status !== '') {
             if ($request->kyc_status == 'verified') {
                 $query->where('is_kyc_completed', true);
             } elseif ($request->kyc_status == 'pending') {
@@ -270,12 +270,12 @@ class UserController extends Controller
         }
 
         // Filter by business type if provided
-        if ($request->has('business_category_id') && $request->business_category_id) {
+        if ($request->filled('business_category_id') && $request->business_category_id) {
             $query->where('business_category_id', $request->business_category_id);
         }
 
         // Search by name, email or mobile
-        if ($request->has('search') && $request->search) {
+        if ($request->filled('search') && $request->search) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
@@ -285,7 +285,7 @@ class UserController extends Controller
         }
 
         // Add recent filter from dashboard notifications
-        if ($request->has('recent') && $request->recent == 'today') {
+        if ($request->filled('recent') && $request->recent == 'today') {
             $query->whereDate('created_at', today());
         }
 
@@ -396,25 +396,25 @@ class UserController extends Controller
      */
     public function deletedVendors(Request $request)
     {
-        $query = DeletedUser::where('data->role', 'vendor');
+        $query = User::onlyTrashed()->where('role', 'vendor');
 
         // Filter by status
         if ($request->has('status') && $request->status !== '') {
-            $query->where('data->status', $request->status == '1');
+            $query->where('status', $request->status == '1');
         }
 
         // Filter by KYC status
         if ($request->has('kyc_status') && $request->kyc_status !== '') {
             if ($request->kyc_status == 'verified') {
-                $query->where('data->is_kyc_completed', true);
+                $query->where('is_kyc_completed', true);
             } elseif ($request->kyc_status == 'pending') {
-                $query->where('data->is_kyc_completed', false);
+                $query->where('is_kyc_completed', false);
             }
         }
 
         // Filter by business category
         if ($request->has('business_category_id') && $request->business_category_id) {
-            $query->where('data->business_category_id', $request->business_category_id);
+            $query->where('business_category_id', $request->business_category_id);
         }
 
         // Search by name, email, or mobile inside JSON
@@ -422,9 +422,9 @@ class UserController extends Controller
             $search = $request->search;
 
             $query->where(function ($q) use ($search) {
-                $q->where('data->name', 'like', "%{$search}%")
-                    ->orWhere('data->email', 'like', "%{$search}%")
-                    ->orWhere('data->mobile', 'like', "%{$search}%");
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('mobile', 'like', "%{$search}%");
             });
         }
 
@@ -444,7 +444,7 @@ class UserController extends Controller
 
     public function exportDeletedVendors(Request $request)
     {
-        $query = DeletedUser::where('data->role', 'vendor');
+        $query = User::onlyTrashed()->where('role', 'vendor');
 
         // Status filter
         if ($request->has('status') && $request->status !== '' && $request->status != 'all') {
@@ -502,13 +502,13 @@ class UserController extends Controller
         foreach ($vendors as $vendor) {
             $csvData[] = [
                 $vendor->id,
-                $vendor->data->name ?? 'N/A',
-                $vendor->data->email ?? 'N/A',
-                $vendor->data->mobile ?? 'N/A',
+                $vendor->name ?? 'N/A',
+                $vendor->email ?? 'N/A',
+                $vendor->mobile ?? 'N/A',
                 $vendor->businessCategory->name
-                    ?? ($vendor->data->business_category_name ?? 'N/A'),
-                ($vendor->data->status ?? 0) == 1 ? 'Active' : 'Inactive',
-                !empty($vendor->data->is_kyc_completed) ? 'Verified' : 'Pending',
+                    ?? ($vendor->business_category_name ?? 'N/A'),
+                ($vendor->status ?? 0) == 1 ? 'Active' : 'Inactive',
+                !empty($vendor->is_kyc_completed) ? 'Verified' : 'Pending',
                 $vendor->created_at->format('Y-m-d H:i:s'),
             ];
         }
@@ -643,16 +643,16 @@ class UserController extends Controller
 
     public function deletedCustomers(Request $request)
     {
-        $query = DeletedUser::where('data->role', 'customer');
+        $query = User::onlyTrashed()->where('role', 'customer');
 
 
         // Search by name, email or mobile
         if ($request->has('search') && $request->search) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('data->name', 'like', "%{$search}%")
-                    ->orWhere('data->email', 'like', "%{$search}%")
-                    ->orWhere('data->mobile', 'like', "%{$search}%");
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('mobile', 'like', "%{$search}%");
             });
         }
 
@@ -668,15 +668,15 @@ class UserController extends Controller
 
     public function exportDeletedCustomers(Request $request)
     {
-        $query = DeletedUser::where('data->role', 'customer');
+        $query = User::onlyTrashed()->where('role', 'customer');
 
         // Search by name, email, mobile inside JSON
         if ($request->has('search') && $request->search) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('data->name', 'like', "%{$search}%")
-                    ->orWhere('data->email', 'like', "%{$search}%")
-                    ->orWhere('data->mobile', 'like', "%{$search}%");
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('mobile', 'like', "%{$search}%");
             });
         }
 
@@ -705,10 +705,10 @@ class UserController extends Controller
         foreach ($customers as $customer) {
             $csvData[] = [
                 $customer->id,
-                $customer->data->name ?? 'N/A',
-                $customer->data->email ?? 'N/A',
-                $customer->data->mobile ?? 'N/A',
-                isset($customer->data->status) && $customer->data->status == 1 ? 'Active' : 'Inactive',
+                $customer->name ?? 'N/A',
+                $customer->email ?? 'N/A',
+                $customer->mobile ?? 'N/A',
+                'DELETED',
                 $customer->created_at->format('Y-m-d H:i:s'),
             ];
         }
@@ -733,5 +733,19 @@ class UserController extends Controller
         return response()->download($filepath, $filename, [
             'Content-Type' => 'text/csv',
         ]);
+    }
+
+    public function destroyCustomer($id)
+    {
+        try {
+
+            User::where('id', $id)->forceDelete();
+
+            return redirect()->back()
+                ->with('success', 'User deleted successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Failed to delete user: ' . $e->getMessage());
+        }
     }
 }

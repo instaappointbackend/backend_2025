@@ -47,7 +47,13 @@
                             </option>
                         @endforeach
                     </select>
+                    <div class="col-md-1">
+                        <a href="{{ route('admin.blogs.index') }}" class="btn btn-secondary ml-2">
+                            <i class="fas fa-sync"></i>
+                        </a>
+                    </div>
                 </form>
+
             </div>
         </div>
         <div class="card-body">

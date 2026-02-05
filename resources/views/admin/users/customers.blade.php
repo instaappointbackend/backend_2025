@@ -37,15 +37,21 @@
                                 placeholder="Search by name, email or mobile" value="{{ request('search') }}">
                         </div>
                         <!--<div class="col-md-3">
-                                                                                                    <select name="status" class="form-select">
-                                                                                                        <option value="">All Status</option>
-                                                                                                        <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
-                                                                                                        <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
-                                                                                                    </select>
-                                                                                                </div>-->
+                                                                                                                            <select name="status" class="form-select">
+                                                                                                                                <option value="">All Status</option>
+                                                                                                                                <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
+                                                                                                                                <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                                                                                                                            </select>
+                                                                                                                        </div>-->
                         <div class="col-md-1">
                             <button type="submit" class="btn btn-primary w-100">Filter</button>
                         </div>
+                        <div class="col-md-1">
+                            <a href="{{ route('admin.users.customers') }}" class="btn btn-secondary ml-2">
+                                <i class="fas fa-sync"></i>
+                            </a>
+                        </div>
+
                     </form>
                 </div>
 

@@ -16,32 +16,33 @@ class BlogController extends Controller
     public function index(Request $request)
     {
         $query = Blog::with('user');
-        
+
         // Filter by status
-        if ($request->has('status')) {
+        if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-        
+
         // Filter by author
-        if ($request->has('user_id') && $request->user_id) {
+        if ($request->filled('user_id') && $request->user_id) {
             $query->where('user_id', $request->user_id);
         }
-        
+
         // Filter by search query
-        if ($request->has('search') && $request->search) {
-            $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
+        if ($request->filled('search') && $request->search) {
+            $searchTerm = trim($request->search);
+
+            $query->where(function ($q) use ($searchTerm) {
                 $q->where('title', 'like', "%{$searchTerm}%")
-                  ->orWhere('content', 'like', "%{$searchTerm}%");
+                    ->orWhere('content', 'like', "%{$searchTerm}%");
             });
         }
-        
+
         $blogs = $query->latest()
-                     ->paginate(10)
-                     ->withQueryString();
-        
+            ->paginate(10)
+            ->withQueryString();
+
         $users = User::all();
-        
+
         return view('admin.blogs.index', compact('blogs', 'users'));
     }
 
@@ -51,7 +52,7 @@ class BlogController extends Controller
     public function create()
     {
         $users = User::all();
-        
+
         return view('admin.blogs.create', compact('users'));
     }
 
@@ -72,11 +73,11 @@ class BlogController extends Controller
         // Handle attachment upload
         if ($request->hasFile('attachment')) {
             $validated['attachment'] = $request->file('attachment')->store('blog-attachments', 'public');
-            
+
             // Set attachment type based on file extension
             $extension = $request->file('attachment')->getClientOriginalExtension();
             $mimeType = $request->file('attachment')->getMimeType();
-            
+
             if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif']) || strpos($mimeType, 'image/') === 0) {
                 $validated['attachment_type'] = 'image';
             } elseif (in_array($extension, ['mp4', 'webm', 'mov']) || strpos($mimeType, 'video/') === 0) {
@@ -98,7 +99,7 @@ class BlogController extends Controller
     public function show(Blog $blog)
     {
         $blog->load('user');
-        
+
         return view('admin.blogs.show', compact('blog'));
     }
 
@@ -108,7 +109,7 @@ class BlogController extends Controller
     public function edit(Blog $blog)
     {
         $users = User::all();
-        
+
         return view('admin.blogs.edit', compact('blog', 'users'));
     }
 
@@ -139,13 +140,13 @@ class BlogController extends Controller
             if ($blog->attachment) {
                 Storage::disk('public')->delete($blog->attachment);
             }
-            
+
             $validated['attachment'] = $request->file('attachment')->store('blog-attachments', 'public');
-            
+
             // Set attachment type based on file extension
             $extension = $request->file('attachment')->getClientOriginalExtension();
             $mimeType = $request->file('attachment')->getMimeType();
-            
+
             if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif']) || strpos($mimeType, 'image/') === 0) {
                 $validated['attachment_type'] = 'image';
             } elseif (in_array($extension, ['mp4', 'webm', 'mov']) || strpos($mimeType, 'video/') === 0) {

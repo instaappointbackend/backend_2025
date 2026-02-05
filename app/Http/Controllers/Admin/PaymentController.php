@@ -29,40 +29,64 @@ class PaymentController extends Controller
         $query = Payment::with(['appointment', 'user', 'provider']);
 
         // Filter by status
-        if ($request->has('status') && $request->status != 'all') {
+        if ($request->filled('status') && $request->status !== 'all') {
             $query->where('status', $request->status);
         }
 
         // Filter by payment method
-        if ($request->has('payment_method') && $request->payment_method != 'all') {
+        if ($request->filled('payment_method') && $request->payment_method !== 'all') {
             $query->where('payment_method', $request->payment_method);
         }
 
         // Filter by date range
-        if ($request->has('start_date') && $request->has('end_date')) {
-            $query->whereBetween('created_at', [$request->start_date . ' 00:00:00', $request->end_date . ' 23:59:59']);
-        } elseif ($request->has('start_date')) {
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('created_at', [
+                $request->start_date . ' 00:00:00',
+                $request->end_date . ' 23:59:59'
+            ]);
+        } elseif ($request->filled('start_date')) {
             $query->where('created_at', '>=', $request->start_date . ' 00:00:00');
-        } elseif ($request->has('end_date')) {
+        } elseif ($request->filled('end_date')) {
             $query->where('created_at', '<=', $request->end_date . ' 23:59:59');
         }
 
         // Filter by amount range
-        if ($request->has('min_amount')) {
+        if ($request->filled('min_amount')) {
             $query->where('amount', '>=', $request->min_amount);
         }
-        if ($request->has('max_amount')) {
+
+        if ($request->filled('max_amount')) {
             $query->where('amount', '<=', $request->max_amount);
         }
 
         // Filter by provider
-        if ($request->has('provider_id') && $request->provider_id) {
+        if ($request->filled('provider_id')) {
             $query->where('provider_id', $request->provider_id);
         }
 
         // Filter by customer
-        if ($request->has('user_id') && $request->user_id) {
+        if ($request->filled('user_id')) {
             $query->where('user_id', $request->user_id);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+                // Transaction ID
+                $q->where('transaction_id', 'like', "%{$search}%")
+
+                    // Customer (user)
+                    ->orWhereHas('user', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    })
+
+                    // Provider
+                    ->orWhereHas('provider', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    });
+            });
         }
 
         // Default sorting

@@ -58,7 +58,7 @@
                                 <td>{{ $businessCategories->firstItem() + $index }}</td>
                                 <td>{{ $businessCategory->id }}</td>
                                 <td>
-                                    @if ($businessCategory->image)
+                                    @if ($businessCategory->image && Storage::disk('public')->exists($businessCategory->image))
                                         <img src="{{ asset('storage/' . $businessCategory->image) }}"
                                             alt="{{ $businessCategory->name }}" class="img-thumbnail"
                                             style="max-width: 50px; max-height: 50px; object-fit: cover;">

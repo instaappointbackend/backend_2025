@@ -24,21 +24,21 @@ class WebBlogController extends Controller
         $query = WebBlog::with(['user']);
 
         // Filter by status
-        if ($request->has('status')) {
+        if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
         // Filter by author
-        if ($request->has('user_id') && $request->user_id) {
+        if ($request->filled('user_id') && $request->user_id) {
             $query->where('user_id', $request->user_id);
         }
 
         // Filter by search query
-        if ($request->has('search') && $request->search) {
-            $searchTerm = $request->search;
+        if ($request->filled('search') && $request->search) {
+            $searchTerm = trim($request->search);
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('title', 'like', "%{$searchTerm}%")
-                    ->orWhere('content', 'like', "%{$searchTerm}%");
+                    ->orWhere('description', 'like', "%{$searchTerm}%");
             });
         }
 

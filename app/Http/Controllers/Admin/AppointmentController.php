@@ -1,15 +1,16 @@
 <?php
+
 namespace App\Http\Controllers\Admin;
 
-    use App\Http\Controllers\Controller;
-    use App\Models\Appointment;
-    use App\Models\Service;
-    use App\Models\User;
-    use App\Models\Payment;
-    use App\Services\NotificationService;
-    use Carbon\Carbon;
-    use Illuminate\Http\Request;
-    use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use App\Models\Appointment;
+use App\Models\Service;
+use App\Models\User;
+use App\Models\Payment;
+use App\Services\NotificationService;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AppointmentController extends Controller
 {
@@ -30,15 +31,15 @@ class AppointmentController extends Controller
         // Search functionality
         if ($request->has('search') && !empty($request->search)) {
             $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
-                $q->whereHas('client', function($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
+                $q->whereHas('client', function ($q) use ($searchTerm) {
                     $q->where('name', 'like', "%{$searchTerm}%")
                         ->orWhere('email', 'like', "%{$searchTerm}%");
                 })
-                    ->orWhereHas('user', function($q) use ($searchTerm) {
+                    ->orWhereHas('user', function ($q) use ($searchTerm) {
                         $q->where('name', 'like', "%{$searchTerm}%");
                     })
-                    ->orWhereHas('service', function($q) use ($searchTerm) {
+                    ->orWhereHas('service', function ($q) use ($searchTerm) {
                         $q->where('name', 'like', "%{$searchTerm}%");
                     });
             });
@@ -166,7 +167,7 @@ class AppointmentController extends Controller
         $vendors = User::where('role', 'vendor')->get();
         $clients = User::where('role', 'customer')->get();
         $services = Service::where('is_active', true)->get();
-        return view('admin.appointments.show', compact('appointment','vendors','clients','services'));
+        return view('admin.appointments.show', compact('appointment', 'vendors', 'clients', 'services'));
     }
 
     /**
@@ -194,11 +195,11 @@ class AppointmentController extends Controller
             'start_time' => 'required',
             'end_time' => 'required|after:start_time',
             'status' => 'required|in:' . implode(',', [
-                    Appointment::STATUS_PENDING,
-                    Appointment::STATUS_CONFIRMED,
-                    Appointment::STATUS_COMPLETED,
-                    Appointment::STATUS_CANCELLED,
-                ]),
+                Appointment::STATUS_PENDING,
+                Appointment::STATUS_CONFIRMED,
+                Appointment::STATUS_COMPLETED,
+                Appointment::STATUS_CANCELLED,
+            ]),
             'payment_status' => 'nullable|in:pending,paid,failed,refunded',
             'payment_amount' => 'nullable|numeric',
             'payment_method' => 'nullable|string',
@@ -495,7 +496,6 @@ class AppointmentController extends Controller
 
             return redirect()->route('admin.appointments.index')
                 ->with('success', 'Appointment updated successfully.');
-
         } catch (\Exception $e) {
             // Rollback transaction on error
             DB::rollBack();
@@ -581,15 +581,20 @@ class AppointmentController extends Controller
             // Commit transaction
             DB::commit();
 
-            return redirect()->route('admin.appointments.index')
-                ->with('success', 'Appointment deleted successfully.');
-
+            // return redirect()->route('admin.appointments.index')
+            //     ->with('success', 'Appointment deleted successfully.');
+            return response()->json([
+                'success' => true
+            ]);
         } catch (\Exception $e) {
             // Rollback transaction on error
             DB::rollBack();
 
-            return redirect()->back()
-                ->with('error', 'Failed to delete appointment: ' . $e->getMessage());
+            // return redirect()->back()
+            //     ->with('error', 'Failed to delete appointment: ' . $e->getMessage());
+            return response()->json([
+                'success' => false
+            ]);
         }
     }
 
@@ -602,7 +607,7 @@ class AppointmentController extends Controller
         if ($status === null) {
             $status = $request->route('status');
         }
-        
+
         // Begin database transaction
         DB::beginTransaction();
 
@@ -751,7 +756,6 @@ class AppointmentController extends Controller
             DB::commit();
 
             return redirect()->back()->with('success', 'Appointment status updated successfully.');
-
         } catch (\Exception $e) {
             // Rollback transaction on error
             DB::rollBack();

@@ -18,7 +18,7 @@ class ServiceController extends Controller
         $query = Service::with('user');
 
         // Filter by status
-        if ($request->has('status')) {
+        if ($request->filled('status')) {
             if ($request->status === 'active') {
                 $query->where('is_active', true);
             } elseif ($request->status === 'inactive') {
@@ -27,12 +27,12 @@ class ServiceController extends Controller
         }
 
         // Filter by vendor
-        if ($request->has('vendor_id') && $request->vendor_id) {
+        if ($request->filled('vendor_id') && $request->vendor_id) {
             $query->where('user_id', $request->vendor_id);
         }
 
         // Filter by search query
-        if ($request->has('search') && $request->search) {
+        if ($request->filled('search') && $request->search) {
             $searchTerm = $request->search;
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('name', 'like', "%{$searchTerm}%")

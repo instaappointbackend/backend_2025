@@ -41,6 +41,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         ->name('two-factor.challenge');
     Route::post('/two-factor-challenge', [TwoFactorChallengeController::class, 'store'])
         ->name('two-factor-verify');
+    Route::post('/user/two-factor-disabled', [TwoFactorChallengeController::class, 'disabled2fa'])
+        ->name('two-factor.disabled');
 
     // 2FA Management Routes (authenticated)
     Route::get('/user/two-factor-authentication', [TwoFactorController::class, 'index'])
@@ -53,6 +55,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         ->name('two-factor.disable');
     Route::post('/user/two-factor-recovery-codes', [TwoFactorController::class, 'regenerateRecoveryCodes'])
         ->name('two-factor.regenerate');
+
 
     // Guest Routes
     Route::middleware('custom_guest')->group(function () {
@@ -94,6 +97,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
             Route::middleware(['permission:users_delete_users'])->group(function () {
                 Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+                Route::delete('/delete-customer/{id}', [UserController::class, 'destroyCustomer'])->name('customer.destroy');
             });
             Route::get('/users', [UserController::class, 'index'])->name('users.index');
             Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
@@ -193,8 +197,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::patch('/appointments/{appointment}/status/{status}', [AppointmentController::class, 'status'])->name('appointments.status')->where('status', 'pending|confirmed|completed|cancelled');
             });
 
+            // Route::middleware(['permission:appointments_delete_appointments'])->group(function () {
+            //     Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy'])->name('appointments.destroy');
+            // });
             Route::middleware(['permission:appointments_delete_appointments'])->group(function () {
-                Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy'])->name('appointments.destroy');
+                Route::post('/appointments/{appointment}', [AppointmentController::class, 'destroy'])->name('appointments.destroy');
             });
             Route::get('/appointments/{appointment}', [AppointmentController::class, 'show'])->name('appointments.show');
         });

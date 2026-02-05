@@ -24,7 +24,7 @@
             <h5 class="mb-0">Subscription</h5>
 
             <div class="search-filter">
-                <form action="{{ route('admin.web-blogs.index') }}" method="GET" class="d-flex gap-2">
+                <form action="{{ route('admin.subscription.index') }}" method="GET" class="d-flex gap-2">
                     <div class="input-group">
                         <input type="text" name="search" class="form-control" placeholder="Search..."
                             value="{{ request('search') }}">
@@ -35,19 +35,16 @@
 
                     <select name="status" class="form-select" onchange="this.form.submit()">
                         <option value="">All Status</option>
-                        <option value="published" {{ request('status') == 'published' ? 'selected' : '' }}>Published
+                        <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active
                         </option>
-                        <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
+                        <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
                     </select>
 
-                    <select name="user_id" class="form-select" onchange="this.form.submit()">
-                        <option value="">All Authors</option>
-                        @foreach ($users as $user)
-                            <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>
-                                {{ $user->name }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <div class="col-md-1">
+                        <a href="{{ route('admin.subscription.index') }}" class="btn btn-secondary ml-2">
+                            <i class="fas fa-sync"></i>
+                        </a>
+                    </div>
                 </form>
             </div>
         </div>
@@ -58,13 +55,14 @@
                         <tr>
                             <th width="10%">Sr. No</th>
                             <th width="15%">Vendor Name</th>
+                            <th width="15%">Mobile</th>
                             <th width="15%">Plan Name</th>
                             <th width="20%">Transaction Id</th>
-                            <th width="10%">Payment Status</th>
+                            <th width="10%">Status</th>
                             <th width="15%">Start At</th>
                             <th width="15%">Expire At</th>
                             <th width="15%">Created At</th>
-                            <th width="20%">Actions</th>
+                            {{-- <th width="20%">Actions</th> --}}
                         </tr>
                     </thead>
                     <tbody>
@@ -75,10 +73,13 @@
                                 <td>
                                     {{ $user->user->name ?? 'N/A' }}
                                 </td>
+                                <td>
+                                    {{ $user->user->mobile ?? 'N/A' }}
+                                </td>
 
                                 <td>{{ $user->plan_name ?? '-' }}</td>
                                 <td>{{ $user->transaction_id }}</td>
-                                <td>{{ $user->payment_status ?? '-' }}</td>
+                                <td>{{ $user->status ?? '-' }}</td>
 
                                 <td>{{ $user->starts_at ?? '-' }}</td>
                                 <td>{{ $user->expires_at ?? '-' }}</td>

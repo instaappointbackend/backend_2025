@@ -48,6 +48,9 @@
                         <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>Active</option>
                         <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>Inactive</option>
                     </select>
+                    <a href="{{ route('admin.users.deleted.vendors') }}" class="btn btn-secondary ml-2">
+                        <i class="fas fa-sync"></i>
+                    </a>
                 </form>
             </div>
         </div>
@@ -69,6 +72,7 @@
                     </thead>
                     <tbody>
                         @forelse($vendors as $index=>$vendor)
+                            {{-- @dd($vendor->toArray()) --}}
                             <tr>
                                 <td>{{ $vendors->firstItem() + $index }}</td>
                                 <td>{{ $vendor->id }}</td>

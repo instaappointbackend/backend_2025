@@ -207,7 +207,7 @@
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="me-2">
-                                            <img src="{{ $appointment->client->profile_picture ? asset('storage/' . $appointment->client->profile_picture) : asset('admin/images/default-avatar.png') }}"
+                                            <img src="{{ $appointment->client->profile_picture && Storage::disk('public')->exists($appointment->client->profile_picture) ? asset('storage/' . $appointment->client->profile_picture) : asset('admin/images/default-avatar.png') }}"
                                                 alt="{{ $appointment->client->name }}" class="avatar-img" width="30"
                                                 height="30">
                                         </div>
@@ -217,7 +217,7 @@
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="me-2">
-                                            <img src="{{ $appointment->user->profile_picture ? asset('storage/' . $appointment->user->profile_picture) : asset('admin/images/default-avatar.png') }}"
+                                            <img src="{{ $appointment->user->profile_picture && Storage::disk('public')->exists($appointment->user->profile_picture) ? asset('storage/' . $appointment->user->profile_picture) : asset('admin/images/default-avatar.png') }}"
                                                 alt="{{ $appointment->user->name }}" class="avatar-img" width="30"
                                                 height="30">
                                         </div>
@@ -253,7 +253,7 @@
                                             <i class="fas fa-eye"></i>
                                         </a>
 
-                                        <form action="{{ route('admin.appointments.destroy', $appointment->id) }}"
+                                        {{-- <form action="{{ route('admin.appointments.destroy', $appointment->id) }}"
                                             method="POST" class="d-inline">
                                             @csrf
                                             @method('DELETE')
@@ -262,7 +262,12 @@
                                                 data-bs-toggle="tooltip" title="Delete Appointment">
                                                 <i class="fas fa-trash"></i>
                                             </button>
-                                        </form>
+                                        </form> --}}
+                                        <button type="button" class="btn btn-sm btn-danger"
+                                            onclick="deleteAppointment({{ $appointment->id }})" {{-- data-confirm="Are you sure you want to delete this appointment?" --}}
+                                            data-bs-toggle="tooltip" title="Delete Appointment">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -351,5 +356,39 @@
                 endDateInput.addEventListener('change', validateDateRange);
             }
         });
+
+        async function deleteAppointment(id) {
+            if (!confirm('Are you sure you want to delete this appointment?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`{{ url('admin/appointments') }}/${id}`, {
+                    method: 'post',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        //'Accept': 'application/json',
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error('Delete failed');
+                }
+
+                const data = await response.json();
+
+                // Update URL without adding history entry
+                // const url = new URL(window.location);
+                // url.searchParams.set('status', 'deleted');
+                // window.history.replaceState({}, '', url);
+
+                // Reload page
+                window.location.reload();
+
+            } catch (error) {
+                console.error(error);
+                alert('Something went wrong while deleting.');
+            }
+        }
     </script>
 @endsection

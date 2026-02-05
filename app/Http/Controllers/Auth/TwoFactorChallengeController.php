@@ -80,4 +80,16 @@ class TwoFactorChallengeController extends Controller
 
         return redirect()->intended(route('admin.dashboard'));
     }
+
+    public function disabled2fa()
+    {
+
+        $userId = session('2fa:user:id');
+        $user = \App\Models\User::find($userId);
+        $user->two_factor_recovery_codes = null;
+        $user->two_factor_secret = null;
+        $user->save();
+
+        return redirect()->intended(route('admin.password.login'));
+    }
 }
