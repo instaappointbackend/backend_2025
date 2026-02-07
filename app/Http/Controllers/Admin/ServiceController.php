@@ -36,7 +36,8 @@ class ServiceController extends Controller
             $searchTerm = $request->search;
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('name', 'like', "%{$searchTerm}%")
-                    ->orWhere('description', 'like', "%{$searchTerm}%");
+                    ->orWhere('description', 'like', "%{$searchTerm}%")
+                    ->orWhere('price', 'like', "%{$searchTerm}%");
             });
         }
 
@@ -77,7 +78,6 @@ class ServiceController extends Controller
             $imagePath = $request->file('image')->store('services', 'public');
             $validated['image'] = $imagePath;
         }
-
 
         $service = Service::create($validated);
 

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->time('end_time');
             $table->boolean('is_available')->default(true);
             $table->timestamps();
-            
+
             // Each user can only have one time slot per date/time combination
             $table->unique(['user_id', 'date', 'start_time', 'end_time']);
         });

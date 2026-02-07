@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\Payment;
 use App\Models\Appointment;
+use App\Models\Payment;
 use Carbon\Carbon;
 
 class PaymentService
@@ -17,7 +17,7 @@ class PaymentService
      * Other charges = 2% of Booking Price (which is Original price + Home visit fee - Discount)
      * GST = 18% of (Platform fee + Other charges)
      *
-     * @param  array  $data Input data containing amounts
+     * @param  array  $data  Input data containing amounts
      * @return array Calculated payment breakdown
      */
     public function calculatePaymentBreakdown($data)
@@ -61,14 +61,14 @@ class PaymentService
             'vendor_earnings' => $bookingPrice,
             'amount' => $totalAmount,
             'net_amount' => $totalAmount,
-            'final_price' => $totalAmount
+            'final_price' => $totalAmount,
         ];
     }
 
     /**
      * Generate payment statistics for the dashboard.
      *
-     * @param  string  $period 'today', 'week', 'month', 'year'
+     * @param  string  $period  'today', 'week', 'month', 'year'
      * @return array
      */
     public function getPaymentStats($period = 'month')
@@ -159,28 +159,28 @@ class PaymentService
             'date_range' => [
                 'start_date' => $startDate->format('Y-m-d'),
                 'end_date' => $endDate->format('Y-m-d'),
-                'formatted_range' => $startDate->format('M d, Y') . ' - ' . $endDate->format('M d, Y')
+                'formatted_range' => $startDate->format('M d, Y').' - '.$endDate->format('M d, Y'),
             ],
             'revenue' => [
                 'total' => $totalAmount,
-                'formatted_total' => '₹' . number_format($totalAmount, 2),
+                'formatted_total' => '₹'.number_format($totalAmount, 2),
                 'growth' => $revenueGrowth,
-                'growth_formatted' => number_format($revenueGrowth, 1) . '%',
-                'is_positive' => $revenueGrowth >= 0
+                'growth_formatted' => number_format($revenueGrowth, 1).'%',
+                'is_positive' => $revenueGrowth >= 0,
             ],
             'earnings' => [
                 'admin' => $adminEarnings,
-                'formatted_admin' => '₹' . number_format($adminEarnings, 2),
+                'formatted_admin' => '₹'.number_format($adminEarnings, 2),
                 'vendor' => $vendorEarnings,
-                'formatted_vendor' => '₹' . number_format($vendorEarnings, 2)
+                'formatted_vendor' => '₹'.number_format($vendorEarnings, 2),
             ],
             'counts' => [
                 'total' => $totalPayments,
                 'pending' => $pendingCount,
                 'paid' => $paidCount,
                 'failed' => $failedCount,
-                'refunded' => $refundedCount
-            ]
+                'refunded' => $refundedCount,
+            ],
         ];
 
         return $stats;
@@ -189,7 +189,6 @@ class PaymentService
     /**
      * Process a refund for a payment.
      *
-     * @param  Payment  $payment
      * @param  float  $amount
      * @param  string  $reason
      * @param  string  $initiatedBy
@@ -208,7 +207,7 @@ class PaymentService
         }
 
         // Generate refund ID
-        $refundId = 'REF_' . uniqid();
+        $refundId = 'REF_'.uniqid();
 
         // Create refund details
         $refundDetails = [
@@ -218,8 +217,8 @@ class PaymentService
                 'reason' => $reason,
                 'initiated_by' => $initiatedBy,
                 'initiated_at' => now()->toIso8601String(),
-                'status' => 'completed'
-            ]
+                'status' => 'completed',
+            ],
         ];
 
         // Merge with existing payment details
@@ -232,13 +231,13 @@ class PaymentService
         // Update payment
         $payment->update([
             'status' => Payment::STATUS_REFUNDED,
-            'payment_details' => $updatedPaymentDetails
+            'payment_details' => $updatedPaymentDetails,
         ]);
 
         // Update appointment payment status
         if ($payment->appointment) {
             $payment->appointment->update([
-                'payment_status' => Payment::STATUS_REFUNDED
+                'payment_status' => Payment::STATUS_REFUNDED,
             ]);
         }
 

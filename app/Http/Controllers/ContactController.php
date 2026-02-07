@@ -2,19 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use App\Mail\ContactFormSubmission;
-use App\Models\Contact;
 use App\Models\AppSetting;
+use App\Models\Contact;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class ContactController extends Controller
 {
     /**
      * Process the contact form submission.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\RedirectResponse
      */
     public function submit(Request $request)
@@ -31,29 +30,29 @@ class ContactController extends Controller
             // Add IP address and user agent
             $validated['ip_address'] = $request->ip();
             $validated['user_agent'] = $request->userAgent();
-            
+
             // If user is authenticated, associate with user
             if (Auth::check()) {
                 $validated['user_id'] = Auth::id();
-                
+
                 // Use user's name and email if not provided
                 if (empty($validated['name'])) {
                     $validated['name'] = Auth::user()->name;
                 }
-                
+
                 if (empty($validated['email'])) {
                     $validated['email'] = Auth::user()->email;
                 }
             }
-            
+
             // Save to database
             $contact = Contact::create($validated);
 
             // Get admin email from app_settings
             $adminEmail = AppSetting::where('key', 'admin_email')->value('value');
-            
+
             // If admin email is not found, fall back to the config value
-            if (!$adminEmail) {
+            if (! $adminEmail) {
                 $adminEmail = config('mail.from.address');
             }
 
@@ -67,7 +66,7 @@ class ContactController extends Controller
                 ->withInput();
         }
     }
-    
+
     /**
      * Display a listing of the contact messages (Admin).
      */
@@ -75,9 +74,9 @@ class ContactController extends Controller
     {
         $status = $request->get('status');
         $source = $request->get('source');
-        
+
         $query = Contact::query();
-        
+
         // Filter by status if provided
         if ($status === 'unread') {
             $query->unread();
@@ -92,32 +91,32 @@ class ContactController extends Controller
         } elseif ($status === 'resolved') {
             $query->replied();
         }
-        
+
         // Filter by source if provided
         if ($source === 'users') {
             $query->fromUsers();
         } elseif ($source === 'guests') {
             $query->fromGuests();
         }
-        
+
         // Search functionality
         if ($request->has('search')) {
             $search = $request->get('search');
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('subject', 'like', "%{$search}%")
-                  ->orWhere('message', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('subject', 'like', "%{$search}%")
+                    ->orWhere('message', 'like', "%{$search}%");
             });
         }
-        
+
         // Load user relationship if needed
         if ($source === 'users' || $source === null) {
             $query->with('user');
         }
-        
+
         $contacts = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
-        
+
         $counts = [
             'all' => Contact::count(),
             'unread' => Contact::unread()->count(),
@@ -127,12 +126,12 @@ class ContactController extends Controller
             'users' => Contact::fromUsers()->count(),
             'guests' => Contact::fromGuests()->count(),
             'open' => Contact::unread()->orWhere('status', 'read')->count(),
-            'resolved' => Contact::replied()->count()
+            'resolved' => Contact::replied()->count(),
         ];
-        
+
         return view('admin.contacts.index', compact('contacts', 'counts', 'status', 'source'));
     }
-    
+
     /**
      * Display the specified contact message (Admin).
      */
@@ -142,15 +141,15 @@ class ContactController extends Controller
         if ($contact->status === 'unread') {
             $contact->markAsRead();
         }
-        
+
         // Load associated user if applicable
         if ($contact->user_id) {
             $contact->load('user');
         }
-        
+
         return view('admin.contacts.show', compact('contact'));
     }
-    
+
     /**
      * Update the status of the contact message (Admin).
      */
@@ -159,18 +158,18 @@ class ContactController extends Controller
         $validated = $request->validate([
             'status' => 'required|in:read,unread,replied,spam',
         ]);
-        
+
         $contact->status = $validated['status'];
-        
-        if ($validated['status'] === 'read' && !$contact->read_at) {
+
+        if ($validated['status'] === 'read' && ! $contact->read_at) {
             $contact->read_at = now();
         }
-        
+
         $contact->save();
-        
+
         return redirect()->back()->with('success', 'Contact status updated successfully.');
     }
-    
+
     /**
      * Toggle the status of a support ticket between open and resolved.
      */
@@ -184,21 +183,21 @@ class ContactController extends Controller
             $contact->markAsReplied();
             $message = 'Support ticket marked as resolved.';
         }
-        
+
         return redirect()->back()->with('success', $message);
     }
-    
+
     /**
      * Remove the specified contact message from storage (Admin).
      */
     public function destroy(Contact $contact)
     {
         $contact->delete();
-        
+
         return redirect()->route('admin.contacts.index')
             ->with('success', 'Contact message deleted successfully.');
     }
-    
+
     /**
      * Bulk actions for contact messages (Admin).
      */
@@ -209,10 +208,10 @@ class ContactController extends Controller
             'ids' => 'required|array',
             'ids.*' => 'integer|exists:contacts,id',
         ]);
-        
+
         $count = count($validated['ids']);
         $action = $validated['action'];
-        
+
         switch ($action) {
             case 'mark_read':
                 Contact::whereIn('id', $validated['ids'])->update([
@@ -221,7 +220,7 @@ class ContactController extends Controller
                 ]);
                 $message = "{$count} messages marked as read.";
                 break;
-                
+
             case 'mark_unread':
                 Contact::whereIn('id', $validated['ids'])->update([
                     'status' => 'unread',
@@ -229,27 +228,27 @@ class ContactController extends Controller
                 ]);
                 $message = "{$count} messages marked as unread.";
                 break;
-                
+
             case 'mark_replied':
                 Contact::whereIn('id', $validated['ids'])->update([
                     'status' => 'replied',
                 ]);
                 $message = "{$count} messages marked as replied.";
                 break;
-                
+
             case 'mark_spam':
                 Contact::whereIn('id', $validated['ids'])->update([
                     'status' => 'spam',
                 ]);
                 $message = "{$count} messages marked as spam.";
                 break;
-                
+
             case 'delete':
                 Contact::whereIn('id', $validated['ids'])->delete();
                 $message = "{$count} messages deleted.";
                 break;
         }
-        
+
         return redirect()->route('admin.contacts.index')
             ->with('success', $message);
     }

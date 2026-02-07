@@ -144,7 +144,7 @@ class RefundCalculation
      */
     public function getFormattedCustomerRefund(): string
     {
-        return '₹' . number_format($this->customerRefund, 2);
+        return '₹'.number_format($this->customerRefund, 2);
     }
 
     /**
@@ -152,7 +152,7 @@ class RefundCalculation
      */
     public function getFormattedVendorCompensation(): string
     {
-        return '₹' . number_format($this->vendorCompensation, 2);
+        return '₹'.number_format($this->vendorCompensation, 2);
     }
 
     /**
@@ -160,7 +160,7 @@ class RefundCalculation
      */
     public function getFormattedAdminRetention(): string
     {
-        return '₹' . number_format($this->adminRetention, 2);
+        return '₹'.number_format($this->adminRetention, 2);
     }
 
     /**
@@ -168,7 +168,7 @@ class RefundCalculation
      */
     public function getFormattedOriginalAmount(): string
     {
-        return '₹' . number_format($this->originalAmount, 2);
+        return '₹'.number_format($this->originalAmount, 2);
     }
 
     /**
@@ -235,18 +235,18 @@ class RefundCalculation
      */
     public function isValid(): bool
     {
-        if (!$this->eligible) {
+        if (! $this->eligible) {
             return true; // Ineligible calculations don't need amount validation
         }
 
         $serviceCharges = $this->breakdown['service_charges'] ?? 0;
         $expectedTotal = $this->customerRefund + $this->vendorCompensation + $this->adminRetention;
-        
+
         // For full refund, total should equal original amount
         if ($this->policyTier === Refund::TIER_FULL_REFUND) {
             return abs($this->originalAmount - $this->customerRefund) < 0.01;
         }
-        
+
         // For partial/no refund, total should equal service charges
         return abs($serviceCharges - $expectedTotal) < 0.01;
     }

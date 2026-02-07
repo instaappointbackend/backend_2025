@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\BusinessCategory;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class BusinessCategorySeeder extends Seeder
@@ -28,7 +27,7 @@ class BusinessCategorySeeder extends Seeder
             ['type' => 'Construction'],
             ['type' => 'Finance & Insurance'],
             ['type' => 'Agriculture'],
-            ['type' => 'Other']
+            ['type' => 'Other'],
         ];
 
         foreach ($businessCategories as $type) {

@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Role;
 use App\Models\Permission;
+use App\Models\Role;
 use App\Models\User;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
 class RolesAndPermissionsSeeder extends Seeder
@@ -65,7 +65,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         foreach ($modules as $module => $permissions) {
             foreach ($permissions as $permission) {
-                $permissionName = Str::slug($module . ' ' . $permission, '_');
+                $permissionName = Str::slug($module.' '.$permission, '_');
                 $permissionObject = Permission::create([
                     'name' => $permissionName,
                     'display_name' => $permission,

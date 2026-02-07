@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Models\AppSetting;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -51,7 +51,7 @@ class AuthController extends Controller
             ->where('role', 'admin')->where('status', 1);
 
         $user = $query->first();
-        if (!$user) {
+        if (! $user) {
             throw ValidationException::withMessages([
                 'login_field' => ['The provided credentials are incorrect or you do not have admin access.'],
             ]);
@@ -80,7 +80,6 @@ class AuthController extends Controller
             Log::info('Using static OTP for admin', ['mobile' => $user->mobile, 'otp' => $otp]);
         }
 
-
         // Store OTP and set expiration time
         $user->otp = $otp;
         $user->otp_expires_at = now()->addMinutes($otpExpireMinutes);
@@ -91,14 +90,14 @@ class AuthController extends Controller
         Session::put('admin_login_type', $loginField);
 
         // For development only - show the OTP if it's static
-        if (!$enableSmsApi || $loginField === 'email') {
+        if (! $enableSmsApi || $loginField === 'email') {
             Session::flash('dev_otp', $otp);
         }
 
         return redirect()->route('admin.otp.form')
-            ->with('success', 'An OTP has been sent to your ' .
-                ($loginField === 'email' ? 'email address' : 'mobile number') .
-                ($enableSmsApi ? '' : ' (Using test OTP: 123456)') . '.');
+            ->with('success', 'An OTP has been sent to your '.
+                ($loginField === 'email' ? 'email address' : 'mobile number').
+                ($enableSmsApi ? '' : ' (Using test OTP: 123456)').'.');
     }
 
     /**
@@ -119,8 +118,6 @@ class AuthController extends Controller
             $message = str_replace('[OTP]', $otp, $message);
             $message = str_replace('[MINUTES]', $otpExpireMinutes, $message);
 
-
-
             // Prepare API request
             $queryParams = [
                 'apikey' => $apiKey,
@@ -130,8 +127,7 @@ class AuthController extends Controller
                 'message' => $message,
             ];
 
-            $url = $apiUrl . '?' . http_build_query($queryParams);
-
+            $url = $apiUrl.'?'.http_build_query($queryParams);
 
             // Send the SMS via API
             $response = Http::get($url);
@@ -148,6 +144,7 @@ class AuthController extends Controller
                 'mobile' => $mobile,
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -170,7 +167,7 @@ class AuthController extends Controller
      */
     public function showOtpForm()
     {
-        if (!Session::has('admin_login_field')) {
+        if (! Session::has('admin_login_field')) {
             return redirect()->route('admin.login');
         }
 
@@ -186,7 +183,7 @@ class AuthController extends Controller
             'otp' => 'required|numeric',
         ]);
 
-        if (!Session::has('admin_login_field') || !Session::has('admin_login_type')) {
+        if (! Session::has('admin_login_field') || ! Session::has('admin_login_type')) {
             return redirect()->route('admin.login');
         }
 
@@ -197,13 +194,13 @@ class AuthController extends Controller
             ->where('role', 'admin')
             ->first();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('admin.login')
                 ->with('error', 'User not found.');
         }
 
         // Check if OTP has expired
-        if (!$user->otp_expires_at || $user->otp_expires_at->lt(now())) {
+        if (! $user->otp_expires_at || $user->otp_expires_at->lt(now())) {
             return back()->with('error', 'The OTP has expired. Please request a new one.');
         }
 
@@ -239,13 +236,13 @@ class AuthController extends Controller
             ->where('role', 'admin')
             ->first();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('admin.password.login.form')
                 ->with('error', 'User not found.');
         }
 
         // Assuming $user is retrieved from the database
-        if (!Hash::check($request->password, $user->password)) {
+        if (! Hash::check($request->password, $user->password)) {
             // Password matches
             return redirect()->route('admin.password.login.form')
                 ->with('error', 'Enter correct password');
@@ -253,12 +250,13 @@ class AuthController extends Controller
 
         // Store user ID in session for 2FA challenge
         session(['2fa:user:id' => $user->id]);
-        //session(['2fa:user:id' => 123456]);
+        // session(['2fa:user:id' => 123456]);
         session(['2fa:remember' => $request->boolean('remember')]);
 
         // Check if user has 2FA enabled
         if ($user->hasTwoFactorEnabled()) {
             Auth::logout();
+
             return redirect()->route('admin.two-factor.challenge');
         } else {
             return redirect()->route('admin.two-factor.index');

@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('payments', function (Blueprint $table) {
-            if (!Schema::hasColumn('payments', 'razorpay_payment_id')) {
+            if (! Schema::hasColumn('payments', 'razorpay_payment_id')) {
                 $table->string('razorpay_payment_id', 100)
                     ->nullable()
                     ->after('transaction_id');

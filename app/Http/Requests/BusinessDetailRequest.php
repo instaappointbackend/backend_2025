@@ -26,12 +26,12 @@ class BusinessDetailRequest extends FormRequest
     {
         $rules = [
             'business_name' => 'required|string|max:255',
-            'industry'      => 'required|string|max:100',
-            'email'         => 'required|email|unique:business_details,email,' . $this->id,
-            'phone'         => 'nullable|string|max:20',
-            'website'       => 'nullable|url',
-            'address'       => 'nullable|string',
-            'logo'          => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'industry' => 'required|string|max:100',
+            'email' => 'required|email|unique:business_details,email,'.$this->id,
+            'phone' => 'nullable|string|max:20',
+            'website' => 'nullable|url',
+            'address' => 'nullable|string',
+            'logo' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:5120',
         ];
 
         return $rules;

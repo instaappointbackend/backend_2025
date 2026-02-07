@@ -108,6 +108,21 @@
                                     @endif
                                 </td>
                                 <td>{{ $vendor->created_at->format('M d, Y') }}</td>
+                                <td>
+                                    <div class="d-flex">
+                                        <form action="{{ route('admin.users.restore', $vendor->id) }}" method="POST"
+                                            class="d-inline">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="btn btn-sm btn-success"
+                                                data-confirm="Are you sure you want to restore this vendor?"
+                                                data-bs-toggle="tooltip" title="Restore Vendor">
+                                                <i class="fas fa-undo"></i>
+                                            </button>
+
+                                        </form>
+                                    </div>
+                                </td>
                                 {{-- <td>
                                     <div class="d-flex">
                                         <a href="{{ route('admin.users.show', $vendor->id) }}"

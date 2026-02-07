@@ -46,7 +46,7 @@ class NotificationController extends Controller
     /**
      * Mark a notification as read.
      *
-     * @param int $id Notification ID
+     * @param  int  $id  Notification ID
      * @return \Illuminate\Http\JsonResponse
      */
     public function markAsRead($id)
@@ -57,7 +57,7 @@ class NotificationController extends Controller
             ->where('user_id', $userId)
             ->first();
 
-        if (!$notification) {
+        if (! $notification) {
             return $this->error([], 'Notification not found', 404);
         }
 
@@ -116,7 +116,6 @@ class NotificationController extends Controller
     /**
      * Register a device token for push notifications.
      *
-     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function registerToken(Request $request)
@@ -135,14 +134,14 @@ class NotificationController extends Controller
         try {
             Log::info('Registering notification token', [
                 'user_id' => $userId,
-                'token' => substr($request->token, 0, 10) . '...' // Log only part of token for security
+                'token' => substr($request->token, 0, 10).'...', // Log only part of token for security
             ]);
 
             // Update or create notification token
             NotificationToken::updateOrCreate(
                 [
                     'token' => $request->token,
-                    'user_id' => $userId
+                    'user_id' => $userId,
                 ],
                 [
                     'user_role' => Auth::user()->role,
@@ -159,7 +158,8 @@ class NotificationController extends Controller
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            return $this->error([], 'Failed to register notification token: ' . $e->getMessage(), 500);
+
+            return $this->error([], 'Failed to register notification token: '.$e->getMessage(), 500);
         }
     }
 
@@ -173,7 +173,7 @@ class NotificationController extends Controller
         try {
             $userId = 67; // Use authenticated user instead of hardcoded ID
 
-            if (!$userId) {
+            if (! $userId) {
                 return $this->error([], 'Not authenticated', 401);
             }
 
@@ -196,14 +196,14 @@ class NotificationController extends Controller
                 'This is a test notification from the API.',
                 [
                     'appointmentId' => 88,
-                    'screenName'=>'appointmentDetails'
-                    ]
+                    'screenName' => 'appointmentDetails',
+                ]
             );
 
             return $this->success(
                 [
                     'notification' => $notification,
-                    'push_result' => $result
+                    'push_result' => $result,
                 ],
                 'Test notification sent successfully'
             );
@@ -212,7 +212,8 @@ class NotificationController extends Controller
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            return $this->error([], 'Failed to send test notification: ' . $e->getMessage(), 500);
+
+            return $this->error([], 'Failed to send test notification: '.$e->getMessage(), 500);
         }
     }
 
@@ -220,7 +221,7 @@ class NotificationController extends Controller
     {
         try {
             $data = [];
-            $tokens = NotificationToken::where('is_active', true)->orderBy('id','desc')->get();
+            $tokens = NotificationToken::where('is_active', true)->orderBy('id', 'desc')->get();
             $i = 0;
             foreach ($tokens as $token) {
                 $data[$i]['token'] = $token->token;
@@ -228,14 +229,15 @@ class NotificationController extends Controller
                 $data[$i]['updated_at'] = date('Y-m-d H:i:s', strtotime($token->updated_at));
                 $i++;
             }
-            
+
             return $this->success($data, 'Active tokens retrieved successfully');
         } catch (\Exception $e) {
             Log::error('Failed to get tokens', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            return $this->error([], 'Failed to get tokens: ' . $e->getMessage(), 500);
+
+            return $this->error([], 'Failed to get tokens: '.$e->getMessage(), 500);
         }
     }
 
@@ -246,7 +248,7 @@ class NotificationController extends Controller
     {
         try {
             $userId = Auth::id();
-            
+
             $tokens = NotificationToken::where('user_id', $userId)
                 ->where('is_active', true)
                 ->get();
@@ -259,28 +261,24 @@ class NotificationController extends Controller
             return $this->success([
                 'user_id' => $userId,
                 'active_tokens_count' => $tokens->count(),
-                'tokens' => $tokens->map(function($token) {
+                'tokens' => $tokens->map(function ($token) {
                     return [
                         'id' => $token->id,
-                        'token' => substr($token->token, 0, 20) . '...',
+                        'token' => substr($token->token, 0, 20).'...',
                         'last_used_at' => $token->last_used_at,
-                        'device_info' => $token->device_info
+                        'device_info' => $token->device_info,
                     ];
                 }),
-                'recent_notifications' => $recentNotifications
+                'recent_notifications' => $recentNotifications,
             ], 'Token status retrieved successfully');
 
         } catch (\Exception $e) {
             Log::error('Failed to get token status', [
                 'user_id' => Auth::id(),
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return $this->error([], 'Failed to get token status', 500);
         }
     }
-
-    
-    
-    
-      
 }

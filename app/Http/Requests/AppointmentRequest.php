@@ -60,7 +60,7 @@ class AppointmentRequest extends FormRequest
             'offer_type' => 'nullable|in:vendor,admin',
 
             // Visit type
-            'visit_type' => 'nullable|string|in:online,office,home'
+            'visit_type' => 'nullable|string|in:online,office,home',
         ];
 
         return $rules;

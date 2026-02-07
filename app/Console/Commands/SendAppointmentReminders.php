@@ -2,11 +2,11 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\Appointment;
 use App\Models\AppointmentReminder;
 use App\Services\NotificationService;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
 class SendAppointmentReminders extends Command
@@ -43,20 +43,20 @@ class SendAppointmentReminders extends Command
     public function handle()
     {
         $this->info('Starting appointment reminder notifications...');
-        
+
         $totalSent = 0;
-        
+
         foreach (self::REMINDER_INTERVALS as $minutes) {
             $sent = $this->sendRemindersForInterval($minutes);
             $totalSent += $sent;
-            
-            $hours = $minutes >= 60 ? ($minutes / 60) . ' hour(s)' : $minutes . ' minute(s)';
+
+            $hours = $minutes >= 60 ? ($minutes / 60).' hour(s)' : $minutes.' minute(s)';
             $this->info("Sent {$sent} reminders for {$hours} before appointments");
         }
-        
+
         $this->info("Total reminders sent: {$totalSent}");
         Log::info("Appointment reminders completed. Total sent: {$totalSent}");
-        
+
         return 0;
     }
 
@@ -68,12 +68,12 @@ class SendAppointmentReminders extends Command
         $targetTime = Carbon::now()->addMinutes($minutes);
         $startRange = $targetTime->copy()->subMinutes(2); // 2-minute window
         $endRange = $targetTime->copy()->addMinutes(2);
-        
+
         // Get appointments that start within the target time range
         $appointments = Appointment::with(['client', 'provider', 'service', 'comboService'])
             ->whereIn('status', [
                 Appointment::STATUS_CONFIRMED,
-                Appointment::STATUS_PENDING
+                Appointment::STATUS_PENDING,
             ])
             ->whereDate('date', $targetTime->toDateString())
             ->whereTime('start_time', '>=', $startRange->format('H:i:s'))
@@ -87,10 +87,10 @@ class SendAppointmentReminders extends Command
                 $appointmentSentCount = 0;
 
                 // Send reminder to client
-                if ($appointment->client && !AppointmentReminder::wasReminderSent(
-                    $appointment->id, 
-                    $minutes, 
-                    AppointmentReminder::RECIPIENT_CLIENT, 
+                if ($appointment->client && ! AppointmentReminder::wasReminderSent(
+                    $appointment->id,
+                    $minutes,
+                    AppointmentReminder::RECIPIENT_CLIENT,
                     $appointment->client->id
                 )) {
                     $this->sendClientReminder($appointment, $minutes);
@@ -98,20 +98,20 @@ class SendAppointmentReminders extends Command
                 }
 
                 // Send reminder to provider
-                if ($appointment->provider && !AppointmentReminder::wasReminderSent(
-                    $appointment->id, 
-                    $minutes, 
-                    AppointmentReminder::RECIPIENT_PROVIDER, 
+                if ($appointment->provider && ! AppointmentReminder::wasReminderSent(
+                    $appointment->id,
+                    $minutes,
+                    AppointmentReminder::RECIPIENT_PROVIDER,
                     $appointment->provider->id
                 )) {
                     $this->sendProviderReminder($appointment, $minutes);
                     $appointmentSentCount++;
                 }
-                
+
                 $sentCount += $appointmentSentCount;
-                
+
             } catch (\Exception $e) {
-                Log::error("Failed to send reminder for appointment {$appointment->id}: " . $e->getMessage());
+                Log::error("Failed to send reminder for appointment {$appointment->id}: ".$e->getMessage());
                 $this->error("Failed to send reminder for appointment {$appointment->id}");
             }
         }
@@ -125,15 +125,15 @@ class SendAppointmentReminders extends Command
     private function sendClientReminder(Appointment $appointment, int $minutes): void
     {
         $timeText = $this->getTimeText($minutes);
-        $serviceName = $appointment->service ? $appointment->service->name : 
+        $serviceName = $appointment->service ? $appointment->service->name :
                       ($appointment->comboService ? $appointment->comboService->name : 'your appointment');
-        
+
         $appointmentDate = $appointment->date->format('M d, Y');
         $appointmentTime = Carbon::parse($appointment->start_time)->format('g:i A');
-        
-        $title = "Appointment Reminder";
+
+        $title = 'Appointment Reminder';
         $body = "Your appointment for {$serviceName} with {$appointment->provider->name} is starting {$timeText} ({$appointmentDate} at {$appointmentTime})";
-        
+
         $data = [
             'type' => 'appointment_reminder',
             'appointment_id' => $appointment->id,
@@ -187,15 +187,15 @@ class SendAppointmentReminders extends Command
     private function sendProviderReminder(Appointment $appointment, int $minutes): void
     {
         $timeText = $this->getTimeText($minutes);
-        $serviceName = $appointment->service ? $appointment->service->name : 
+        $serviceName = $appointment->service ? $appointment->service->name :
                       ($appointment->comboService ? $appointment->comboService->name : 'appointment');
-        
+
         $appointmentDate = $appointment->date->format('M d, Y');
         $appointmentTime = Carbon::parse($appointment->start_time)->format('g:i A');
-        
-        $title = "Appointment Reminder";
+
+        $title = 'Appointment Reminder';
         $body = "You have an appointment for {$serviceName} with {$appointment->client->name} starting {$timeText} ({$appointmentDate} at {$appointmentTime})";
-        
+
         $data = [
             'type' => 'appointment_reminder_provider',
             'appointment_id' => $appointment->id,
@@ -243,8 +243,6 @@ class SendAppointmentReminders extends Command
         }
     }
 
-
-
     /**
      * Get human-readable time text
      */
@@ -252,12 +250,14 @@ class SendAppointmentReminders extends Command
     {
         if ($minutes >= 1440) {
             $hours = $minutes / 60;
+
             return "in {$hours} hours";
         } elseif ($minutes >= 60) {
             $hours = $minutes / 60;
-            return "in {$hours} hour" . ($hours > 1 ? 's' : '');
+
+            return "in {$hours} hour".($hours > 1 ? 's' : '');
         } else {
-            return "in {$minutes} minute" . ($minutes > 1 ? 's' : '');
+            return "in {$minutes} minute".($minutes > 1 ? 's' : '');
         }
     }
 }

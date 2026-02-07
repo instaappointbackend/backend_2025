@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Carbon\Carbon;
 
 class Appointment extends Model
 {
@@ -72,20 +72,27 @@ class Appointment extends Model
      * The possible status values for an appointment.
      */
     const STATUS_PENDING = 'pending';
+
     const STATUS_CONFIRMED = 'confirmed';
+
     const STATUS_CANCELLED = 'cancelled';
+
     const STATUS_COMPLETED = 'completed';
+
     /**
      * The possible payment status values for an appointment.
      */
     const PAYMENT_STATUS_PENDING = 'pending';
-    const PAYMENT_STATUS_PAID = 'paid';
-    const PAYMENT_STATUS_FAILED = 'failed';
-    const PAYMENT_STATUS_REFUNDED = 'refunded';
 
+    const PAYMENT_STATUS_PAID = 'paid';
+
+    const PAYMENT_STATUS_FAILED = 'failed';
+
+    const PAYMENT_STATUS_REFUNDED = 'refunded';
 
     // Add new status constants
     const STATUS_DRAFT = 'draft';
+
     const STATUS_PAYMENT_PENDING = 'payment_pending';
 
     /**
@@ -110,9 +117,10 @@ class Appointment extends Model
     public function confirmAfterPayment()
     {
         $this->update([
-            'status' => self::STATUS_PENDING // or CONFIRMED based on auto-confirm setting
+            'status' => self::STATUS_PENDING, // or CONFIRMED based on auto-confirm setting
         ]);
     }
+
     /**
      * Get the user (vendor) that owns the appointment.
      */
@@ -128,7 +136,6 @@ class Appointment extends Model
     {
         return $this->belongsTo(User::class, 'client_id');
     }
-
 
     /**
      * Get the client for this appointment.
@@ -174,7 +181,7 @@ class Appointment extends Model
      * Helper method to manage time slots for multi-slot bookings.
      * This method can be used to either block or free time slots.
      *
-     * @param bool $makeAvailable True to make slots available, false to block them
+     * @param  bool  $makeAvailable  True to make slots available, false to block them
      * @return void
      */
     public function manageTimeSlots($makeAvailable = false)
@@ -195,7 +202,7 @@ class Appointment extends Model
         }
 
         // If we couldn't determine service duration, default to difference between start and end time
-        if (!$serviceDuration && $this->start_time && $this->end_time) {
+        if (! $serviceDuration && $this->start_time && $this->end_time) {
             $startTime = Carbon::parse($this->start_time);
             $endTime = Carbon::parse($this->end_time);
             $serviceDuration = $endTime->diffInMinutes($startTime);
@@ -223,12 +230,12 @@ class Appointment extends Model
                     'status' => TimeSlot::STATUS_AVAILABLE,
                     'blocked_until' => null,
                     'blocked_for_appointment_id' => null,
-                    'blocked_reason' => null
+                    'blocked_reason' => null,
                 ]);
             } else {
                 $startingTimeSlot->update([
                     'is_available' => false,
-                    'status' => TimeSlot::STATUS_BOOKED
+                    'status' => TimeSlot::STATUS_BOOKED,
                 ]);
             }
 
@@ -250,12 +257,12 @@ class Appointment extends Model
                             'status' => TimeSlot::STATUS_AVAILABLE,
                             'blocked_until' => null,
                             'blocked_for_appointment_id' => null,
-                            'blocked_reason' => null
+                            'blocked_reason' => null,
                         ]);
                     } else {
                         $nextSlot->update([
                             'is_available' => false,
-                            'status' => TimeSlot::STATUS_BOOKED
+                            'status' => TimeSlot::STATUS_BOOKED,
                         ]);
                     }
                 }
@@ -264,34 +271,34 @@ class Appointment extends Model
             }
         } else {
             // If we couldn't find the exact starting slot, try to find any slots that overlap with this appointment's time range
-            $appointmentStartTime = Carbon::parse($this->date->format('Y-m-d') . ' ' . $this->start_time);
-            $appointmentEndTime = Carbon::parse($this->date->format('Y-m-d') . ' ' . $this->end_time);
+            $appointmentStartTime = Carbon::parse($this->date->format('Y-m-d').' '.$this->start_time);
+            $appointmentEndTime = Carbon::parse($this->date->format('Y-m-d').' '.$this->end_time);
 
             $timeSlots = TimeSlot::where('user_id', $this->user_id)
                 ->where('date', $this->date)
                 ->get();
 
             foreach ($timeSlots as $timeSlot) {
-                $slotStartTime = Carbon::parse($timeSlot->date->format('Y-m-d') . ' ' . $timeSlot->start_time);
-                $slotEndTime = Carbon::parse($timeSlot->date->format('Y-m-d') . ' ' . $timeSlot->end_time);
+                $slotStartTime = Carbon::parse($timeSlot->date->format('Y-m-d').' '.$timeSlot->start_time);
+                $slotEndTime = Carbon::parse($timeSlot->date->format('Y-m-d').' '.$timeSlot->end_time);
 
                 // If this slot overlaps with the appointment time range, update it
                 if (($slotStartTime >= $appointmentStartTime && $slotStartTime < $appointmentEndTime) ||
                     ($slotEndTime > $appointmentStartTime && $slotEndTime <= $appointmentEndTime) ||
                     ($slotStartTime <= $appointmentStartTime && $slotEndTime >= $appointmentEndTime)) {
-                    
+
                     if ($makeAvailable) {
                         $timeSlot->update([
                             'is_available' => true,
                             'status' => TimeSlot::STATUS_AVAILABLE,
                             'blocked_until' => null,
                             'blocked_for_appointment_id' => null,
-                            'blocked_reason' => null
+                            'blocked_reason' => null,
                         ]);
                     } else {
                         $timeSlot->update([
                             'is_available' => false,
-                            'status' => TimeSlot::STATUS_BOOKED
+                            'status' => TimeSlot::STATUS_BOOKED,
                         ]);
                     }
                 }
@@ -312,7 +319,7 @@ class Appointment extends Model
      */
     public function getFormattedPlatformFeesAttribute(): string
     {
-        return '₹' . number_format($this->platform_fees, 2);
+        return '₹'.number_format($this->platform_fees, 2);
     }
 
     /**
@@ -320,7 +327,7 @@ class Appointment extends Model
      */
     public function getFormattedOtherChargesAttribute(): string
     {
-        return '₹' . number_format($this->other_charges, 2);
+        return '₹'.number_format($this->other_charges, 2);
     }
 
     /**
@@ -328,7 +335,7 @@ class Appointment extends Model
      */
     public function getFormattedGstAttribute(): string
     {
-        return '₹' . number_format($this->gst, 2);
+        return '₹'.number_format($this->gst, 2);
     }
 
     /**
@@ -336,7 +343,7 @@ class Appointment extends Model
      */
     public function getFormattedHomeVisitFeeAttribute(): string
     {
-        return '₹' . number_format($this->home_visit_fee, 2);
+        return '₹'.number_format($this->home_visit_fee, 2);
     }
 
     /**
@@ -344,7 +351,7 @@ class Appointment extends Model
      */
     public function getFormattedAdditionalServicesFeeAttribute(): string
     {
-        return '₹' . number_format($this->additional_services_fee, 2);
+        return '₹'.number_format($this->additional_services_fee, 2);
     }
 
     /**
@@ -369,7 +376,6 @@ class Appointment extends Model
             'offer_type' => $this->offer_type,
         ];
     }
-
 
     /**
      * Get the services included in this appointment.
@@ -435,6 +441,7 @@ class Appointment extends Model
     public function scopeUpcoming($query)
     {
         $today = Carbon::today();
+
         return $query->where('date', '>=', $today)
             ->whereIn('status', [self::STATUS_PENDING, self::STATUS_CONFIRMED]);
     }
@@ -487,7 +494,7 @@ class Appointment extends Model
         if ($isAdmin) {
             return true;
         }
-        
+
         return in_array($this->status, [self::STATUS_PENDING, self::STATUS_CONFIRMED, self::STATUS_PAYMENT_PENDING]) &&
             ($this->date->isAfter(Carbon::today()) || $this->date->isToday());
     }
@@ -529,11 +536,11 @@ class Appointment extends Model
      */
     public function getFormattedPaymentAmountAttribute()
     {
-        if (!$this->payment_amount) {
+        if (! $this->payment_amount) {
             return null;
         }
 
-        return '₹' . number_format($this->payment_amount, 2);
+        return '₹'.number_format($this->payment_amount, 2);
     }
 
     /**
@@ -541,11 +548,11 @@ class Appointment extends Model
      */
     public function getFormattedOriginalPriceAttribute()
     {
-        if (!$this->original_price) {
+        if (! $this->original_price) {
             return null;
         }
 
-        return '₹' . number_format($this->original_price, 2);
+        return '₹'.number_format($this->original_price, 2);
     }
 
     /**
@@ -553,11 +560,11 @@ class Appointment extends Model
      */
     public function getFormattedDiscountAmountAttribute()
     {
-        if (!$this->discount_amount) {
+        if (! $this->discount_amount) {
             return null;
         }
 
-        return '₹' . number_format($this->discount_amount, 2);
+        return '₹'.number_format($this->discount_amount, 2);
     }
 
     /**
@@ -565,11 +572,11 @@ class Appointment extends Model
      */
     public function getFormattedFinalPriceAttribute()
     {
-        if (!$this->final_price) {
+        if (! $this->final_price) {
             return null;
         }
 
-        return '₹' . number_format($this->final_price, 2);
+        return '₹'.number_format($this->final_price, 2);
     }
 
     /**
@@ -700,46 +707,46 @@ class Appointment extends Model
         if ($isAdmin) {
             return true;
         }
-        
+
         // Check if appointment status allows rescheduling
-        if (!in_array($this->status, [self::STATUS_PENDING, self::STATUS_CONFIRMED, self::STATUS_PAYMENT_PENDING])) {
+        if (! in_array($this->status, [self::STATUS_PENDING, self::STATUS_CONFIRMED, self::STATUS_PAYMENT_PENDING])) {
             return false;
         }
 
         try {
             // Get the start time string
             $rawStartTime = $this->getRawOriginal('start_time');
-            
+
             if ($rawStartTime) {
                 // If raw time exists, use it directly
                 $startTimeString = $rawStartTime;
             } else {
                 // Fallback to cast value
-                $startTimeString = $this->start_time instanceof Carbon ? 
-                    $this->start_time->format('H:i:s') : 
+                $startTimeString = $this->start_time instanceof Carbon ?
+                    $this->start_time->format('H:i:s') :
                     (string) $this->start_time;
             }
-            
+
             // Ensure we have a proper time format (H:i:s or H:i)
-            if (!preg_match('/^\d{1,2}:\d{2}(:\d{2})?$/', $startTimeString)) {
+            if (! preg_match('/^\d{1,2}:\d{2}(:\d{2})?$/', $startTimeString)) {
                 // If time format is invalid, assume it can be rescheduled (safer default)
                 return true;
             }
-            
+
             // Add seconds if not present
             if (substr_count($startTimeString, ':') === 1) {
                 $startTimeString .= ':00';
             }
-            
+
             // Create full datetime by combining appointment date with start time
             $appointmentStartDateTime = Carbon::createFromFormat(
-                'Y-m-d H:i:s', 
-                $this->date->format('Y-m-d') . ' ' . $startTimeString
+                'Y-m-d H:i:s',
+                $this->date->format('Y-m-d').' '.$startTimeString
             );
-            
+
             // Can be rescheduled only if the appointment start datetime is in the future
             return $appointmentStartDateTime->isFuture();
-            
+
         } catch (\Exception $e) {
             // If there's any error parsing the time, assume it can be rescheduled (safer default)
             return true;
@@ -749,10 +756,10 @@ class Appointment extends Model
     /**
      * Check if the appointment can be completed.
      */
-//    public function canBeCompleted()
+    //    public function canBeCompleted()
     //  {
     //     return $this->status === self::STATUS_CONFIRMED && $this->date->isAfter(Carbon::today());
-    //}
+    // }
 
     public function canBeCompleted()
     {
@@ -764,37 +771,37 @@ class Appointment extends Model
         try {
             // Get the end time string
             $rawEndTime = $this->getRawOriginal('end_time');
-            
+
             if ($rawEndTime) {
                 // If raw time exists, use it directly
                 $endTimeString = $rawEndTime;
             } else {
                 // Fallback to cast value
-                $endTimeString = $this->end_time instanceof Carbon ? 
-                    $this->end_time->format('H:i:s') : 
+                $endTimeString = $this->end_time instanceof Carbon ?
+                    $this->end_time->format('H:i:s') :
                     (string) $this->end_time;
             }
-            
+
             // Ensure we have a proper time format (H:i:s or H:i)
-            if (!preg_match('/^\d{1,2}:\d{2}(:\d{2})?$/', $endTimeString)) {
+            if (! preg_match('/^\d{1,2}:\d{2}(:\d{2})?$/', $endTimeString)) {
                 // If time format is invalid, assume it can't be completed yet
                 return false;
             }
-            
+
             // Add seconds if not present
             if (substr_count($endTimeString, ':') === 1) {
                 $endTimeString .= ':00';
             }
-            
+
             // Create full datetime by combining appointment date with end time
             $appointmentEndDateTime = Carbon::createFromFormat(
-                'Y-m-d H:i:s', 
-                $this->date->format('Y-m-d') . ' ' . $endTimeString
+                'Y-m-d H:i:s',
+                $this->date->format('Y-m-d').' '.$endTimeString
             );
-            
+
             // Check if both date and end time are in the past
             return $appointmentEndDateTime->isPast();
-            
+
         } catch (\Exception $e) {
             // If there's any error parsing the time, assume it can't be completed yet
             return false;
@@ -808,8 +815,8 @@ class Appointment extends Model
     {
         $now = Carbon::now();
         $endTimeString = $this->end_time instanceof Carbon ? $this->end_time->format('H:i') : $this->end_time;
-        $appointmentEndTime = Carbon::parse($this->date->format('Y-m-d') . ' ' . $endTimeString);
-        
+        $appointmentEndTime = Carbon::parse($this->date->format('Y-m-d').' '.$endTimeString);
+
         return [
             'status' => $this->status,
             'is_confirmed' => $this->status === self::STATUS_CONFIRMED,
@@ -833,7 +840,7 @@ class Appointment extends Model
     {
         return $this->status === self::STATUS_COMPLETED &&
             $this->date->isPast() &&
-            !Review::where('appointment_id', $this->id)->exists();
+            ! Review::where('appointment_id', $this->id)->exists();
     }
 
     /**

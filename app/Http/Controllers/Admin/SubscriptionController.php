@@ -25,13 +25,13 @@ class SubscriptionController extends Controller
                 });
             })
             ->when($request->filled('status'), function ($q) use ($request) {
-                $q->where('stats', trim($request->status));
+                $q->where('status', trim($request->status));
             })
             ->latest();
 
-
         $users = $query->paginate(10)->withQueryString();
-        //dd($users);
+
+        // dd($users);
         return view('admin.subscription.index', compact('users'));
     }
 }

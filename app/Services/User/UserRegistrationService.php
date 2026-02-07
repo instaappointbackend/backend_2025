@@ -2,11 +2,9 @@
 
 namespace App\Services\User;
 
-use App\Models\KycDocument;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class UserRegistrationService
@@ -17,12 +15,12 @@ class UserRegistrationService
 
         try {
             // Create user if not exists
-            if (!$user) {
-                $user = new User();
+            if (! $user) {
+                $user = new User;
             }
 
             /* Profile Picture */
-            if (!empty($data['profile_picture']) && $data['profile_picture'] instanceof UploadedFile) {
+            if (! empty($data['profile_picture']) && $data['profile_picture'] instanceof UploadedFile) {
                 $user->profile_picture = $data['profile_picture']
                     ->store('profile_pictures', 'public');
             }
@@ -33,7 +31,7 @@ class UserRegistrationService
             }
 
             /* Reference Code */
-            if (!empty($data['reference_code'])) {
+            if (! empty($data['reference_code'])) {
                 $referrer = User::where('referral_code', $data['reference_code'])->first();
                 if ($referrer) {
                     $user->reference_id = $referrer->id;
@@ -72,6 +70,7 @@ class UserRegistrationService
             $user->save();
 
             DB::commit();
+
             return $user;
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -93,7 +92,7 @@ class UserRegistrationService
 
             if ($attempts >= $maxAttempts) {
                 // Fallback to timestamp-based code
-                $code = Str::upper(Str::random(4) . substr(time(), -4));
+                $code = Str::upper(Str::random(4).substr(time(), -4));
                 break;
             }
         } while (User::where('referral_code', $code)->exists());

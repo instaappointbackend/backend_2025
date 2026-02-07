@@ -7,11 +7,10 @@ use App\Http\Resources\RefundResource;
 use App\Models\Refund;
 use App\Services\RefundService;
 use App\Traits\ApiResponseTrait;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
-use Carbon\Carbon;
 
 class RefundController extends Controller
 {
@@ -77,7 +76,7 @@ class RefundController extends Controller
         try {
             // Check if user is admin
             $user = Auth::user();
-            if (!in_array($user->role, ['admin', 'super_admin'])) {
+            if (! in_array($user->role, ['admin', 'super_admin'])) {
                 return $this->error([], 'Unauthorized', 403);
             }
 
@@ -127,11 +126,12 @@ class RefundController extends Controller
                     'total' => $refunds->total(),
                     'from' => $refunds->firstItem(),
                     'to' => $refunds->lastItem(),
-                ]
+                ],
             ], 'Refunds retrieved successfully');
 
         } catch (\Exception $e) {
-            Log::error('Error retrieving refunds: ' . $e->getMessage());
+            Log::error('Error retrieving refunds: '.$e->getMessage());
+
             return $this->error([], 'Failed to retrieve refunds', 500);
         }
     }
@@ -142,6 +142,7 @@ class RefundController extends Controller
     public function show(Refund $refund)
     {
         $refund->load(['appointment', 'payment', 'user', 'provider']);
+
         return view('admin.refunds.show', compact('refund'));
     }
 
@@ -153,7 +154,7 @@ class RefundController extends Controller
         try {
             // Check if user is admin
             $user = Auth::user();
-            if (!in_array($user->role, ['admin', 'super_admin'])) {
+            if (! in_array($user->role, ['admin', 'super_admin'])) {
                 return $this->error([], 'Unauthorized', 403);
             }
 
@@ -163,7 +164,8 @@ class RefundController extends Controller
             return $this->success(new RefundResource($refund), 'Refund details retrieved successfully');
 
         } catch (\Exception $e) {
-            Log::error('Error retrieving refund details: ' . $e->getMessage());
+            Log::error('Error retrieving refund details: '.$e->getMessage());
+
             return $this->error([], 'Failed to retrieve refund details', 500);
         }
     }
@@ -176,10 +178,11 @@ class RefundController extends Controller
         try {
             // Check if user is admin
             $user = Auth::user();
-            if (!in_array($user->role, ['admin', 'super_admin'])) {
+            if (! in_array($user->role, ['admin', 'super_admin'])) {
                 if ($request->expectsJson()) {
                     return $this->error([], 'Unauthorized', 403);
                 }
+
                 return redirect()->back()->with('error', 'Unauthorized access');
             }
 
@@ -188,6 +191,7 @@ class RefundController extends Controller
                 if ($request->expectsJson()) {
                     return $this->error([], $message, 422);
                 }
+
                 return redirect()->back()->with('error', $message);
             }
 
@@ -199,14 +203,14 @@ class RefundController extends Controller
                     'processed_by_admin' => $user->id,
                     'processed_by_admin_name' => $user->name,
                     'admin_processed_at' => now()->toIso8601String(),
-                    'processing_method' => 'manual_admin_approval'
-                ])
+                    'processing_method' => 'manual_admin_approval',
+                ]),
             ]);
 
             Log::info('Refund processed by admin', [
                 'refund_id' => $refund->id,
                 'admin_id' => $user->id,
-                'admin_name' => $user->name
+                'admin_name' => $user->name,
             ]);
 
             if ($request->expectsJson()) {
@@ -217,13 +221,13 @@ class RefundController extends Controller
                 ->with('success', 'Refund processed successfully');
 
         } catch (\Exception $e) {
-            Log::error('Error processing refund: ' . $e->getMessage());
-            
+            Log::error('Error processing refund: '.$e->getMessage());
+
             if ($request->expectsJson()) {
                 return $this->error([], 'Failed to process refund', 500);
             }
-            
-            return redirect()->back()->with('error', 'Failed to process refund: ' . $e->getMessage());
+
+            return redirect()->back()->with('error', 'Failed to process refund: '.$e->getMessage());
         }
     }
 
@@ -235,7 +239,7 @@ class RefundController extends Controller
         try {
             // Check if user is admin
             $user = Auth::user();
-            if (!in_array($user->role, ['admin', 'super_admin'])) {
+            if (! in_array($user->role, ['admin', 'super_admin'])) {
                 return $this->error([], 'Unauthorized', 403);
             }
 
@@ -249,7 +253,8 @@ class RefundController extends Controller
             return $this->success($statistics, 'Refund statistics retrieved successfully');
 
         } catch (\Exception $e) {
-            Log::error('Error retrieving refund statistics: ' . $e->getMessage());
+            Log::error('Error retrieving refund statistics: '.$e->getMessage());
+
             return $this->error([], 'Failed to retrieve refund statistics', 500);
         }
     }
@@ -262,7 +267,7 @@ class RefundController extends Controller
         try {
             // Check if user is admin
             $user = Auth::user();
-            if (!in_array($user->role, ['admin', 'super_admin'])) {
+            if (! in_array($user->role, ['admin', 'super_admin'])) {
                 return $this->error([], 'Unauthorized', 403);
             }
 
@@ -289,15 +294,15 @@ class RefundController extends Controller
             $refunds = $query->get();
 
             // Generate CSV
-            $filename = 'refunds_export_' . date('Y-m-d_H-i-s') . '.csv';
+            $filename = 'refunds_export_'.date('Y-m-d_H-i-s').'.csv';
             $headers = [
                 'Content-Type' => 'text/csv',
-                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Content-Disposition' => 'attachment; filename="'.$filename.'"',
             ];
 
             $callback = function () use ($refunds) {
                 $file = fopen('php://output', 'w');
-                
+
                 // CSV Headers
                 fputcsv($file, [
                     'ID',
@@ -320,7 +325,7 @@ class RefundController extends Controller
                     'Other Charges',
                     'GST Amount',
                     'Created At',
-                    'Processed At'
+                    'Processed At',
                 ]);
 
                 // CSV Data
@@ -346,7 +351,7 @@ class RefundController extends Controller
                         $refund->other_charges,
                         $refund->gst_amount,
                         $refund->created_at->format('Y-m-d H:i:s'),
-                        $refund->processed_at ? $refund->processed_at->format('Y-m-d H:i:s') : 'Not Processed'
+                        $refund->processed_at ? $refund->processed_at->format('Y-m-d H:i:s') : 'Not Processed',
                     ]);
                 }
 
@@ -356,7 +361,8 @@ class RefundController extends Controller
             return response()->stream($callback, 200, $headers);
 
         } catch (\Exception $e) {
-            Log::error('Error exporting refunds: ' . $e->getMessage());
+            Log::error('Error exporting refunds: '.$e->getMessage());
+
             return $this->error([], 'Failed to export refunds', 500);
         }
     }
@@ -371,15 +377,16 @@ class RefundController extends Controller
 
             // Generate PDF receipt (you can use a PDF library like TCPDF or DomPDF)
             $html = $this->generateReceiptHTML($refund);
-            
+
             // For now, return HTML (you can convert to PDF)
             return response($html, 200, [
                 'Content-Type' => 'text/html',
-                'Content-Disposition' => 'inline; filename="refund_receipt_' . $refund->refund_reference . '.html"'
+                'Content-Disposition' => 'inline; filename="refund_receipt_'.$refund->refund_reference.'.html"',
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error generating refund receipt: ' . $e->getMessage());
+            Log::error('Error generating refund receipt: '.$e->getMessage());
+
             return redirect()->back()->with('error', 'Failed to generate refund receipt');
         }
     }
@@ -389,7 +396,7 @@ class RefundController extends Controller
      */
     private function getAdditionalStatistics($period)
     {
-        $startDate = match($period) {
+        $startDate = match ($period) {
             'week' => Carbon::now()->startOfWeek(),
             'month' => Carbon::now()->startOfMonth(),
             'year' => Carbon::now()->startOfYear(),
@@ -400,7 +407,7 @@ class RefundController extends Controller
 
         return [
             'total_refund_requests' => $refunds->count(),
-            'success_rate' => $refunds->count() > 0 ? 
+            'success_rate' => $refunds->count() > 0 ?
                 round(($refunds->where('refund_status', Refund::STATUS_PROCESSED)->count() / $refunds->count()) * 100, 2) : 0,
             'failed_refunds_amount' => $refunds->where('refund_status', Refund::STATUS_FAILED)->sum('refund_amount'),
             'pending_refunds_amount' => $refunds->where('refund_status', Refund::STATUS_PENDING)->sum('refund_amount'),
@@ -422,7 +429,7 @@ class RefundController extends Controller
         })->map(function ($dayRefunds) {
             return [
                 'count' => $dayRefunds->count(),
-                'amount' => $dayRefunds->sum('refund_amount')
+                'amount' => $dayRefunds->sum('refund_amount'),
             ];
         });
     }
@@ -465,7 +472,7 @@ class RefundController extends Controller
             <div class='header'>
                 <h1>Refund Receipt</h1>
                 <h2>Reference: {$refund->refund_reference}</h2>
-                <p>Generated on: " . now()->format('d/m/Y H:i:s') . "</p>
+                <p>Generated on: ".now()->format('d/m/Y H:i:s')."</p>
             </div>
             
             <div class='details'>
@@ -475,7 +482,7 @@ class RefundController extends Controller
                     <tr><td><strong>Status:</strong></td><td>{$refund->human_status}</td></tr>
                     <tr><td><strong>Reason:</strong></td><td>{$refund->refund_reason}</td></tr>
                     <tr><td><strong>Created:</strong></td><td>{$refund->created_at->format('d/m/Y H:i:s')}</td></tr>
-                    <tr><td><strong>Processed:</strong></td><td>" . ($refund->processed_at ? $refund->processed_at->format('d/m/Y H:i:s') : 'Not Processed') . "</td></tr>
+                    <tr><td><strong>Processed:</strong></td><td>".($refund->processed_at ? $refund->processed_at->format('d/m/Y H:i:s') : 'Not Processed')."</td></tr>
                 </table>
             </div>
             
@@ -491,14 +498,14 @@ class RefundController extends Controller
             <div class='details'>
                 <h3>Amount Breakdown</h3>
                 <table class='table'>
-                    <tr><td>Original Amount</td><td>₹" . number_format($refund->original_amount, 2) . "</td></tr>
-                    <tr><td>Service Charges</td><td>₹" . number_format($refund->service_charges, 2) . "</td></tr>
-                    <tr><td>Platform Fee</td><td>₹" . number_format($refund->platform_fee, 2) . "</td></tr>
-                    <tr><td>Other Charges</td><td>₹" . number_format($refund->other_charges, 2) . "</td></tr>
-                    <tr><td>GST Amount</td><td>₹" . number_format($refund->gst_amount, 2) . "</td></tr>
-                    <tr class='total'><td><strong>Refund to Customer</strong></td><td><strong>₹" . number_format($refund->refund_amount, 2) . "</strong></td></tr>
-                    <tr><td>Vendor Amount</td><td>₹" . number_format($refund->vendor_amount, 2) . "</td></tr>
-                    <tr><td>Admin Amount</td><td>₹" . number_format($refund->admin_amount, 2) . "</td></tr>
+                    <tr><td>Original Amount</td><td>₹".number_format($refund->original_amount, 2).'</td></tr>
+                    <tr><td>Service Charges</td><td>₹'.number_format($refund->service_charges, 2).'</td></tr>
+                    <tr><td>Platform Fee</td><td>₹'.number_format($refund->platform_fee, 2).'</td></tr>
+                    <tr><td>Other Charges</td><td>₹'.number_format($refund->other_charges, 2).'</td></tr>
+                    <tr><td>GST Amount</td><td>₹'.number_format($refund->gst_amount, 2)."</td></tr>
+                    <tr class='total'><td><strong>Refund to Customer</strong></td><td><strong>₹".number_format($refund->refund_amount, 2).'</strong></td></tr>
+                    <tr><td>Vendor Amount</td><td>₹'.number_format($refund->vendor_amount, 2).'</td></tr>
+                    <tr><td>Admin Amount</td><td>₹'.number_format($refund->admin_amount, 2)."</td></tr>
                 </table>
             </div>
             

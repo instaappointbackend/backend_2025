@@ -12,6 +12,7 @@ class Offer extends Model
 
     // Define offer types as constants
     const TYPE_ADMIN = 'admin';
+
     const TYPE_PROVIDER = 'vendor';
 
     protected $fillable = [
@@ -76,7 +77,7 @@ class Offer extends Model
     public function scopeForProvider($query, $userId)
     {
         return $query->where('user_id', $userId)
-                     ->where('offer_type', self::TYPE_PROVIDER);
+            ->where('offer_type', self::TYPE_PROVIDER);
     }
 
     /**
@@ -93,8 +94,9 @@ class Offer extends Model
     public function scopeCurrent($query)
     {
         $today = now()->format('Y-m-d');
+
         return $query->where('start_date', '<=', $today)
-                     ->where('end_date', '>=', $today);
+            ->where('end_date', '>=', $today);
     }
 
     /**
@@ -102,9 +104,9 @@ class Offer extends Model
      */
     public function scopeAvailable($query)
     {
-        return $query->where(function($q) {
+        return $query->where(function ($q) {
             $q->whereNull('usage_limit')
-              ->orWhereRaw('used_count < usage_limit');
+                ->orWhereRaw('used_count < usage_limit');
         });
     }
 
@@ -113,7 +115,7 @@ class Offer extends Model
      */
     public function isValid()
     {
-        if (!$this->is_active) {
+        if (! $this->is_active) {
             return false;
         }
 
@@ -136,7 +138,7 @@ class Offer extends Model
     {
         $this->increment('used_count');
     }
-    
+
     /**
      * Determine if this is an admin offer
      */
@@ -144,7 +146,7 @@ class Offer extends Model
     {
         return $this->offer_type === self::TYPE_ADMIN;
     }
-    
+
     /**
      * Determine if this is a provider offer
      */

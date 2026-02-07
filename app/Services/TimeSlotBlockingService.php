@@ -1,12 +1,9 @@
 <?php
+
 namespace App\Services;
 
-use App\Models\TimeSlot;
 use App\Models\Appointment;
-use App\Models\AppointmentSettings;
-use App\Models\Service;
-use App\Models\ComboService;
-use Carbon\Carbon;
+use App\Models\TimeSlot;
 use Illuminate\Support\Facades\Log;
 
 class TimeSlotBlockingService
@@ -21,11 +18,11 @@ class TimeSlotBlockingService
         foreach ($timeSlotIds as $slotId) {
             $timeSlot = TimeSlot::find($slotId);
 
-            if (!$timeSlot) {
+            if (! $timeSlot) {
                 throw new \Exception("Time slot {$slotId} not found");
             }
 
-            if (!$timeSlot->isTrulyAvailable()) {
+            if (! $timeSlot->isTrulyAvailable()) {
                 throw new \Exception("Time slot {$slotId} is not available");
             }
 

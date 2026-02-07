@@ -9,9 +9,13 @@ use Illuminate\Support\Facades\Log;
 class PhonePeService implements PaymentGatewayInterface
 {
     private $merchantId;
+
     private $saltKey;
+
     private $saltIndex;
+
     private $baseUrl;
+
     protected $isProduction;
 
     public function __construct()
@@ -36,14 +40,14 @@ class PhonePeService implements PaymentGatewayInterface
         $payload = [
             'merchantId' => $this->merchantId,
             'merchantTransactionId' => $merchantTransactionId,
-            'merchantUserId' => 'MUID_' . $userId,
+            'merchantUserId' => 'MUID_'.$userId,
             'amount' => $this->convertToPaise($amount),
             'redirectUrl' => $meta['redirectUrl'] ?? route('phonepe.callback'),
             'redirectMode' => 'POST',
             'callbackUrl' => $meta['callbackUrl'] ?? route('phonepe.callback'),
             'paymentInstrument' => [
-                'type' => 'PAY_PAGE'
-            ]
+                'type' => 'PAY_PAGE',
+            ],
         ];
 
         // Add optional fields if provided
@@ -58,22 +62,22 @@ class PhonePeService implements PaymentGatewayInterface
         Log::info('PhonePe Payment Initiation', [
             'transaction_id' => $merchantTransactionId,
             'amount' => $amount,
-            'payload' => $payload
+            'payload' => $payload,
         ]);
 
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
             'X-VERIFY' => $checksum,
-            'accept' => 'application/json'
-        ])->post($this->baseUrl . '/pg/v1/pay', [
-            'request' => $base64Payload
+            'accept' => 'application/json',
+        ])->post($this->baseUrl.'/pg/v1/pay', [
+            'request' => $base64Payload,
         ]);
 
         $result = $response->json();
 
         Log::info('PhonePe Initiation Response', [
             'status' => $response->status(),
-            'response' => $result
+            'response' => $result,
         ]);
 
         if (isset($result['success']) && $result['success'] === true) {
@@ -81,7 +85,7 @@ class PhonePeService implements PaymentGatewayInterface
                 'success' => true,
                 'payment_url' => $result['data']['instrumentResponse']['redirectInfo']['url'],
                 'merchant_transaction_id' => $merchantTransactionId,
-                'response_data' => $result['data']
+                'response_data' => $result['data'],
             ];
         }
 
@@ -89,7 +93,7 @@ class PhonePeService implements PaymentGatewayInterface
             'success' => false,
             'message' => $result['message'] ?? 'Payment initiation failed',
             'error_code' => $result['code'] ?? null,
-            'merchant_transaction_id' => $merchantTransactionId
+            'merchant_transaction_id' => $merchantTransactionId,
         ];
     }
 
@@ -99,28 +103,28 @@ class PhonePeService implements PaymentGatewayInterface
     public function checkPaymentStatus(string $merchantTransactionId): array
     {
         try {
-            $apiPath = '/pg/v1/status/' . $this->merchantId . '/' . $merchantTransactionId;
+            $apiPath = '/pg/v1/status/'.$this->merchantId.'/'.$merchantTransactionId;
             $checksum = $this->generateChecksum('', $apiPath);
 
             Log::info('PhonePe Status Check', [
                 'transaction_id' => $merchantTransactionId,
-                'url' => $this->baseUrl . $apiPath
+                'url' => $this->baseUrl.$apiPath,
             ]);
 
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
                 'X-VERIFY' => $checksum,
-                'X-MERCHANT-ID' => $this->merchantId
-            ])->get($this->baseUrl . $apiPath);
+                'X-MERCHANT-ID' => $this->merchantId,
+            ])->get($this->baseUrl.$apiPath);
 
             $responseData = $response->json();
             Log::info('PhonePe Status Response', [
                 'transaction_id' => $merchantTransactionId,
                 'status' => $response->status(),
-                'response' => $responseData
+                'response' => $responseData,
             ]);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 return [
                     'success' => false,
                     'transactionId' => $merchantTransactionId,
@@ -141,7 +145,7 @@ class PhonePeService implements PaymentGatewayInterface
                 };
 
             return [
-                'success' => (bool)($responseData['success'] ?? false),
+                'success' => (bool) ($responseData['success'] ?? false),
                 'transactionId' => $merchantTransactionId,
                 'paymentState' => $paymentState,
                 'amount' => isset($data['amount']) ? $data['amount'] / 100 : 0,
@@ -154,14 +158,14 @@ class PhonePeService implements PaymentGatewayInterface
             Log::error('PhonePe Status Check Exception', [
                 'transaction_id' => $merchantTransactionId,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return [
                 'success' => false,
                 'transactionId' => $merchantTransactionId,
                 'paymentState' => 'ERROR',
-                'message' => 'Error checking payment status: ' . $e->getMessage(),
+                'message' => 'Error checking payment status: '.$e->getMessage(),
             ];
         }
     }
@@ -171,7 +175,7 @@ class PhonePeService implements PaymentGatewayInterface
      */
     private function generateTransactionId()
     {
-        return 'TXN_' . time() . '_' . rand(1000, 9999);
+        return 'TXN_'.time().'_'.rand(1000, 9999);
     }
 
     /**
@@ -179,7 +183,7 @@ class PhonePeService implements PaymentGatewayInterface
      */
     private function convertToPaise($amount)
     {
-        return (int)($amount * 100);
+        return (int) ($amount * 100);
     }
 
     /**
@@ -188,6 +192,7 @@ class PhonePeService implements PaymentGatewayInterface
     private function formatMobileNumber($mobile)
     {
         $mobile = preg_replace('/[^0-9]/', '', $mobile);
+
         return strlen($mobile) > 10 ? substr($mobile, -10) : $mobile;
     }
 
@@ -196,7 +201,8 @@ class PhonePeService implements PaymentGatewayInterface
      */
     private function generateChecksum($base64Payload, $apiPath)
     {
-        $checksumString = $base64Payload . $apiPath . $this->saltKey;
-        return hash('sha256', $checksumString) . '###' . $this->saltIndex;
+        $checksumString = $base64Payload.$apiPath.$this->saltKey;
+
+        return hash('sha256', $checksumString).'###'.$this->saltIndex;
     }
 }

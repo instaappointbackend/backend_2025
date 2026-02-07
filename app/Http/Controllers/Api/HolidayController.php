@@ -21,7 +21,7 @@ class HolidayController extends Controller
         $holidays = Holiday::where('user_id', Auth::id())
             ->orderBy('date')
             ->get();
-            
+
         return $this->success(HolidayResponse::collection($holidays), 'Holidays retrieved successfully.');
     }
 
@@ -37,13 +37,13 @@ class HolidayController extends Controller
         $existingHoliday = Holiday::where('user_id', Auth::id())
             ->where('date', $data['date'])
             ->first();
-            
+
         if ($existingHoliday) {
             return $this->error([], 'A holiday already exists for this date.', 422);
         }
 
         $holiday = Holiday::create($data);
-        
+
         return $this->success(new HolidayResponse($holiday), 'Holiday created successfully.', 201);
     }
 
@@ -55,11 +55,11 @@ class HolidayController extends Controller
         $holiday = Holiday::where('user_id', Auth::id())
             ->where('id', $id)
             ->first();
-            
-        if (!$holiday) {
+
+        if (! $holiday) {
             return $this->error([], 'Holiday not found', 404);
         }
-        
+
         return $this->success(new HolidayResponse($holiday), 'Holiday retrieved successfully.');
     }
 
@@ -71,27 +71,27 @@ class HolidayController extends Controller
         $holiday = Holiday::where('user_id', Auth::id())
             ->where('id', $id)
             ->first();
-            
-        if (!$holiday) {
+
+        if (! $holiday) {
             return $this->error([], 'Holiday not found', 404);
         }
 
         $data = $request->validated();
-        
+
         // Check if the date is being changed and if there's already a holiday on that date
         if (isset($data['date']) && $data['date'] != $holiday->date) {
             $existingHoliday = Holiday::where('user_id', Auth::id())
                 ->where('date', $data['date'])
                 ->where('id', '!=', $id)
                 ->first();
-                
+
             if ($existingHoliday) {
                 return $this->error([], 'A holiday already exists for this date.', 422);
             }
         }
 
         $holiday->update($data);
-        
+
         return $this->success(new HolidayResponse($holiday), 'Holiday updated successfully.');
     }
 
@@ -103,13 +103,13 @@ class HolidayController extends Controller
         $holiday = Holiday::where('user_id', Auth::id())
             ->where('id', $id)
             ->first();
-            
-        if (!$holiday) {
+
+        if (! $holiday) {
             return $this->error([], 'Holiday not found', 404);
         }
 
         $holiday->delete();
-        
+
         return $this->success([], 'Holiday deleted successfully.');
     }
 
@@ -122,7 +122,7 @@ class HolidayController extends Controller
             ->where('date', '>=', now()->toDateString())
             ->orderBy('date')
             ->get();
-            
+
         return $this->success(HolidayResponse::collection($holidays), 'Future holidays retrieved successfully.');
     }
 
@@ -135,7 +135,7 @@ class HolidayController extends Controller
             ->where('is_recurring', true)
             ->orderBy('date')
             ->get();
-            
+
         return $this->success(HolidayResponse::collection($holidays), 'Recurring holidays retrieved successfully.');
     }
 }

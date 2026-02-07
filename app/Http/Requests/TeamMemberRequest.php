@@ -8,7 +8,6 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rule;
 
-
 class TeamMemberRequest extends FormRequest
 {
     use ApiResponseTrait;
@@ -30,14 +29,14 @@ class TeamMemberRequest extends FormRequest
         // For store (POST) requests, all fields are required.
         if ($this->isMethod('post')) {
             return [
-                'name'            => 'required|string|max:255',
-                'email'           => 'required|email|unique:users,email',
-                'mobile'          => 'required|string|digits:10|unique:users,mobile',
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email',
+                'mobile' => 'required|string|digits:10|unique:users,mobile',
                 'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
 
-                'reference_code'  => 'nullable|string|max:255',
-                'gender'          => 'required|in:male,female,other',
-                'dob'             => 'required|date',
+                'reference_code' => 'nullable|string|max:255',
+                'gender' => 'required|in:male,female,other',
+                'dob' => 'required|date',
                 // Address Details
                 'address' => 'required|string|max:500',
                 'full_address' => 'nullable|string|max:500',
@@ -49,7 +48,6 @@ class TeamMemberRequest extends FormRequest
                 'latitude' => 'required|numeric',
                 'longitude' => 'required|numeric',
 
-
             ];
         }
         // For update (PUT/PATCH) requests, fields are optional but must be valid if provided.
@@ -58,7 +56,7 @@ class TeamMemberRequest extends FormRequest
             $teamMemberId = $this->route('team_member');
 
             return [
-                'name'   => 'sometimes|required|string|max:255',
+                'name' => 'sometimes|required|string|max:255',
 
                 'mobile' => [
                     'sometimes',
@@ -91,10 +89,8 @@ class TeamMemberRequest extends FormRequest
             ];
         }
 
-
         return [];
     }
-
 
     protected function failedValidation(Validator $validator)
     {

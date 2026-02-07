@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api\AppointmentPayments;
 
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
-use App\Services\Payments\AppointmentPaymentService;
 use App\Services\PaymentGateways\RazorpayService;
+use App\Services\Payments\AppointmentPaymentService;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,6 +17,7 @@ class RazorpayMobileController extends Controller
     use ApiResponseTrait;
 
     private AppointmentPaymentService $paymentService;
+
     private RazorpayService $razorpayService;
 
     public function __construct(
@@ -66,11 +67,11 @@ class RazorpayMobileController extends Controller
                 [
                     'appointment_id' => $payment->appointment_id,
                     'payment_id' => $payment->id,
-                    'type' => 'appointment'
+                    'type' => 'appointment',
                 ]
             );
 
-            if (!$orderResult['success']) {
+            if (! $orderResult['success']) {
                 return $this->error(null, $orderResult['message'], 500);
             }
 
@@ -81,14 +82,14 @@ class RazorpayMobileController extends Controller
                 'payment_details' => json_encode([
                     'razorpay_order_id' => $orderResult['order_id'],
                     'merchant_transaction_id' => $orderResult['merchant_transaction_id'],
-                    'created_at' => now()->toDateTimeString()
-                ])
+                    'created_at' => now()->toDateTimeString(),
+                ]),
             ]);
 
             Log::info('Razorpay order created', [
                 'order_id' => $orderResult['order_id'],
                 'payment_id' => $payment->id,
-                'appointment_id' => $payment->appointment_id
+                'appointment_id' => $payment->appointment_id,
             ]);
 
             // Return data for mobile SDK
@@ -103,10 +104,10 @@ class RazorpayMobileController extends Controller
         } catch (\Exception $e) {
             Log::error('Razorpay order creation failed', [
                 'error' => $e->getMessage(),
-                'appointment_id' => $request->appointment_id
+                'appointment_id' => $request->appointment_id,
             ]);
 
-            return $this->error(null, 'Failed to create payment order: ' . $e->getMessage(), 500);
+            return $this->error(null, 'Failed to create payment order: '.$e->getMessage(), 500);
         }
     }
 
@@ -130,7 +131,7 @@ class RazorpayMobileController extends Controller
             // Find payment by order ID
             $payment = Payment::where('transaction_id', $request->razorpay_order_id)->first();
 
-            if (!$payment) {
+            if (! $payment) {
                 return $this->error(null, 'Payment not found', 404);
             }
 
@@ -141,11 +142,11 @@ class RazorpayMobileController extends Controller
                 $request->razorpay_signature
             );
 
-            if (!$verificationResult['success'] || !$verificationResult['verified']) {
+            if (! $verificationResult['success'] || ! $verificationResult['verified']) {
                 Log::error('Payment signature verification failed', [
                     'payment_id' => $payment->id,
                     'order_id' => $request->razorpay_order_id,
-                    'message' => $verificationResult['message'] ?? 'Verification failed'
+                    'message' => $verificationResult['message'] ?? 'Verification failed',
                 ]);
 
                 $payment->update(['status' => 'failed']);
@@ -170,7 +171,7 @@ class RazorpayMobileController extends Controller
 
             $payment->update([
                 'status' => 'paid',
-                'payment_details' => json_encode($paymentDetails)
+                'payment_details' => json_encode($paymentDetails),
             ]);
 
             // Update appointment status
@@ -181,25 +182,25 @@ class RazorpayMobileController extends Controller
 
             Log::info('Payment verified successfully', [
                 'payment_id' => $payment->id,
-                'razorpay_payment_id' => $request->razorpay_payment_id
+                'razorpay_payment_id' => $request->razorpay_payment_id,
             ]);
 
             return $this->success([
                 'payment' => $payment->fresh(),
                 'appointment' => $payment->appointment,
-                'status' => 'SUCCESS'
+                'status' => 'SUCCESS',
             ], 'Payment verified successfully');
         } catch (\Exception $e) {
             Log::error('Payment verification error', [
                 'error' => $e->getMessage(),
-                'order_id' => $request->razorpay_order_id
+                'order_id' => $request->razorpay_order_id,
             ]);
 
             if (isset($payment)) {
                 $payment->update(['status' => 'failed']);
             }
 
-            return $this->error(null, 'Payment verification failed: ' . $e->getMessage(), 500);
+            return $this->error(null, 'Payment verification failed: '.$e->getMessage(), 500);
         }
     }
 
@@ -224,7 +225,7 @@ class RazorpayMobileController extends Controller
         try {
             $payment = Payment::where('transaction_id', $request->razorpay_order_id)->first();
 
-            if (!$payment) {
+            if (! $payment) {
                 return $this->error(null, 'Payment not found', 404);
             }
 
@@ -239,23 +240,23 @@ class RazorpayMobileController extends Controller
 
             $payment->update([
                 'status' => 'failed',
-                'payment_details' => json_encode($paymentDetails)
+                'payment_details' => json_encode($paymentDetails),
             ]);
 
             Log::warning('Payment failed', [
                 'payment_id' => $payment->id,
                 'order_id' => $request->razorpay_order_id,
-                'error' => $request->error_description
+                'error' => $request->error_description,
             ]);
 
             return $this->success([
                 'payment' => $payment,
-                'status' => 'FAILED'
+                'status' => 'FAILED',
             ], 'Payment failure recorded');
         } catch (\Exception $e) {
             Log::error('Payment failure handling error', [
                 'error' => $e->getMessage(),
-                'order_id' => $request->razorpay_order_id
+                'order_id' => $request->razorpay_order_id,
             ]);
 
             return $this->error(null, 'Failed to process payment failure', 500);
@@ -270,7 +271,7 @@ class RazorpayMobileController extends Controller
     {
         Log::info('Razorpay webhook received', [
             'event' => $request->input('event'),
-            'data' => $request->all()
+            'data' => $request->all(),
         ]);
 
         try {
@@ -282,10 +283,11 @@ class RazorpayMobileController extends Controller
                 $signature
             );
 
-            if (!$webhookResult['success']) {
+            if (! $webhookResult['success']) {
                 Log::error('Webhook verification failed', [
-                    'message' => $webhookResult['message']
+                    'message' => $webhookResult['message'],
                 ]);
+
                 return response()->json(['status' => 'error'], 400);
             }
 
@@ -314,7 +316,7 @@ class RazorpayMobileController extends Controller
         } catch (\Exception $e) {
             Log::error('Webhook processing error', [
                 'error' => $e->getMessage(),
-                'event' => $request->input('event')
+                'event' => $request->input('event'),
             ]);
 
             return response()->json(['status' => 'error'], 500);
@@ -357,7 +359,7 @@ class RazorpayMobileController extends Controller
             return $this->success([
                 'payment' => $payment,
                 'appointment' => $payment->appointment,
-                'status' => strtoupper($payment->status)
+                'status' => strtoupper($payment->status),
             ], 'Payment fetch successfully');
         } catch (\Exception $e) {
             return $this->error(null, 'Payment not found', 404);
@@ -376,7 +378,7 @@ class RazorpayMobileController extends Controller
         $orderId = $webhookResult['order_id'] ?? null;
         $paymentId = $webhookResult['payment_id'] ?? null;
 
-        if (!$orderId) {
+        if (! $orderId) {
             return;
         }
 
@@ -390,7 +392,7 @@ class RazorpayMobileController extends Controller
 
             $payment->update([
                 'status' => 'paid',
-                'payment_details' => json_encode($paymentDetails)
+                'payment_details' => json_encode($paymentDetails),
             ]);
 
             if ($payment->appointment) {
@@ -399,7 +401,7 @@ class RazorpayMobileController extends Controller
 
             Log::info('Payment updated via webhook', [
                 'payment_id' => $payment->id,
-                'razorpay_payment_id' => $paymentId
+                'razorpay_payment_id' => $paymentId,
             ]);
         }
     }
@@ -411,7 +413,7 @@ class RazorpayMobileController extends Controller
     {
         $orderId = $webhookResult['order_id'] ?? null;
 
-        if (!$orderId) {
+        if (! $orderId) {
             return;
         }
 
@@ -424,13 +426,11 @@ class RazorpayMobileController extends Controller
 
             $payment->update([
                 'status' => 'failed',
-                'payment_details' => json_encode($paymentDetails)
+                'payment_details' => json_encode($paymentDetails),
             ]);
 
-
-
             Log::warning('Payment failed via webhook', [
-                'payment_id' => $payment->id
+                'payment_id' => $payment->id,
             ]);
         }
     }
@@ -442,7 +442,7 @@ class RazorpayMobileController extends Controller
     {
         $orderId = $webhookResult['order_id'] ?? null;
 
-        if (!$orderId) {
+        if (! $orderId) {
             return;
         }
 
@@ -454,7 +454,7 @@ class RazorpayMobileController extends Controller
 
             $payment->update([
                 'status' => 'paid',
-                'payment_details' => json_encode($paymentDetails)
+                'payment_details' => json_encode($paymentDetails),
             ]);
 
             if ($payment->appointment) {
@@ -462,7 +462,7 @@ class RazorpayMobileController extends Controller
             }
 
             Log::info('Order marked as paid via webhook', [
-                'payment_id' => $payment->id
+                'payment_id' => $payment->id,
             ]);
         }
     }

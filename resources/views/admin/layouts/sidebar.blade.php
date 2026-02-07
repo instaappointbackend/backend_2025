@@ -241,7 +241,7 @@
             <li class="menu-header">Subscriptions Management</li>
         @endif
         @if (hasPermission('subscriptions'))
-            <li class="menu-item {{ request()->routeIs('admin.blogs*') ? 'active' : '' }}">
+            <li class="menu-item {{ request()->routeIs('admin.subscription*') ? 'active' : '' }}">
                 <a href="{{ route('admin.subscription.index') }}">
                     <i class="fas  fa-user-check"></i>
                     <span>Subscriptions</span>

@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         // Create role_permission pivot table if it doesn't exist
-        if (!Schema::hasTable('role_permission') && Schema::hasTable('roles')) {
+        if (! Schema::hasTable('role_permission') && Schema::hasTable('roles')) {
             Schema::create('role_permission', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('role_id')->constrained()->onDelete('cascade');

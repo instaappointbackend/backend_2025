@@ -16,7 +16,9 @@ use Illuminate\Support\Facades\Log;
 class AppointmentPaymentService
 {
     private PaymentGatewayInterface $paymentGateway;
+
     private NotificationService $notificationService;
+
     private TimeSlotBlockingService $timeSlotService;
 
     public function __construct(
@@ -36,7 +38,7 @@ class AppointmentPaymentService
     {
         $appointment = Appointment::with(['client', 'service', 'provider'])->findOrFail($appointmentId);
 
-        if (!$appointment->user_id) {
+        if (! $appointment->user_id) {
             throw new \Exception('Invalid appointment configuration: provider not specified');
         }
 
@@ -56,7 +58,7 @@ class AppointmentPaymentService
             'transaction_id' => $this->generateTransactionId(),
             'payment_method' => $this->getPaymentMethodName(),
             'payment_mode' => 'online',
-            //'amount' => 1, // Test amount
+            // 'amount' => 1, // Test amount
             'amount' => $appointment->service->price,
             'currency' => 'INR',
             'status' => Payment::STATUS_PENDING,
@@ -70,8 +72,8 @@ class AppointmentPaymentService
             'additional_services_fee' => $appointment->additional_services_fee ?? 0,
             'net_amount' => $appointment->payment_amount ?? $appointment->final_price ?? 0.1,
             'payment_details' => json_encode(array_merge([
-                'initiated_at' => now()->toIso8601String()
-            ], $metadata))
+                'initiated_at' => now()->toIso8601String(),
+            ], $metadata)),
         ]);
 
         $payment->save();
@@ -88,7 +90,7 @@ class AppointmentPaymentService
         $paymentDetails = array_merge($paymentDetails, $metadata);
 
         $payment->update([
-            'payment_details' => json_encode($paymentDetails)
+            'payment_details' => json_encode($paymentDetails),
         ]);
     }
 
@@ -103,7 +105,7 @@ class AppointmentPaymentService
         $gatewayOptions = array_merge([
             'redirectUrl' => $options['redirectUrl'] ?? url('/'),
             'callbackUrl' => $options['callbackUrl'] ?? url('/'),
-            'mobileNumber' => $this->formatMobileNumber($appointment->client->phone ?? '1234567890')
+            'mobileNumber' => $this->formatMobileNumber($appointment->client->phone ?? '1234567890'),
         ], $options);
 
         // Initiate payment through gateway
@@ -113,17 +115,17 @@ class AppointmentPaymentService
             $gatewayOptions
         );
 
-        if (!$paymentResponse['success']) {
+        if (! $paymentResponse['success']) {
             throw new \Exception($paymentResponse['message'] ?? 'Failed to initialize payment');
         }
 
         // Update payment with gateway response
         $this->updatePaymentMetadata($payment, [
-            'gateway_initiate_response' => $paymentResponse['response_data'] ?? $paymentResponse
+            'gateway_initiate_response' => $paymentResponse['response_data'] ?? $paymentResponse,
         ]);
 
         $payment->update([
-            'transaction_id' => $paymentResponse['merchant_transaction_id']
+            'transaction_id' => $paymentResponse['merchant_transaction_id'],
         ]);
 
         return $paymentResponse;
@@ -141,15 +143,14 @@ class AppointmentPaymentService
                 'appointment.client',
                 'appointment.user',
                 'appointment.service',
-                'appointment.comboService'
+                'appointment.comboService',
             ])->where('transaction_id', $transactionId)->first();
 
-            if (!$payment || !$payment->appointment) {
+            if (! $payment || ! $payment->appointment) {
                 throw new \Exception('Payment or appointment not found');
             }
 
             $appointment = $payment->appointment;
-
 
             // Check payment status from gateway
             $status = $this->paymentGateway->checkPaymentStatus($transactionId);
@@ -158,7 +159,7 @@ class AppointmentPaymentService
                 'transaction_id' => $transactionId,
                 'payment_state' => $status['paymentState'] ?? 'UNKNOWN',
                 'appointment_id' => $appointment->id,
-                'gateway' => $payment->payment_method
+                'gateway' => $payment->payment_method,
             ]);
 
             // Process based on payment state
@@ -171,7 +172,7 @@ class AppointmentPaymentService
                     'success' => true,
                     'status' => 'COMPLETED',
                     'payment' => $payment->fresh(),
-                    'appointment' => $appointment->fresh()
+                    'appointment' => $appointment->fresh(),
                 ];
             } else {
                 $this->handleFailedPayment($payment, $appointment, $status);
@@ -182,14 +183,14 @@ class AppointmentPaymentService
                     'success' => false,
                     'status' => 'FAILED',
                     'payment' => $payment->fresh(),
-                    'message' => $status['message'] ?? 'Payment not successful'
+                    'message' => $status['message'] ?? 'Payment not successful',
                 ];
             }
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Payment callback processing failed', [
                 'transaction_id' => $transactionId,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             throw $e;
@@ -199,24 +200,22 @@ class AppointmentPaymentService
     /**
      * Process webhook (Gateway agnostic)
      */
-    public function processWebhook(array $webhookData, string $gateway = null): array
+    public function processWebhook(array $webhookData, ?string $gateway = null): array
     {
         try {
-
 
             // Extract transaction ID based on gateway
             $transactionId = $this->extractTransactionIdFromWebhook($webhookData);
 
-            if (!$transactionId) {
+            if (! $transactionId) {
                 throw new \Exception('Missing transaction ID in webhook');
             }
 
             $payment = Payment::where('transaction_id', $transactionId)->first();
 
-            if (!$payment) {
+            if (! $payment) {
                 throw new \Exception('Payment not found');
             }
-
 
             // Check payment status
             $status = $this->paymentGateway->checkPaymentStatus($transactionId);
@@ -225,7 +224,7 @@ class AppointmentPaymentService
             $this->updatePaymentMetadata($payment, [
                 'webhook_data' => $webhookData,
                 'webhook_status' => $status,
-                'webhook_received_at' => now()->toIso8601String()
+                'webhook_received_at' => now()->toIso8601String(),
             ]);
 
             // Determine new status
@@ -240,12 +239,12 @@ class AppointmentPaymentService
 
             return [
                 'success' => true,
-                'payment' => $payment->fresh()
+                'payment' => $payment->fresh(),
             ];
         } catch (\Exception $e) {
             Log::error('Webhook processing failed', [
                 'webhook_data' => $webhookData,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             throw $e;
@@ -259,7 +258,7 @@ class AppointmentPaymentService
     {
         $this->updatePaymentMetadata($payment, [
             'gateway_response' => $status,
-            'confirmed_at' => now()->toIso8601String()
+            'confirmed_at' => now()->toIso8601String(),
         ]);
 
         // Update payment
@@ -273,7 +272,7 @@ class AppointmentPaymentService
 
         $appointment->update([
             'status' => $newStatus,
-            'payment_status' => Payment::STATUS_PAID
+            'payment_status' => Payment::STATUS_PAID,
         ]);
 
         // Confirm time slot
@@ -290,7 +289,7 @@ class AppointmentPaymentService
     {
         $this->updatePaymentMetadata($payment, [
             'gateway_response' => $status,
-            'failed_at' => now()->toIso8601String()
+            'failed_at' => now()->toIso8601String(),
         ]);
 
         // Update payment
@@ -329,7 +328,7 @@ class AppointmentPaymentService
                 'client_name' => $appointment->client->name,
                 'service_name' => $serviceName,
                 'payment_status' => 'paid',
-                'amount' => $appointment->payment_amount
+                'amount' => $appointment->payment_amount,
             ]
         );
 
@@ -347,7 +346,7 @@ class AppointmentPaymentService
                 'provider_name' => $appointment->user->name,
                 'service_name' => $serviceName,
                 'payment_status' => 'paid',
-                'amount' => $appointment->payment_amount
+                'amount' => $appointment->payment_amount,
             ]
         );
     }
@@ -357,7 +356,7 @@ class AppointmentPaymentService
      */
     private function generateTransactionId(): string
     {
-        return 'TXN_' . time() . '_' . rand(1000, 9999);
+        return 'TXN_'.time().'_'.rand(1000, 9999);
     }
 
     /**
@@ -366,6 +365,7 @@ class AppointmentPaymentService
     private function formatMobileNumber(string $mobile): string
     {
         $mobile = preg_replace('/[^0-9]/', '', $mobile);
+
         return strlen($mobile) > 10 ? substr($mobile, -10) : $mobile;
     }
 

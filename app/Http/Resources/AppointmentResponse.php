@@ -2,8 +2,8 @@
 
 namespace App\Http\Resources;
 
-use Illuminate\Http\Resources\Json\JsonResource;
 use Carbon\Carbon;
+use Illuminate\Http\Resources\Json\JsonResource;
 
 class AppointmentResponse extends JsonResource
 {
@@ -38,7 +38,7 @@ class AppointmentResponse extends JsonResource
                     'name' => $this->user->name,
                     'email' => $this->user->email,
                     'phone' => $this->user->phone,
-                    'profile_picture' => $this->user->profile_picture ? asset('storage/' . $this->user->profile_picture) : null,
+                    'profile_picture' => $this->user->profile_picture ? asset('storage/'.$this->user->profile_picture) : null,
                     'business_type' => $this->user->business_type,
                 ];
             }),
@@ -48,7 +48,7 @@ class AppointmentResponse extends JsonResource
                     'name' => $this->client->name,
                     'email' => $this->client->email,
                     'phone' => $this->client->phone,
-                    'profile_picture' => $this->client->profile_picture ? asset('storage/' . $this->client->profile_picture) : null,
+                    'profile_picture' => $this->client->profile_picture ? asset('storage/'.$this->client->profile_picture) : null,
 
                 ];
             }),
@@ -98,53 +98,53 @@ class AppointmentResponse extends JsonResource
 
                 // Detailed payment breakdown
                 'booking_price' => $this->booking_price,
-                'formatted_booking_price' => $this->when($this->booking_price, function() {
-                    return '₹' . number_format($this->booking_price, 2);
+                'formatted_booking_price' => $this->when($this->booking_price, function () {
+                    return '₹'.number_format($this->booking_price, 2);
                 }),
 
                 'platform_fees' => $this->platform_fees,
-                'formatted_platform_fees' => $this->when($this->platform_fees, function() {
-                    return '₹' . number_format($this->platform_fees, 2);
+                'formatted_platform_fees' => $this->when($this->platform_fees, function () {
+                    return '₹'.number_format($this->platform_fees, 2);
                 }),
 
                 'other_charges' => $this->other_charges,
-                'formatted_other_charges' => $this->when($this->other_charges, function() {
-                    return '₹' . number_format($this->other_charges, 2);
+                'formatted_other_charges' => $this->when($this->other_charges, function () {
+                    return '₹'.number_format($this->other_charges, 2);
                 }),
 
                 'gst' => $this->gst,
-                'formatted_gst' => $this->when($this->gst, function() {
-                    return '₹' . number_format($this->gst, 2);
+                'formatted_gst' => $this->when($this->gst, function () {
+                    return '₹'.number_format($this->gst, 2);
                 }),
 
                 'original_price' => $this->original_price,
-                'formatted_original_price' => $this->when($this->original_price, function() {
-                    return '₹' . number_format($this->original_price, 2);
+                'formatted_original_price' => $this->when($this->original_price, function () {
+                    return '₹'.number_format($this->original_price, 2);
                 }),
 
                 'discount_amount' => $this->discount_amount,
-                'formatted_discount_amount' => $this->when($this->discount_amount, function() {
-                    return '₹' . number_format($this->discount_amount, 2);
+                'formatted_discount_amount' => $this->when($this->discount_amount, function () {
+                    return '₹'.number_format($this->discount_amount, 2);
                 }),
 
                 'discount_percentage' => $this->discount_percentage,
 
                 'home_visit_fee' => $this->home_visit_fee,
-                'formatted_home_visit_fee' => $this->when($this->home_visit_fee, function() {
-                    return '₹' . number_format($this->home_visit_fee, 2);
+                'formatted_home_visit_fee' => $this->when($this->home_visit_fee, function () {
+                    return '₹'.number_format($this->home_visit_fee, 2);
                 }),
 
                 'additional_services_fee' => $this->additional_services_fee,
-                'formatted_additional_services_fee' => $this->when($this->additional_services_fee, function() {
-                    return '₹' . number_format($this->additional_services_fee, 2);
+                'formatted_additional_services_fee' => $this->when($this->additional_services_fee, function () {
+                    return '₹'.number_format($this->additional_services_fee, 2);
                 }),
 
                 'final_price' => $this->final_price ?? $this->payment_amount,
-                'formatted_final_price' => $this->when($this->final_price, function() {
-                    return '₹' . number_format($this->final_price, 2);
-                }, function() {
-                    return $this->when($this->payment_amount, function() {
-                        return '₹' . number_format($this->payment_amount, 2);
+                'formatted_final_price' => $this->when($this->final_price, function () {
+                    return '₹'.number_format($this->final_price, 2);
+                }, function () {
+                    return $this->when($this->payment_amount, function () {
+                        return '₹'.number_format($this->payment_amount, 2);
                     });
                 }),
 
@@ -175,13 +175,16 @@ class AppointmentResponse extends JsonResource
             if ($this->start_time) {
                 $expectedDuration = $this->getTotalDuration();
                 $calculatedEndTime = Carbon::parse($this->start_time)->addMinutes($expectedDuration);
+
                 return $calculatedEndTime->toISOString();
             }
+
             return $this->end_time;
         }
 
         if ($this->start_time) {
             $duration = $this->getTotalDuration();
+
             return Carbon::parse($this->start_time)->addMinutes($duration)->toISOString();
         }
 
@@ -205,6 +208,7 @@ class AppointmentResponse extends JsonResource
                 foreach ($this->comboService->services as $service) {
                     $totalDuration += $service->duration ?? 0;
                 }
+
                 return $totalDuration;
             }
         }

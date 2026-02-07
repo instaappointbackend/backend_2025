@@ -158,7 +158,7 @@ class BlogController extends Controller
 
         // Remove keys that shouldn't be in the update
         unset($validated['remove_attachment']);
-        if (!$request->hasFile('attachment')) {
+        if (! $request->hasFile('attachment')) {
             unset($validated['attachment']);
         }
 

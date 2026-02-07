@@ -9,7 +9,9 @@ use Razorpay\Api\Api;
 class RazorpayService implements PaymentGatewayInterface
 {
     private $api;
+
     private $keyId;
+
     private $keySecret;
 
     public function __construct()
@@ -22,7 +24,6 @@ class RazorpayService implements PaymentGatewayInterface
     /**
      * Create Razorpay order for subscription
      */
-
     public function initiatePayment(float $amount, int $userId, array $meta = []): array
     {
         try {
@@ -30,13 +31,13 @@ class RazorpayService implements PaymentGatewayInterface
             $amountInPaise = $amount * 100;
 
             $orderData = [
-                'receipt' => 'order_' . time() . '_' . $userId,
+                'receipt' => 'order_'.time().'_'.$userId,
                 'amount' => $amountInPaise,
                 'currency' => 'INR',
                 'notes' => array_merge([
                     'user_id' => $userId,
-                    'created_at' => now()->toDateTimeString()
-                ], $meta)
+                    'created_at' => now()->toDateTimeString(),
+                ], $meta),
 
             ];
 
@@ -45,9 +46,10 @@ class RazorpayService implements PaymentGatewayInterface
             Log::info('Razorpay order created', [
                 'order_id' => $order->id,
                 'user_id' => $userId,
-                'amount' => $amount
+                'amount' => $amount,
             ]);
-            //$this->setSessionData($order);
+
+            // $this->setSessionData($order);
             return [
                 'success' => true,
                 'order_id' => $order->id,
@@ -60,17 +62,15 @@ class RazorpayService implements PaymentGatewayInterface
         } catch (\Exception $e) {
             Log::error('Razorpay order creation failed', [
                 'error' => $e->getMessage(),
-                'user_id' => $userId
+                'user_id' => $userId,
             ]);
 
             return [
                 'success' => false,
-                'message' => 'Failed to create payment order: ' . $e->getMessage()
+                'message' => 'Failed to create payment order: '.$e->getMessage(),
             ];
         }
     }
-
-
 
     /**
      * Verify payment signature
@@ -81,26 +81,26 @@ class RazorpayService implements PaymentGatewayInterface
             $attributes = [
                 'razorpay_order_id' => $orderId,
                 'razorpay_payment_id' => $paymentId,
-                'razorpay_signature' => $signature
+                'razorpay_signature' => $signature,
             ];
 
             $result = $this->api->utility->verifyPaymentSignature($attributes);
 
             return [
                 'success' => true,
-                'verified' => true
+                'verified' => true,
             ];
         } catch (\Exception $e) {
             Log::error('Razorpay signature verification failed', [
                 'order_id' => $orderId,
                 'payment_id' => $paymentId,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return [
                 'success' => false,
                 'verified' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ];
         }
     }
@@ -136,18 +136,18 @@ class RazorpayService implements PaymentGatewayInterface
                     'method' => $payment->method,
                     'email' => $payment->email ?? null,
                     'contact' => $payment->contact ?? null,
-                    'created_at' => date('Y-m-d H:i:s', $payment->created_at)
-                ]
+                    'created_at' => date('Y-m-d H:i:s', $payment->created_at),
+                ],
             ];
         } catch (\Exception $e) {
             Log::error('Failed to fetch Razorpay payment details', [
                 'payment_id' => $paymentId,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return [
                 'success' => false,
-                'message' => 'Failed to fetch payment details: ' . $e->getMessage()
+                'message' => 'Failed to fetch payment details: '.$e->getMessage(),
             ];
         }
     }
@@ -176,19 +176,19 @@ class RazorpayService implements PaymentGatewayInterface
                     'amount' => $payment->amount / 100,
                     'status' => $payment->status,
                     'method' => $payment->method,
-                    'created_at' => date('Y-m-d H:i:s', $payment->created_at)
-                ]
+                    'created_at' => date('Y-m-d H:i:s', $payment->created_at),
+                ],
             ];
         } catch (\Exception $e) {
             Log::error('Razorpay payment status check failed', [
                 'payment_id' => $merchantTransactionId,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return [
                 'success' => false,
                 'paymentState' => 'FAILED',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ];
         }
     }
@@ -211,10 +211,10 @@ class RazorpayService implements PaymentGatewayInterface
             $event = $payload['event'];
             $paymentEntity = $payload['payload']['payment']['entity'] ?? null;
 
-            if (!$paymentEntity) {
+            if (! $paymentEntity) {
                 return [
                     'success' => false,
-                    'message' => 'Invalid webhook payload'
+                    'message' => 'Invalid webhook payload',
                 ];
             }
 
@@ -224,16 +224,16 @@ class RazorpayService implements PaymentGatewayInterface
                 'payment_id' => $paymentEntity['id'],
                 'order_id' => $paymentEntity['order_id'],
                 'status' => $paymentEntity['status'],
-                'amount' => $paymentEntity['amount'] / 100
+                'amount' => $paymentEntity['amount'] / 100,
             ];
         } catch (\Exception $e) {
             Log::error('Razorpay webhook processing failed', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return [
                 'success' => false,
-                'message' => 'Webhook verification failed: ' . $e->getMessage()
+                'message' => 'Webhook verification failed: '.$e->getMessage(),
             ];
         }
     }
@@ -250,7 +250,7 @@ class RazorpayService implements PaymentGatewayInterface
         // You can return a route to your checkout page with order details
         return route('razorpay.checkout', [
             'order_id' => $order->id,
-            'callback' => $callbackUrl
+            'callback' => $callbackUrl,
         ]);
     }
 }

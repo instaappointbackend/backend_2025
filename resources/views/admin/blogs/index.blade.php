@@ -89,19 +89,19 @@
                                     @if ($blog->user)
                                         <div class="d-flex align-items-center">
                                             <div class="me-2">
-                                                @if ($blog->user->profile_picture)
-                                                    <img src="{{ asset('storage/' . $blog->user->profile_picture) }}"
+                                                @if ($blog?->user?->profile_picture && Storage::disk('public')->exists($blog->user->profile_picture))
+                                                    <img src="{{ asset('storage/' . $blog?->user?->profile_picture) }}"
                                                         alt="{{ $blog->user->name }}" class="rounded-circle" width="30"
                                                         height="30">
                                                 @else
                                                     <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center"
                                                         style="width: 30px; height: 30px; color: white;">
-                                                        {{ strtoupper(substr($blog->user->name, 0, 1)) }}
+                                                        {{ strtoupper(substr($blog?->user?->name, 0, 1)) }}
                                                     </div>
                                                 @endif
                                             </div>
                                             <div>
-                                                {{ $blog->user->name }}
+                                                {{ $blog?->user?->name }}
                                             </div>
                                         </div>
                                     @else

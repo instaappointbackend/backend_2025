@@ -37,7 +37,7 @@ class BankAccount extends Model
      */
     public function getMaskedAccountNumberAttribute(): string
     {
-        return substr($this->account_number, 0, 4) . '••••' . substr($this->account_number, -4);
+        return substr($this->account_number, 0, 4).'••••'.substr($this->account_number, -4);
     }
 
     /**

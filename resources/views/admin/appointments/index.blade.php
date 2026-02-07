@@ -207,11 +207,11 @@
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="me-2">
-                                            <img src="{{ $appointment->client->profile_picture && Storage::disk('public')->exists($appointment->client->profile_picture) ? asset('storage/' . $appointment->client->profile_picture) : asset('admin/images/default-avatar.png') }}"
-                                                alt="{{ $appointment->client->name }}" class="avatar-img" width="30"
-                                                height="30">
+                                            <img src="{{ $appointment?->client?->profile_picture && Storage::disk('public')->exists($appointment?->client?->profile_picture) ? asset('storage/' . $appointment->client->profile_picture) : asset('admin/images/default-avatar.png') }}"
+                                                alt="{{ $appointment?->client?->name }}" class="avatar-img"
+                                                width="30" height="30">
                                         </div>
-                                        <div>{{ $appointment->client->name }}</div>
+                                        <div>{{ $appointment?->client?->name }}</div>
                                     </div>
                                 </td>
                                 <td>

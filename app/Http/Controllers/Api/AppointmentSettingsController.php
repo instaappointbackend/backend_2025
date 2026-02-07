@@ -20,7 +20,7 @@ class AppointmentSettingsController extends Controller
     {
         $settings = AppointmentSettings::where('user_id', Auth::id())->first();
 
-        if (!$settings) {
+        if (! $settings) {
             $settings = $this->createDefaultSettings();
         }
 
@@ -37,7 +37,7 @@ class AppointmentSettingsController extends Controller
     {
         $settings = AppointmentSettings::where('user_id', Auth::id())->first();
 
-        if (!$settings) {
+        if (! $settings) {
             $settings = $this->createDefaultSettings();
         }
 
@@ -94,14 +94,14 @@ class AppointmentSettingsController extends Controller
                 'online_mode_url' => null,
                 'office_address' => null,
                 'home_visit_radius' => 10,
-                'home_visit_fee' => 0
+                'home_visit_fee' => 0,
             ],
             'payment_methods' => [
                 'phonepe' => true, // Always enabled by default
                 'cash' => true,    // Enabled by default
                 'card' => false,
-                'upi' => false
-            ]
+                'upi' => false,
+            ],
         ]);
     }
 }

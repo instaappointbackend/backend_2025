@@ -15,7 +15,9 @@ use Illuminate\Support\Facades\Log;
 class AppointmentPaymentService
 {
     private $phonePeService;
+
     private $notificationService;
+
     private $timeSlotService;
 
     public function __construct(
@@ -35,17 +37,17 @@ class AppointmentPaymentService
     {
         $appointment = Appointment::with(['client', 'service', 'provider'])->find($appointmentId);
 
-        if (!$appointment) {
+        if (! $appointment) {
             throw new \Exception('Appointment not found');
         }
 
-        if (!$appointment->user_id) {
+        if (! $appointment->user_id) {
             throw new \Exception('Invalid appointment configuration: provider not specified');
         }
 
         $payment = Payment::where('appointment_id', $appointmentId)->first();
 
-        if (!$payment) {
+        if (! $payment) {
             $payment = $this->createPaymentRecord($appointment, $appReturnUrl);
         } else {
             $this->updatePaymentRecord($payment, $appointment, $appReturnUrl);
@@ -71,11 +73,11 @@ class AppointmentPaymentService
             [
                 'redirectUrl' => $callbackUrl,
                 'callbackUrl' => $webhookUrl,
-                'mobileNumber' => $mobileNumber
+                'mobileNumber' => $mobileNumber,
             ]
         );
 
-        if (!$paymentResponse['success']) {
+        if (! $paymentResponse['success']) {
             throw new \Exception($paymentResponse['message'] ?? 'Failed to initialize payment');
         }
 
@@ -85,7 +87,7 @@ class AppointmentPaymentService
 
         $payment->update([
             'transaction_id' => $paymentResponse['merchant_transaction_id'],
-            'payment_details' => json_encode($paymentDetails)
+            'payment_details' => json_encode($paymentDetails),
         ]);
 
         return $paymentResponse;
@@ -103,7 +105,7 @@ class AppointmentPaymentService
                 ->where('transaction_id', $transactionId)
                 ->first();
 
-            if (!$payment || !$payment->appointment) {
+            if (! $payment || ! $payment->appointment) {
                 throw new \Exception('Payment or appointment not found');
             }
 
@@ -113,7 +115,7 @@ class AppointmentPaymentService
             Log::info('Processing payment callback', [
                 'transaction_id' => $transactionId,
                 'payment_state' => $status['paymentState'] ?? 'UNKNOWN',
-                'appointment_id' => $appointment->id
+                'appointment_id' => $appointment->id,
             ]);
 
             if (isset($status['paymentState']) && $status['paymentState'] === 'COMPLETED') {
@@ -125,7 +127,7 @@ class AppointmentPaymentService
                     'success' => true,
                     'status' => 'COMPLETED',
                     'payment' => $payment,
-                    'appointment' => $appointment
+                    'appointment' => $appointment,
                 ];
             } else {
                 $this->handleFailedPayment($payment, $appointment, $status);
@@ -136,14 +138,14 @@ class AppointmentPaymentService
                     'success' => false,
                     'status' => 'FAILED',
                     'payment' => $payment,
-                    'message' => $status['message'] ?? 'Payment not successful'
+                    'message' => $status['message'] ?? 'Payment not successful',
                 ];
             }
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Payment callback processing failed', [
                 'transaction_id' => $transactionId,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             throw $e;
@@ -162,7 +164,7 @@ class AppointmentPaymentService
         // Update payment
         $payment->update([
             'status' => Payment::STATUS_PAID,
-            'payment_details' => json_encode($paymentDetails)
+            'payment_details' => json_encode($paymentDetails),
         ]);
 
         // Update appointment
@@ -173,7 +175,7 @@ class AppointmentPaymentService
 
         $appointment->update([
             'status' => $newStatus,
-            'payment_status' => Payment::STATUS_PAID
+            'payment_status' => Payment::STATUS_PAID,
         ]);
 
         // Confirm time slot
@@ -195,7 +197,7 @@ class AppointmentPaymentService
         // Update payment
         $payment->update([
             'status' => Payment::STATUS_FAILED,
-            'payment_details' => json_encode($paymentDetails)
+            'payment_details' => json_encode($paymentDetails),
         ]);
 
         // Release time slots
@@ -231,7 +233,7 @@ class AppointmentPaymentService
                 'client_name' => $appointment->client->name,
                 'service_name' => $serviceName,
                 'payment_status' => 'paid',
-                'amount' => $appointment->payment_amount
+                'amount' => $appointment->payment_amount,
             ]
         );
 
@@ -249,7 +251,7 @@ class AppointmentPaymentService
                 'provider_name' => $appointment->user->name,
                 'service_name' => $serviceName,
                 'payment_status' => 'paid',
-                'amount' => $appointment->payment_amount
+                'amount' => $appointment->payment_amount,
             ]
         );
     }
@@ -263,7 +265,7 @@ class AppointmentPaymentService
             'appointment_id' => $appointment->id,
             'user_id' => $appointment->client_id,
             'provider_id' => $appointment->user_id,
-            'transaction_id' => 'TXN_' . time() . '_' . rand(1000, 9999),
+            'transaction_id' => 'TXN_'.time().'_'.rand(1000, 9999),
             'payment_method' => 'phonepe',
             'payment_mode' => 'online',
             'amount' => 1, // Test amount
@@ -280,8 +282,8 @@ class AppointmentPaymentService
             'net_amount' => $appointment->payment_amount ?? $appointment->final_price ?? 0.1,
             'payment_details' => json_encode([
                 'app_return_url' => $appReturnUrl,
-                'initiated_at' => now()->toIso8601String()
-            ])
+                'initiated_at' => now()->toIso8601String(),
+            ]),
         ]);
 
         $payment->save();
@@ -303,7 +305,7 @@ class AppointmentPaymentService
             'payment_mode' => 'online',
             'status' => Payment::STATUS_PENDING,
             'provider_id' => $appointment->user_id,
-            'payment_details' => json_encode($paymentDetails)
+            'payment_details' => json_encode($paymentDetails),
         ]);
     }
 
@@ -313,6 +315,7 @@ class AppointmentPaymentService
     private function formatMobileNumber($mobile)
     {
         $mobile = preg_replace('/[^0-9]/', '', $mobile);
+
         return strlen($mobile) > 10 ? substr($mobile, -10) : $mobile;
     }
 
@@ -335,15 +338,15 @@ class AppointmentPaymentService
             'transaction_id' => $payment->transaction_id,
             'appointment_id' => $payment->appointment_id,
             'amount' => $payment->amount,
-            'payment_state' => $paymentState
+            'payment_state' => $paymentState,
         ];
 
         $queryString = array_map(
-            fn($key, $value) => $key . '=' . urlencode($value),
+            fn ($key, $value) => $key.'='.urlencode($value),
             array_keys($params),
             $params
         );
 
-        return $baseUrl . $separator . implode('&', $queryString);
+        return $baseUrl.$separator.implode('&', $queryString);
     }
 }

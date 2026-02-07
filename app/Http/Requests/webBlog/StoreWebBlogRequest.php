@@ -29,7 +29,7 @@ class StoreWebBlogRequest extends FormRequest
             'status' => 'required|string|in:draft,published',
             'description' => 'required|string',
             'category_id' => 'required|exists:blog_categories,id',
-            'banner-images' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', //,svg,webp
+            'banner-images' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // ,svg,webp
         ];
     }
 }

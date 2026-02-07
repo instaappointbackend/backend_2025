@@ -29,12 +29,12 @@ class ProfileRequest extends FormRequest
         $userId = $this->user() ? $this->user()->id : null;
 
         return [
-            'name'            => 'sometimes|required|string|max:255',
-            //'email'           => 'sometimes|email|unique:users,email,' . $userId,
-            'email'           => 'sometimes|email',
+            'name' => 'sometimes|required|string|max:255',
+            // 'email'           => 'sometimes|email|unique:users,email,' . $userId,
+            'email' => 'sometimes|email',
             'profile_picture' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'gender'          => 'sometimes|required|in:male,female,other',
-            'dob'             => 'sometimes|required|date'
+            'gender' => 'sometimes|required|in:male,female,other',
+            'dob' => 'sometimes|required|date',
         ];
     }
 

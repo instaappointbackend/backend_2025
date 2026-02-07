@@ -258,11 +258,11 @@ class ReportController extends Controller
      */
     public function getAppointmentChartData($startDate = null, $endDate = null)
     {
-        if (!$startDate) {
+        if (! $startDate) {
             $startDate = Carbon::now()->subDays(30);
         }
 
-        if (!$endDate) {
+        if (! $endDate) {
             $endDate = Carbon::now();
         }
 
@@ -299,11 +299,11 @@ class ReportController extends Controller
      */
     public function getUserChartData($startDate = null, $endDate = null)
     {
-        if (!$startDate) {
+        if (! $startDate) {
             $startDate = Carbon::now()->subDays(30);
         }
 
-        if (!$endDate) {
+        if (! $endDate) {
             $endDate = Carbon::now();
         }
 
@@ -340,11 +340,11 @@ class ReportController extends Controller
      */
     public function getRevenueChartData($startDate = null, $endDate = null)
     {
-        if (!$startDate) {
+        if (! $startDate) {
             $startDate = Carbon::now()->subDays(30);
         }
 
-        if (!$endDate) {
+        if (! $endDate) {
             $endDate = Carbon::now();
         }
 
@@ -382,11 +382,11 @@ class ReportController extends Controller
      */
     public function getPayoutChartData($startDate = null, $endDate = null)
     {
-        if (!$startDate) {
+        if (! $startDate) {
             $startDate = Carbon::now()->subDays(30);
         }
 
-        if (!$endDate) {
+        if (! $endDate) {
             $endDate = Carbon::now();
         }
 
@@ -446,7 +446,7 @@ class ReportController extends Controller
             'Status',
             'Payment Status',
             'Payment Amount',
-            'Created At'
+            'Created At',
         ];
 
         foreach ($appointments as $appointment) {
@@ -465,7 +465,7 @@ class ReportController extends Controller
             ];
         }
 
-        $filename = 'appointments_report_' . date('Y-m-d') . '.csv';
+        $filename = 'appointments_report_'.date('Y-m-d').'.csv';
 
         return $this->generateCsv($csvData, $filename);
     }
@@ -494,7 +494,7 @@ class ReportController extends Controller
             'Role',
             'Status',
             'KYC Status',
-            'Created At'
+            'Created At',
         ];
 
         foreach ($users as $user) {
@@ -510,7 +510,7 @@ class ReportController extends Controller
             ];
         }
 
-        $filename = 'users_report_' . date('Y-m-d') . '.csv';
+        $filename = 'users_report_'.date('Y-m-d').'.csv';
 
         return $this->generateCsv($csvData, $filename);
     }
@@ -542,7 +542,7 @@ class ReportController extends Controller
             'Vendor Earnings',
             'Payment Method',
             'Status',
-            'Created At'
+            'Created At',
         ];
 
         foreach ($payments as $payment) {
@@ -560,7 +560,7 @@ class ReportController extends Controller
             ];
         }
 
-        $filename = 'revenue_report_' . date('Y-m-d') . '.csv';
+        $filename = 'revenue_report_'.date('Y-m-d').'.csv';
 
         return $this->generateCsv($csvData, $filename);
     }
@@ -590,12 +590,12 @@ class ReportController extends Controller
             'Status',
             'Transaction ID',
             'Transaction Date',
-            'Created At'
+            'Created At',
         ];
 
         foreach ($payouts as $payout) {
             $bankAccountDetails = $payout->bankAccount ?
-                $payout->bankAccount->bank_name . ' - ' .
+                $payout->bankAccount->bank_name.' - '.
                 $payout->bankAccount->account_number : '';
 
             $csvData[] = [
@@ -610,7 +610,7 @@ class ReportController extends Controller
             ];
         }
 
-        $filename = 'payouts_report_' . date('Y-m-d') . '.csv';
+        $filename = 'payouts_report_'.date('Y-m-d').'.csv';
 
         return $this->generateCsv($csvData, $filename);
     }
@@ -649,7 +649,7 @@ class ReportController extends Controller
 
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ];
 
         return Response::make($content, 200, $headers);

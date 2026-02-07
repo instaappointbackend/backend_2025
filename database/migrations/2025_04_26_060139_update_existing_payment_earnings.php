@@ -1,21 +1,23 @@
 <?php
+
+use App\Models\Payment;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-use App\Models\Payment;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+
 return new class extends Migration
 {
     public function up()
     {
         // First, make sure vendor_earnings and admin_earnings columns exist
-        if (!Schema::hasColumn('payments', 'vendor_earnings')) {
+        if (! Schema::hasColumn('payments', 'vendor_earnings')) {
             Schema::table('payments', function (Blueprint $table) {
                 $table->decimal('vendor_earnings', 10, 2)->nullable()->after('net_amount');
             });
         }
 
-        if (!Schema::hasColumn('payments', 'admin_earnings')) {
+        if (! Schema::hasColumn('payments', 'admin_earnings')) {
             Schema::table('payments', function (Blueprint $table) {
                 $table->decimal('admin_earnings', 10, 2)->nullable()->after('vendor_earnings');
             });
@@ -64,7 +66,7 @@ return new class extends Migration
                     ->update([
                         'vendor_earnings' => $vendorEarnings,
                         'admin_earnings' => $adminEarnings,
-                        'updated_at' => now()
+                        'updated_at' => now(),
                     ]);
             }
         });

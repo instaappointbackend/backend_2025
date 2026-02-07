@@ -8,7 +8,6 @@ use App\Models\Refund;
 use App\Models\Service;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -96,10 +95,10 @@ class DashboardController extends Controller
             ->select(
                 DB::raw('DATE(date) as appointment_date'),
                 DB::raw('COUNT(*) as total'),
-                DB::raw('SUM(CASE WHEN status = "' . Appointment::STATUS_PENDING . '" THEN 1 ELSE 0 END) as pending'),
-                DB::raw('SUM(CASE WHEN status = "' . Appointment::STATUS_CONFIRMED . '" THEN 1 ELSE 0 END) as confirmed'),
-                DB::raw('SUM(CASE WHEN status = "' . Appointment::STATUS_COMPLETED . '" THEN 1 ELSE 0 END) as completed'),
-                DB::raw('SUM(CASE WHEN status = "' . Appointment::STATUS_CANCELLED . '" THEN 1 ELSE 0 END) as cancelled')
+                DB::raw('SUM(CASE WHEN status = "'.Appointment::STATUS_PENDING.'" THEN 1 ELSE 0 END) as pending'),
+                DB::raw('SUM(CASE WHEN status = "'.Appointment::STATUS_CONFIRMED.'" THEN 1 ELSE 0 END) as confirmed'),
+                DB::raw('SUM(CASE WHEN status = "'.Appointment::STATUS_COMPLETED.'" THEN 1 ELSE 0 END) as completed'),
+                DB::raw('SUM(CASE WHEN status = "'.Appointment::STATUS_CANCELLED.'" THEN 1 ELSE 0 END) as cancelled')
             )
             ->groupBy('appointment_date')
             ->get();
@@ -116,7 +115,7 @@ class DashboardController extends Controller
                 'pending' => 0,
                 'confirmed' => 0,
                 'completed' => 0,
-                'cancelled' => 0
+                'cancelled' => 0,
             ]);
         }
 
@@ -131,7 +130,7 @@ class DashboardController extends Controller
                     'pending' => $appointment->pending,
                     'confirmed' => $appointment->confirmed,
                     'completed' => $appointment->completed,
-                    'cancelled' => $appointment->cancelled
+                    'cancelled' => $appointment->cancelled,
                 ];
             }
         }
@@ -170,7 +169,7 @@ class DashboardController extends Controller
                 'label' => $monthLabel,
                 'total' => 0,
                 'vendors' => 0,
-                'customers' => 0
+                'customers' => 0,
             ]);
         }
 
@@ -183,7 +182,7 @@ class DashboardController extends Controller
                     'label' => Carbon::createFromDate($registration->year, $registration->month, 1)->format('M Y'),
                     'total' => $registration->total,
                     'vendors' => $registration->vendors,
-                    'customers' => $registration->customers
+                    'customers' => $registration->customers,
                 ];
             }
         }

@@ -20,6 +20,7 @@ class WorkingHoursController extends Controller
     public function index()
     {
         $workingHours = WorkingHours::where('user_id', Auth::id())->orderBy('day_of_week')->get();
+
         return $this->success(WorkingHoursResponse::collection($workingHours), 'Working hours retrieved successfully.');
     }
 
@@ -38,7 +39,7 @@ class WorkingHoursController extends Controller
             $workingHours = WorkingHours::updateOrCreate(
                 [
                     'user_id' => $userId,
-                    'day_of_week' => $dayData['day_of_week']
+                    'day_of_week' => $dayData['day_of_week'],
                 ],
                 [
                     'is_working_day' => $dayData['is_working_day'],
@@ -68,8 +69,8 @@ class WorkingHoursController extends Controller
             ->where('day_of_week', $dayOfWeek)
             ->first();
 
-        if (!$workingHours) {
-            $workingHours = new WorkingHours();
+        if (! $workingHours) {
+            $workingHours = new WorkingHours;
             $workingHours->user_id = $userId;
             $workingHours->day_of_week = $dayOfWeek;
         }
@@ -111,7 +112,7 @@ class WorkingHoursController extends Controller
             ->where('day_of_week', $dayOfWeek)
             ->first();
 
-        if (!$sourceDay) {
+        if (! $sourceDay) {
             return $this->error([], 'Source day not found', 404);
         }
 
@@ -160,8 +161,8 @@ class WorkingHoursController extends Controller
                 ->where('day_of_week', $day)
                 ->first();
 
-            if (!$workingHours) {
-                $workingHours = new WorkingHours();
+            if (! $workingHours) {
+                $workingHours = new WorkingHours;
                 $workingHours->user_id = $userId;
                 $workingHours->day_of_week = $day;
             }

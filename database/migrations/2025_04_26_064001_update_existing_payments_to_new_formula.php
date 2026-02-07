@@ -1,12 +1,13 @@
 <?php
-use Illuminate\Database\Migrations\Migration;
+
 use App\Models\Payment;
+use Illuminate\Database\Migrations\Migration;
+
 return new class extends Migration
 {
     /**
      * Run the migrations.
      */
-
     public function up()
     {
         // Get all existing payments
@@ -93,8 +94,5 @@ return new class extends Migration
     /**
      * Reverse the migrations.
      */
-    public function down(): void
-    {
-
-    }
+    public function down(): void {}
 };

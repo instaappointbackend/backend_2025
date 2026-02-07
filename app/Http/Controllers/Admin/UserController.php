@@ -3,10 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\Role;
 use App\Models\BusinessCategory;
-use App\Models\DeletedUser;
+use App\Models\Role;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -71,6 +70,7 @@ class UserController extends Controller
     {
         $businessCategories = BusinessCategory::all();
         $roles = Role::orderBy('display_name')->get();
+
         return view('admin.users.create', compact('businessCategories', 'roles'));
     }
 
@@ -129,6 +129,7 @@ class UserController extends Controller
     public function show(User $user)
     {
         $user->load(['businessCategory', 'kycDocument', 'teamMembers', 'userRole']);
+
         return view('admin.users.show', compact('user'));
     }
 
@@ -139,6 +140,7 @@ class UserController extends Controller
     {
         $businessCategories = BusinessCategory::all();
         $roles = Role::orderBy('display_name')->get();
+
         return view('admin.users.edit', compact('user', 'businessCategories', 'roles'));
     }
 
@@ -154,7 +156,7 @@ class UserController extends Controller
                 'string',
                 'email',
                 'max:255',
-                //Rule::unique('users')->ignore($user->id),
+                // Rule::unique('users')->ignore($user->id),
             ],
             'mobile' => [
                 'required',
@@ -232,7 +234,7 @@ class UserController extends Controller
                 ->with('success', 'User deleted successfully.');
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Failed to delete user: ' . $e->getMessage());
+                ->with('error', 'Failed to delete user: '.$e->getMessage());
         }
     }
 
@@ -241,7 +243,7 @@ class UserController extends Controller
      */
     public function toggleStatus(User $user)
     {
-        $user->status = !$user->status;
+        $user->status = ! $user->status;
         $user->save();
 
         return redirect()->back()
@@ -256,7 +258,7 @@ class UserController extends Controller
         $query = User::with('businessCategory')->where('role', 'vendor');
 
         // Filter by status if provided
-        if (!empty($request->filled('status')) && $request->filled('status') && $request->status !== '') {
+        if (! empty($request->filled('status')) && $request->filled('status') && $request->status !== '') {
             $query->where('status', $request->status == '1');
         }
 
@@ -351,7 +353,7 @@ class UserController extends Controller
             'Business Category',
             'Status',
             'KYC Status',
-            'Created Date'
+            'Created Date',
         ];
 
         // Data rows
@@ -364,16 +366,16 @@ class UserController extends Controller
                 $vendor->businessCategory ? $vendor->businessCategory->name : 'N/A',
                 $vendor->status ? 'Active' : 'Inactive',
                 $vendor->is_kyc_completed ? 'Verified' : 'Pending',
-                $vendor->created_at->format('Y-m-d H:i:s')
+                $vendor->created_at->format('Y-m-d H:i:s'),
             ];
         }
 
         // Create filename
-        $filename = 'vendors_export_' . date('Y-m-d_H-i-s') . '.csv';
-        $filepath = storage_path('app/public/exports/' . $filename);
+        $filename = 'vendors_export_'.date('Y-m-d_H-i-s').'.csv';
+        $filepath = storage_path('app/public/exports/'.$filename);
 
         // Ensure directory exists
-        if (!file_exists(storage_path('app/public/exports/'))) {
+        if (! file_exists(storage_path('app/public/exports/'))) {
             mkdir(storage_path('app/public/exports/'), 0755, true);
         }
 
@@ -389,7 +391,6 @@ class UserController extends Controller
             'Content-Type' => 'text/csv',
         ]);
     }
-
 
     /**
      * Show vendors list.
@@ -437,7 +438,7 @@ class UserController extends Controller
 
         $businessCategories = BusinessCategory::all();
 
-        //dd($vendors);
+        // dd($vendors);
 
         return view('admin.users.deletedVendors', compact('vendors', 'businessCategories'));
     }
@@ -495,7 +496,7 @@ class UserController extends Controller
             'Business Category',
             'Status',
             'KYC Status',
-            'Deleted At'
+            'Deleted At',
         ];
 
         // Rows
@@ -508,17 +509,17 @@ class UserController extends Controller
                 $vendor->businessCategory->name
                     ?? ($vendor->business_category_name ?? 'N/A'),
                 ($vendor->status ?? 0) == 1 ? 'Active' : 'Inactive',
-                !empty($vendor->is_kyc_completed) ? 'Verified' : 'Pending',
+                ! empty($vendor->is_kyc_completed) ? 'Verified' : 'Pending',
                 $vendor->created_at->format('Y-m-d H:i:s'),
             ];
         }
 
         // File name + path
-        $filename = 'deleted_vendors_export_' . date('Y-m-d_H-i-s') . '.csv';
-        $filepath = storage_path('app/public/exports/' . $filename);
+        $filename = 'deleted_vendors_export_'.date('Y-m-d_H-i-s').'.csv';
+        $filepath = storage_path('app/public/exports/'.$filename);
 
         // Ensure directory exists
-        if (!file_exists(storage_path('app/public/exports/'))) {
+        if (! file_exists(storage_path('app/public/exports/'))) {
             mkdir(storage_path('app/public/exports/'), 0755, true);
         }
 
@@ -535,8 +536,20 @@ class UserController extends Controller
         ]);
     }
 
+    public function restoreDeletedVendor($id)
+    {
+        try {
+            User::withTrashed()->where('id', $id)->restore();
 
-// Also update your customers() method for consistency:
+            return redirect()->back()
+                ->with('success', 'User restored successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Failed to restore user: '.$e->getMessage());
+        }
+    }
+
+    // Also update your customers() method for consistency:
 
     /**
      * Show customers list.
@@ -602,7 +615,7 @@ class UserController extends Controller
             'Email',
             'Mobile',
             'Status',
-            'Created Date'
+            'Created Date',
         ];
 
         // Add each customer row
@@ -618,11 +631,11 @@ class UserController extends Controller
         }
 
         // File name + path
-        $filename = 'customers_export_' . date('Y-m-d_H-i-s') . '.csv';
-        $filepath = storage_path('app/public/exports/' . $filename);
+        $filename = 'customers_export_'.date('Y-m-d_H-i-s').'.csv';
+        $filepath = storage_path('app/public/exports/'.$filename);
 
         // Ensure directory exists
-        if (!file_exists(storage_path('app/public/exports/'))) {
+        if (! file_exists(storage_path('app/public/exports/'))) {
             mkdir(storage_path('app/public/exports/'), 0755, true);
         }
 
@@ -639,12 +652,9 @@ class UserController extends Controller
         ]);
     }
 
-
-
-    public function deletedCustomers(Request $request)
+    public function deletedCustomersList(Request $request)
     {
         $query = User::onlyTrashed()->where('role', 'customer');
-
 
         // Search by name, email or mobile
         if ($request->has('search') && $request->search) {
@@ -698,7 +708,7 @@ class UserController extends Controller
             'Email',
             'Mobile',
             'Status',
-            'Deleted At'
+            'Deleted At',
         ];
 
         // Rows
@@ -714,11 +724,11 @@ class UserController extends Controller
         }
 
         // Filename + path
-        $filename = 'deleted_customers_export_' . date('Y-m-d_H-i-s') . '.csv';
-        $filepath = storage_path('app/public/exports/' . $filename);
+        $filename = 'deleted_customers_export_'.date('Y-m-d_H-i-s').'.csv';
+        $filepath = storage_path('app/public/exports/'.$filename);
 
         // Ensure directory exists
-        if (!file_exists(storage_path('app/public/exports/'))) {
+        if (! file_exists(storage_path('app/public/exports/'))) {
             mkdir(storage_path('app/public/exports/'), 0755, true);
         }
 
@@ -745,7 +755,7 @@ class UserController extends Controller
                 ->with('success', 'User deleted successfully.');
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Failed to delete user: ' . $e->getMessage());
+                ->with('error', 'Failed to delete user: '.$e->getMessage());
         }
     }
 }

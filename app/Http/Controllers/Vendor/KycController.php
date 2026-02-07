@@ -5,20 +5,19 @@ namespace App\Http\Controllers\Vendor;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\KycRequest;
 use App\Models\BusinessCategory;
-use App\Models\User;
 use App\Services\User\KycService;
-use Illuminate\Http\Request;
 
 class KycController extends Controller
 {
     public function showKycForm()
     {
-        $businessCategory =  BusinessCategory::select(['name', 'id'])->get();
+        $businessCategory = BusinessCategory::select(['name', 'id'])->get();
         $cards = collect(config('business_categories'))
-            ->map(fn($c) => [
+            ->map(fn ($c) => [
                 ...$c,
-                'src' => asset($c['src'])
+                'src' => asset($c['src']),
             ]);
+
         return view('vendor.user.kyc', compact('cards', 'businessCategory'));
     }
 
@@ -55,7 +54,7 @@ class KycController extends Controller
                     'country',
                     'postal_code',
                     'latitude',
-                    'longitude'
+                    'longitude',
                 ]),
                 $request->file(),   // ✅ IMPORTANT
                 $userId

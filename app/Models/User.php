@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Crypt;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
@@ -196,8 +196,10 @@ class User extends Authenticatable
     {
         if ($this->otp === $otp && $this->otp_expires_at->gt(now())) {
             $this->clearOtp(); // Clear OTP after successful verification
+
             return true;
         }
+
         return false;
     }
 
@@ -438,8 +440,8 @@ class User extends Authenticatable
     // Check if 2FA is enabled
     public function hasTwoFactorEnabled(): bool
     {
-        return !is_null($this->two_factor_secret) &&
-            !is_null($this->two_factor_confirmed_at);
+        return ! is_null($this->two_factor_secret) &&
+            ! is_null($this->two_factor_confirmed_at);
     }
 
     // Get decrypted recovery codes
@@ -455,10 +457,10 @@ class User extends Authenticatable
     // Replace a used recovery code
     public function replaceRecoveryCode(string $code): void
     {
-        $codes = $this->getRecoveryCodes()->filter(fn($c) => $c !== $code)->values();
+        $codes = $this->getRecoveryCodes()->filter(fn ($c) => $c !== $code)->values();
 
         $this->update([
-            'two_factor_recovery_codes' => Crypt::encryptString(json_encode($codes->toArray()))
+            'two_factor_recovery_codes' => Crypt::encryptString(json_encode($codes->toArray())),
         ]);
     }
 }

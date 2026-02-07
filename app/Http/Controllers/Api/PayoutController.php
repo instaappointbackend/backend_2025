@@ -4,15 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\BankAccount;
-use App\Models\PayoutRequest;
 use App\Models\Payment;
+use App\Models\PayoutRequest;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use Carbon\Carbon;
 
 class PayoutController extends Controller
 {
@@ -31,15 +30,15 @@ class PayoutController extends Controller
 
             return $this->success($bankAccounts, 'Bank accounts retrieved successfully.');
         } catch (\Exception $e) {
-            Log::error('Error fetching bank accounts: ' . $e->getMessage());
-            return $this->error([], 'Failed to retrieve bank accounts: ' . $e->getMessage(), 500);
+            Log::error('Error fetching bank accounts: '.$e->getMessage());
+
+            return $this->error([], 'Failed to retrieve bank accounts: '.$e->getMessage(), 500);
         }
     }
 
     /**
      * Add a new bank account
      *
-     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function addBankAccount(Request $request)
@@ -74,16 +73,16 @@ class PayoutController extends Controller
 
             return $this->success($bankAccount, 'Bank account added successfully.', 201);
         } catch (\Exception $e) {
-            Log::error('Error adding bank account: ' . $e->getMessage());
-            return $this->error([], 'Failed to add bank account: ' . $e->getMessage(), 500);
+            Log::error('Error adding bank account: '.$e->getMessage());
+
+            return $this->error([], 'Failed to add bank account: '.$e->getMessage(), 500);
         }
     }
 
     /**
      * Update an existing bank account
      *
-     * @param Request $request
-     * @param int $id
+     * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
     public function updateBankAccount(Request $request, $id)
@@ -106,7 +105,7 @@ class PayoutController extends Controller
                 ->where('user_id', $userId)
                 ->first();
 
-            if (!$bankAccount) {
+            if (! $bankAccount) {
                 return $this->error([], 'Bank account not found or you do not have permission to update it.', 404);
             }
 
@@ -120,15 +119,16 @@ class PayoutController extends Controller
 
             return $this->success($bankAccount, 'Bank account updated successfully.');
         } catch (\Exception $e) {
-            Log::error('Error updating bank account: ' . $e->getMessage());
-            return $this->error([], 'Failed to update bank account: ' . $e->getMessage(), 500);
+            Log::error('Error updating bank account: '.$e->getMessage());
+
+            return $this->error([], 'Failed to update bank account: '.$e->getMessage(), 500);
         }
     }
 
     /**
      * Delete a bank account
      *
-     * @param int $id
+     * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
     public function deleteBankAccount($id)
@@ -139,7 +139,7 @@ class PayoutController extends Controller
                 ->where('user_id', $userId)
                 ->first();
 
-            if (!$bankAccount) {
+            if (! $bankAccount) {
                 return $this->error([], 'Bank account not found or you do not have permission to delete it.', 404);
             }
 
@@ -167,15 +167,16 @@ class PayoutController extends Controller
 
             return $this->success(null, 'Bank account deleted successfully.');
         } catch (\Exception $e) {
-            Log::error('Error deleting bank account: ' . $e->getMessage());
-            return $this->error([], 'Failed to delete bank account: ' . $e->getMessage(), 500);
+            Log::error('Error deleting bank account: '.$e->getMessage());
+
+            return $this->error([], 'Failed to delete bank account: '.$e->getMessage(), 500);
         }
     }
 
     /**
      * Set a bank account as default
      *
-     * @param int $id
+     * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
     public function setDefaultBankAccount($id)
@@ -186,7 +187,7 @@ class PayoutController extends Controller
                 ->where('user_id', $userId)
                 ->first();
 
-            if (!$bankAccount) {
+            if (! $bankAccount) {
                 return $this->error([], 'Bank account not found or you do not have permission to update it.', 404);
             }
 
@@ -207,8 +208,9 @@ class PayoutController extends Controller
         } catch (\Exception $e) {
             // Rollback in case of error
             DB::rollBack();
-            Log::error('Error setting default bank account: ' . $e->getMessage());
-            return $this->error([], 'Failed to set default bank account: ' . $e->getMessage(), 500);
+            Log::error('Error setting default bank account: '.$e->getMessage());
+
+            return $this->error([], 'Failed to set default bank account: '.$e->getMessage(), 500);
         }
     }
 
@@ -227,20 +229,20 @@ class PayoutController extends Controller
                 ->get();
 
             $payoutRequests->each(function ($request) {
-                $request->formatted_amount = '₹' . number_format($request->amount, 2);
+                $request->formatted_amount = '₹'.number_format($request->amount, 2);
             });
 
             return $this->success($payoutRequests, 'Payout requests retrieved successfully.');
         } catch (\Exception $e) {
-            Log::error('Error fetching payout requests: ' . $e->getMessage());
-            return $this->error([], 'Failed to retrieve payout requests: ' . $e->getMessage(), 500);
+            Log::error('Error fetching payout requests: '.$e->getMessage());
+
+            return $this->error([], 'Failed to retrieve payout requests: '.$e->getMessage(), 500);
         }
     }
 
     /**
      * Create a new payout request
      *
-     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function createPayoutRequest(Request $request)
@@ -262,7 +264,7 @@ class PayoutController extends Controller
                 ->where('user_id', $userId)
                 ->first();
 
-            if (!$bankAccount) {
+            if (! $bankAccount) {
                 return $this->error([], 'Invalid bank account or you do not have permission to use it.', 422);
             }
 
@@ -288,19 +290,20 @@ class PayoutController extends Controller
             ]);
 
             // Add formatted amount
-            $payoutRequest->formatted_amount = '₹' . number_format($payoutRequest->amount, 2);
+            $payoutRequest->formatted_amount = '₹'.number_format($payoutRequest->amount, 2);
 
             return $this->success($payoutRequest, 'Payout request created successfully.', 201);
         } catch (\Exception $e) {
-            Log::error('Error creating payout request: ' . $e->getMessage());
-            return $this->error([], 'Failed to create payout request: ' . $e->getMessage(), 500);
+            Log::error('Error creating payout request: '.$e->getMessage());
+
+            return $this->error([], 'Failed to create payout request: '.$e->getMessage(), 500);
         }
     }
 
     /**
      * Cancel a pending payout request
      *
-     * @param int $id
+     * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
     public function cancelPayoutRequest($id)
@@ -312,7 +315,7 @@ class PayoutController extends Controller
                 ->where('status', 'pending')
                 ->first();
 
-            if (!$payoutRequest) {
+            if (! $payoutRequest) {
                 return $this->error([], 'Payout request not found, already processed, or you do not have permission to cancel it.', 404);
             }
 
@@ -323,8 +326,9 @@ class PayoutController extends Controller
 
             return $this->success($payoutRequest, 'Payout request cancelled successfully.');
         } catch (\Exception $e) {
-            Log::error('Error cancelling payout request: ' . $e->getMessage());
-            return $this->error([], 'Failed to cancel payout request: ' . $e->getMessage(), 500);
+            Log::error('Error cancelling payout request: '.$e->getMessage());
+
+            return $this->error([], 'Failed to cancel payout request: '.$e->getMessage(), 500);
         }
     }
 
@@ -341,15 +345,16 @@ class PayoutController extends Controller
 
             return $this->success($earningsSummary, 'Earnings summary retrieved successfully.');
         } catch (\Exception $e) {
-            Log::error('Error fetching earnings summary: ' . $e->getMessage());
-            return $this->error([], 'Failed to retrieve earnings summary: ' . $e->getMessage(), 500);
+            Log::error('Error fetching earnings summary: '.$e->getMessage());
+
+            return $this->error([], 'Failed to retrieve earnings summary: '.$e->getMessage(), 500);
         }
     }
 
     /**
      * Get earnings summary data (helper method)
      *
-     * @param int $userId
+     * @param  int  $userId
      * @return array
      */
     private function getEarningsSummaryData($userId)
@@ -382,17 +387,17 @@ class PayoutController extends Controller
 
         return [
             'total_earnings' => $totalEarnings,
-            'formatted_total_earnings' => '₹' . number_format($totalEarnings, 2),
+            'formatted_total_earnings' => '₹'.number_format($totalEarnings, 2),
             'available_balance' => $availableBalance,
-            'formatted_available_balance' => '₹' . number_format($availableBalance, 2),
+            'formatted_available_balance' => '₹'.number_format($availableBalance, 2),
             'pending_amount' => $pendingAmount,
-            'formatted_pending_amount' => '₹' . number_format($pendingAmount, 2),
+            'formatted_pending_amount' => '₹'.number_format($pendingAmount, 2),
             'processing_amount' => $processingAmount,
-            'formatted_processing_amount' => '₹' . number_format($processingAmount, 2),
+            'formatted_processing_amount' => '₹'.number_format($processingAmount, 2),
             'withdrawn_amount' => $withdrawnAmount,
-            'formatted_withdrawn_amount' => '₹' . number_format($withdrawnAmount, 2),
+            'formatted_withdrawn_amount' => '₹'.number_format($withdrawnAmount, 2),
             'minimum_withdrawal_amount' => $minimumWithdrawalAmount,
-            'formatted_minimum_withdrawal_amount' => '₹' . number_format($minimumWithdrawalAmount, 2),
+            'formatted_minimum_withdrawal_amount' => '₹'.number_format($minimumWithdrawalAmount, 2),
         ];
     }
 }

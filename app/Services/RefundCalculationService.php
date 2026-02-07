@@ -18,12 +18,12 @@ class RefundCalculationService
         $cancellationTime = $cancellationTime ?? now();
 
         // Validate appointment has payment
-        if (!$appointment->payment) {
+        if (! $appointment->payment) {
             return RefundCalculation::ineligible('No payment found for this appointment');
         }
 
         // Validate payment can be refunded
-        if (!$appointment->payment->canBeRefunded()) {
+        if (! $appointment->payment->canBeRefunded()) {
             return RefundCalculation::ineligible('Payment is not eligible for refund');
         }
 
@@ -125,7 +125,7 @@ class RefundCalculationService
                 'vendor_percentage' => 0,
                 'admin_percentage' => 0,
                 'description' => 'Full refund - Cancellation more than 24 hours before booking',
-                'hours_before_booking' => $hoursBeforeBooking
+                'hours_before_booking' => $hoursBeforeBooking,
             ];
         } elseif ($hoursBeforeBooking >= 2) {
             return [
@@ -134,7 +134,7 @@ class RefundCalculationService
                 'vendor_percentage' => 15,
                 'admin_percentage' => 10,
                 'description' => 'Partial refund - Cancellation between 24 hours and 2 hours before booking',
-                'hours_before_booking' => $hoursBeforeBooking
+                'hours_before_booking' => $hoursBeforeBooking,
             ];
         } else {
             return [
@@ -143,7 +143,7 @@ class RefundCalculationService
                 'vendor_percentage' => 50,
                 'admin_percentage' => 50,
                 'description' => 'No refund - Cancellation within 2 hours of booking time',
-                'hours_before_booking' => $hoursBeforeBooking
+                'hours_before_booking' => $hoursBeforeBooking,
             ];
         }
     }
@@ -157,30 +157,35 @@ class RefundCalculationService
             // Check payment status
             if ($payment->status !== Payment::STATUS_PAID) {
                 Log::info("Payment {$payment->id} not eligible: status is {$payment->status}");
+
                 return false;
             }
 
             // Check for existing active refunds
             if ($payment->hasActiveRefund()) {
                 Log::info("Payment {$payment->id} not eligible: has active refund");
+
                 return false;
             }
 
             // Check if appointment exists
-            if (!$payment->appointment) {
+            if (! $payment->appointment) {
                 Log::info("Payment {$payment->id} not eligible: no associated appointment");
+
                 return false;
             }
 
             // Check if appointment can be cancelled
-            if (!$payment->appointment->canBeCancelled()) {
+            if (! $payment->appointment->canBeCancelled()) {
                 Log::info("Payment {$payment->id} not eligible: appointment cannot be cancelled");
+
                 return false;
             }
 
             return true;
         } catch (\Exception $e) {
-            Log::error("Error validating refund eligibility for payment {$payment->id}: " . $e->getMessage());
+            Log::error("Error validating refund eligibility for payment {$payment->id}: ".$e->getMessage());
+
             return false;
         }
     }
@@ -238,7 +243,7 @@ class RefundCalculationService
         $errors = [];
 
         // Check if calculation is valid
-        if (!$calculation->isValid()) {
+        if (! $calculation->isValid()) {
             $errors[] = 'Refund calculation totals do not match expected amounts';
         }
 
@@ -278,7 +283,7 @@ class RefundCalculationService
 
         return [
             'valid' => empty($errors),
-            'errors' => $errors
+            'errors' => $errors,
         ];
     }
 }

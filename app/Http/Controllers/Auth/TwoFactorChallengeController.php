@@ -14,14 +14,14 @@ class TwoFactorChallengeController extends Controller
 
     public function __construct()
     {
-        $this->google2fa = new Google2FA();
+        $this->google2fa = new Google2FA;
     }
 
     // Show 2FA challenge form
     public function show()
     {
 
-        if (!session('2fa:user:id')) {
+        if (! session('2fa:user:id')) {
             return redirect()->route('admin.login');
         }
 
@@ -39,7 +39,7 @@ class TwoFactorChallengeController extends Controller
         $userId = session('2fa:user:id');
         $user = \App\Models\User::find($userId);
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('admin.login');
         }
 
@@ -61,6 +61,7 @@ class TwoFactorChallengeController extends Controller
 
             if ($codes->contains($request->recovery_code)) {
                 $user->replaceRecoveryCode($request->recovery_code);
+
                 return $this->loginUser($user);
             }
 
