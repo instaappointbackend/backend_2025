@@ -7,7 +7,7 @@ enum PlanEnum: string
     case BASIC = 'basic';
     case STANDARD = 'standard';
     case SUPER_SAVING = 'super_saving';
-    case INSTA_ADDS = 'insta_adds';
+    case INSTA_ADDS = 'premium_insta_ads';
 
     /**
      * Get details for a specific plan
@@ -132,7 +132,7 @@ enum PlanEnum: string
      */
     public static function getAllPlans(): array
     {
-        return array_map(fn ($plan) => $plan->details(), self::cases());
+        return array_map(fn($plan) => $plan->details(), self::cases());
     }
 
     /**
@@ -143,7 +143,7 @@ enum PlanEnum: string
         $slug = strtolower(str_replace(' ', '_', $title));
 
         $plan = collect(self::cases())
-            ->first(fn ($case) => $case->value === $slug);
+            ->first(fn($case) => $case->value === $slug);
 
         return $plan?->details();
     }

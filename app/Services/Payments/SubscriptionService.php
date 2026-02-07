@@ -30,6 +30,7 @@ class SubscriptionService
 
         try {
             // Validate plan
+
             $plan = PlanEnum::getPlanByTitle($data['plan_name']);
 
             if ($plan['title'] !== $data['plan_name']) {

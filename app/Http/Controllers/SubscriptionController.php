@@ -111,7 +111,7 @@ class SubscriptionController extends Controller
             ]);
         }
 
-        Log::info($paymentGateway.' callback received for subscription', [
+        Log::info($paymentGateway . ' callback received for subscription', [
             'transaction_id' => $transactionId,
             'data' => $request->all(),
         ]);
