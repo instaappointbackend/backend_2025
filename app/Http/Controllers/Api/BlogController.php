@@ -20,6 +20,7 @@ class BlogController extends Controller
     public function index()
     {
         $blogs = Blog::where('user_id', auth()->id())->latest()->get();
+
         return $this->success(BlogResponse::collection($blogs), 'Blogs retrieved successfully.');
     }
 
@@ -48,6 +49,7 @@ class BlogController extends Controller
         }
 
         $blog = Blog::create($data);
+
         return $this->success(new BlogResponse($blog), 'Blog created successfully.', 201);
     }
 
@@ -57,9 +59,10 @@ class BlogController extends Controller
     public function show($id)
     {
         $blog = Blog::find($id);
-        if (!$blog) {
+        if (! $blog) {
             return $this->error([], 'Blog not found', 404);
         }
+
         return $this->success(new BlogResponse($blog), 'Blog retrieved successfully.');
     }
 
@@ -69,7 +72,7 @@ class BlogController extends Controller
     public function update(BlogRequest $request, $id)
     {
         $blog = Blog::find($id);
-        if (!$blog) {
+        if (! $blog) {
             return $this->error([], 'Blog not found', 404);
         }
 
@@ -97,6 +100,7 @@ class BlogController extends Controller
         }
 
         $blog->update($data);
+
         return $this->success(new BlogResponse($blog), 'Blog updated successfully.');
     }
 
@@ -106,7 +110,7 @@ class BlogController extends Controller
     public function destroy($id)
     {
         $blog = Blog::find($id);
-        if (!$blog) {
+        if (! $blog) {
             return $this->error([], 'Blog not found', 404);
         }
 
@@ -116,6 +120,7 @@ class BlogController extends Controller
         }
 
         $blog->delete();
+
         return $this->success([], 'Blog deleted successfully.');
     }
 }

@@ -4,8 +4,8 @@ namespace App\Notifications;
 
 use App\Traits\SendSmsTrait;
 use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -18,15 +18,15 @@ class SubscriptionReminderNotification extends Notification
 
     public function via($notifiable)
     {
-        //$channels = ['mail', 'database'];
-        //$channels = ['mail'];
+        // $channels = ['mail', 'database'];
+        // $channels = ['mail'];
 
         // If user has a phone number, also send SMS manually
-        if (!empty($notifiable->mobile)) {
+        if (! empty($notifiable->mobile)) {
             $this->sendViaSms($notifiable->mobile, []);
         }
         Log::info('via');
-        //return $channels;
+        // return $channels;
     }
 
     public function toMail($notifiable)
@@ -40,20 +40,20 @@ class SubscriptionReminderNotification extends Notification
         //     ->line('Thank you for using our service!');
     }
 
-
     // Custom SMS sender (replace with your API)
     protected function sendViaSms($phone, $message)
     {
         Log::info('sendSms');
         // Example: MSG91 / Fast2SMS / any other HTTP SMS API
-        $type = "subscription_expired";
+        $type = 'subscription_expired';
         $this->sendSms($phone, $type, ['date' => $this->targetDate]);
-        //Your INSTA APPOINT subscription is about to expire on [24 nov 2025] Please renew it to continue enjoying our services. https://www.instaappoint.in/
+        // Your INSTA APPOINT subscription is about to expire on [24 nov 2025] Please renew it to continue enjoying our services. https://www.instaappoint.in/
     }
 
     public function toArray($notifiable)
     {
         Log::info('toArray');
+
         return ['message' => $this->targetDate];
     }
 

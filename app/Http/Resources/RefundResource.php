@@ -34,7 +34,7 @@ class RefundResource extends JsonResource
             'gst_amount' => $this->gst_amount,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            
+
             // Formatted values
             'formatted_refund_amount' => $this->formatted_refund_amount,
             'formatted_vendor_amount' => $this->formatted_vendor_amount,
@@ -42,11 +42,11 @@ class RefundResource extends JsonResource
             'refund_type_display' => $this->refund_type_display,
             'human_status' => $this->human_status,
             'status_badge_class' => $this->status_badge_class,
-            
+
             // Policy details
             'policy_applied' => $this->refund_details['policy_applied'] ?? null,
             'refund_details' => $this->refund_details,
-            
+
             // Related data
             'appointment' => $this->whenLoaded('appointment', function () {
                 return [
@@ -58,7 +58,7 @@ class RefundResource extends JsonResource
                     'service_name' => $this->appointment->appointment_title,
                 ];
             }),
-            
+
             'payment' => $this->whenLoaded('payment', function () {
                 return [
                     'id' => $this->payment->id,
@@ -68,7 +68,7 @@ class RefundResource extends JsonResource
                     'status' => $this->payment->status,
                 ];
             }),
-            
+
             'user' => $this->whenLoaded('user', function () {
                 return [
                     'id' => $this->user->id,
@@ -77,7 +77,7 @@ class RefundResource extends JsonResource
                     'mobile' => $this->user->mobile,
                 ];
             }),
-            
+
             'provider' => $this->whenLoaded('provider', function () {
                 return [
                     'id' => $this->provider->id,

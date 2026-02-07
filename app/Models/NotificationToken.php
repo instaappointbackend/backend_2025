@@ -15,7 +15,7 @@ class NotificationToken extends Model
         'user_role',
         'device_info',
         'is_active',
-        'last_used_at'
+        'last_used_at',
     ];
 
     protected $casts = [

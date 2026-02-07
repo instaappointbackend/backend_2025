@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -27,7 +28,7 @@ return new class extends Migration
             $table->dropColumn([
                 'payment_timeout',
                 'reservation_token',
-                'cancellation_reason'
+                'cancellation_reason',
             ]);
         });
     }

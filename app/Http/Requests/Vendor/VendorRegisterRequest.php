@@ -14,12 +14,11 @@ class VendorRegisterRequest extends FormRequest
     public function rules(): array
     {
 
-
         return [
             'mobile' => [
                 'required',
                 'regex:/^[6-9][0-9]{9}$/',
-                //'unique:users,mobile',
+                // 'unique:users,mobile',
             ],
 
             'name' => 'required|string|max:255',

@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Request;
 enum NavbarLink: string
 {
     case FEATURES = '#features';
-        // case DOWNLOAD = '#download';
+    // case DOWNLOAD = '#download';
     case ABOUT = '#about';
     case CONTACT = '#contact';
     case PRICING = '#pricing';
@@ -31,12 +31,11 @@ enum NavbarLink: string
     {
         // Hash-based sections should always point to homepage
         if (str_starts_with($this->value, '#')) {
-            return url('/') . $this->value;
+            return url('/').$this->value;
         }
 
         return url($this->value);
     }
-
 
     /**
      * Detect active link
@@ -55,7 +54,7 @@ enum NavbarLink: string
 
         // Home page hash sections
         if (str_starts_with($this->value, '#')) {
-            return Request::is('/') && request()->getRequestUri() === '/' . $this->value;
+            return Request::is('/') && request()->getRequestUri() === '/'.$this->value;
         }
 
         return false;

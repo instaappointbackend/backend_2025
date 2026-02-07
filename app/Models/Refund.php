@@ -48,13 +48,18 @@ class Refund extends Model
 
     // Refund types based on cancellation timing
     const TYPE_FULL_REFUND = 'full_refund'; // Before 24 hours
+
     const TYPE_PARTIAL_REFUND = 'partial_refund'; // Between 24-2 hours
+
     const TYPE_NO_REFUND = 'no_refund'; // Within 2 hours or after booking time
 
     // Refund status
     const STATUS_PENDING = 'pending';
+
     const STATUS_PROCESSED = 'processed';
+
     const STATUS_FAILED = 'failed';
+
     const STATUS_CANCELLED = 'cancelled';
 
     /**
@@ -118,7 +123,7 @@ class Refund extends Model
      */
     public function getFormattedRefundAmountAttribute(): string
     {
-        return '₹' . number_format($this->refund_amount, 2);
+        return '₹'.number_format($this->refund_amount, 2);
     }
 
     /**
@@ -126,7 +131,7 @@ class Refund extends Model
      */
     public function getFormattedVendorAmountAttribute(): string
     {
-        return '₹' . number_format($this->vendor_amount, 2);
+        return '₹'.number_format($this->vendor_amount, 2);
     }
 
     /**
@@ -134,7 +139,7 @@ class Refund extends Model
      */
     public function getFormattedAdminAmountAttribute(): string
     {
-        return '₹' . number_format($this->admin_amount, 2);
+        return '₹'.number_format($this->admin_amount, 2);
     }
 
     /**

@@ -32,7 +32,7 @@ class ContactController extends Controller
         // Filter by search query
         if ($request->has('search') && $request->search) {
             $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
                 $q->where('name', 'like', "%{$searchTerm}%")
                     ->orWhere('email', 'like', "%{$searchTerm}%")
                     ->orWhere('subject', 'like', "%{$searchTerm}%")
@@ -75,19 +75,19 @@ class ContactController extends Controller
     public function updateStatus(Contact $contact, Request $request)
     {
         $request->validate([
-            'status' => 'required|in:unread,read,replied,spam'
+            'status' => 'required|in:unread,read,replied,spam',
         ]);
 
         $contact->update([
             'status' => $request->status,
-            'read_at' => $request->status !== 'unread' ? now() : null
+            'read_at' => $request->status !== 'unread' ? now() : null,
         ]);
 
         $statusLabels = [
             'unread' => 'Unread',
             'read' => 'Read',
             'replied' => 'Replied',
-            'spam' => 'Spam'
+            'spam' => 'Spam',
         ];
 
         return redirect()->back()
@@ -103,7 +103,7 @@ class ContactController extends Controller
 
         $contact->update([
             'status' => $newStatus,
-            'read_at' => now()
+            'read_at' => now(),
         ]);
 
         $message = $newStatus === 'replied'
@@ -121,7 +121,7 @@ class ContactController extends Controller
         $request->validate([
             'action' => 'required|in:mark_read,mark_unread,mark_replied,mark_spam,delete',
             'ids' => 'required|array|min:1',
-            'ids.*' => 'exists:contacts,id'
+            'ids.*' => 'exists:contacts,id',
         ]);
 
         $contacts = Contact::whereIn('id', $request->ids);
@@ -131,7 +131,7 @@ class ContactController extends Controller
             case 'mark_read':
                 $contacts->update([
                     'status' => 'read',
-                    'read_at' => now()
+                    'read_at' => now(),
                 ]);
                 $message = "{$count} messages marked as read successfully.";
                 break;
@@ -139,7 +139,7 @@ class ContactController extends Controller
             case 'mark_unread':
                 $contacts->update([
                     'status' => 'unread',
-                    'read_at' => null
+                    'read_at' => null,
                 ]);
                 $message = "{$count} messages marked as unread successfully.";
                 break;
@@ -147,7 +147,7 @@ class ContactController extends Controller
             case 'mark_replied':
                 $contacts->update([
                     'status' => 'replied',
-                    'read_at' => now()
+                    'read_at' => now(),
                 ]);
                 $message = "{$count} messages marked as replied successfully.";
                 break;
@@ -155,7 +155,7 @@ class ContactController extends Controller
             case 'mark_spam':
                 $contacts->update([
                     'status' => 'spam',
-                    'read_at' => now()
+                    'read_at' => now(),
                 ]);
                 $message = "{$count} messages marked as spam successfully.";
                 break;
@@ -190,7 +190,7 @@ class ContactController extends Controller
         $request->validate([
             'reply_subject' => 'required|string|max:255',
             'reply_message' => 'required|string',
-            'send_copy_to_admin' => 'nullable|boolean'
+            'send_copy_to_admin' => 'nullable|boolean',
         ]);
 
         try {
@@ -204,11 +204,11 @@ class ContactController extends Controller
                 'replySubject' => $request->reply_subject,
                 'replyMessage' => $request->reply_message,
                 'recipientName' => 'gurjantkamboj20@gmail.com',
-                'adminName' => auth()->user()->name ?? 'Support Team'
+                'adminName' => auth()->user()->name ?? 'Support Team',
             ], function ($message) use ($recipientEmail, $recipientName, $request) {
                 $message->to($recipientEmail, $recipientName)
-                        ->subject($request->reply_subject)
-                        ->from(config('mail.from.address'), config('mail.from.name'));
+                    ->subject($request->reply_subject)
+                    ->from(config('mail.from.address'), config('mail.from.name'));
             });
 
             // Send copy to admin if requested
@@ -219,11 +219,11 @@ class ContactController extends Controller
                     'replyMessage' => $request->reply_message,
                     'recipientName' => $recipientName,
                     'recipientEmail' => $recipientEmail,
-                    'adminName' => auth()->user()->name ?? 'Support Team'
+                    'adminName' => auth()->user()->name ?? 'Support Team',
                 ], function ($message) use ($request) {
                     $message->to(auth()->user()->email ?? config('mail.from.address'))
-                            ->subject('Copy: ' . $request->reply_subject)
-                            ->from(config('mail.from.address'), config('mail.from.name'));
+                        ->subject('Copy: '.$request->reply_subject)
+                        ->from(config('mail.from.address'), config('mail.from.name'));
                 });
             }
 
@@ -235,22 +235,22 @@ class ContactController extends Controller
                 'contact_id' => $contact->id,
                 'recipient_email' => $recipientEmail,
                 'subject' => $request->reply_subject,
-                'admin_user' => auth()->user()->name ?? 'Unknown'
+                'admin_user' => auth()->user()->name ?? 'Unknown',
             ]);
 
             return redirect()->route('admin.contacts.index')
-                ->with('success', 'Reply sent successfully to ' . $recipientName . ' (' . $recipientEmail . ')');
+                ->with('success', 'Reply sent successfully to '.$recipientName.' ('.$recipientEmail.')');
 
         } catch (\Exception $e) {
             \Log::error('Failed to send contact reply', [
                 'contact_id' => $contact->id,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Failed to send reply. Please try again. Error: ' . $e->getMessage());
+                ->with('error', 'Failed to send reply. Please try again. Error: '.$e->getMessage());
         }
     }
 

@@ -12,12 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Adding vendor_id to reference the vendor (parent user) for team members.
-            $table->foreignId('vendor_id')
-                ->nullable()
-                ->constrained('users')
-                ->onDelete('cascade')
-                ->after('reference_id');
+            if (! Schema::hasColumn('users', 'deleted_at')) {
+                $table->softDeletes();
+            }
         });
     }
 
@@ -27,7 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropConstrainedForeignId('vendor_id');
+            $table->dropSoftDeletes();
         });
     }
 };

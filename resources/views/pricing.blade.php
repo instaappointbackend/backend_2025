@@ -147,14 +147,14 @@
     }
 </style>
 
-<section class="bg-light gap-4" id="pricing">
+<section class="bg-light gap-3" id="pricing">
     <div class="container py-2 mb-2 text-center">
         <h1 class="mb-3">Choose Your Plan</h1>
         <p class="text-muted mb-4">Flexible pricing tailored to your needs</p>
 
         <div class="row g-4 justify-content-center">
             @foreach ($plans as $plan)
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="card pricing-card h-100 border {{ $plan['border_class'] }}">
                         <div class="card-body">
                             <h5 class="plan-title">

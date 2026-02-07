@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             // Add business_category_id foreign key
             $table->foreignId('business_category_id')->nullable()->after('status')
-                  ->constrained('business_types')->nullOnDelete();
-            
+                ->constrained('business_types')->nullOnDelete();
+
             // Add experience field
             $table->string('experience')->nullable()->after('business_category_id');
-            
+
             // Add terms_accepted field
             $table->boolean('terms_accepted')->default(false)->after('experience');
         });

@@ -15,9 +15,9 @@ class NewsletterController extends Controller
     public function index(Request $request)
     {
         $status = $request->get('status', 'all');
-        
+
         $query = Newsletter::query();
-        
+
         // Filter by status if provided
         if ($status === 'subscribed') {
             $query->active();
@@ -26,27 +26,27 @@ class NewsletterController extends Controller
         } elseif ($status === 'pending') {
             $query->pending();
         }
-        
+
         // Search by email or name
         if ($request->has('search')) {
             $search = $request->get('search');
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('email', 'like', "%{$search}%")
-                  ->orWhere('name', 'like', "%{$search}%");
+                    ->orWhere('name', 'like', "%{$search}%");
             });
         }
-        
+
         $subscribers = $query->orderBy('created_at', 'desc')
-                            ->paginate(20)
-                            ->withQueryString();
-                            
+            ->paginate(20)
+            ->withQueryString();
+
         $counts = [
             'all' => Newsletter::count(),
             'subscribed' => Newsletter::active()->count(),
             'unsubscribed' => Newsletter::inactive()->count(),
             'pending' => Newsletter::pending()->count(),
         ];
-        
+
         return view('admin.newsletters.index', compact('subscribers', 'status', 'counts'));
     }
 
@@ -68,12 +68,12 @@ class NewsletterController extends Controller
             'name' => 'nullable|string|max:255',
             'status' => 'required|in:subscribed,unsubscribed,pending',
         ]);
-        
+
         $validated['subscribed_at'] = now();
         $validated['source'] = 'admin';
-        
+
         Newsletter::create($validated);
-        
+
         return redirect()->route('admin.newsletters.index')
             ->with('success', 'Subscriber added successfully');
     }
@@ -92,11 +92,11 @@ class NewsletterController extends Controller
     public function update(Request $request, Newsletter $newsletter)
     {
         $validated = $request->validate([
-            'email' => 'required|email|max:255|unique:newsletters,email,' . $newsletter->id,
+            'email' => 'required|email|max:255|unique:newsletters,email,'.$newsletter->id,
             'name' => 'nullable|string|max:255',
             'status' => 'required|in:subscribed,unsubscribed,pending',
         ]);
-        
+
         // Update timestamps based on status change
         if ($newsletter->status !== $validated['status']) {
             if ($validated['status'] === 'subscribed') {
@@ -106,9 +106,9 @@ class NewsletterController extends Controller
                 $validated['unsubscribed_at'] = now();
             }
         }
-        
+
         $newsletter->update($validated);
-        
+
         return redirect()->route('admin.newsletters.index')
             ->with('success', 'Subscriber updated successfully');
     }
@@ -119,42 +119,42 @@ class NewsletterController extends Controller
     public function destroy(Newsletter $newsletter)
     {
         $newsletter->delete();
-        
+
         return redirect()->route('admin.newsletters.index')
             ->with('success', 'Subscriber deleted successfully');
     }
-    
+
     /**
      * Export subscribers to CSV.
      */
     public function export(Request $request)
     {
         $status = $request->get('status', 'subscribed');
-        
+
         $query = Newsletter::query();
-        
+
         // Filter by status if provided
         if ($status !== 'all') {
             $query->where('status', $status);
         }
-        
+
         $subscribers = $query->orderBy('created_at', 'desc')->get();
-        
+
         // Create CSV
-        $headers = array(
-            "Content-type" => "text/csv",
-            "Content-Disposition" => "attachment; filename=newsletter_subscribers.csv",
-            "Pragma" => "no-cache",
-            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
-            "Expires" => "0"
-        );
-        
+        $headers = [
+            'Content-type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=newsletter_subscribers.csv',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ];
+
         $columns = ['Email', 'Name', 'Status', 'Subscribed Date', 'Unsubscribed Date', 'Source', 'IP Address'];
-        
-        $callback = function() use ($subscribers, $columns) {
+
+        $callback = function () use ($subscribers, $columns) {
             $file = fopen('php://output', 'w');
             fputcsv($file, $columns);
-            
+
             foreach ($subscribers as $subscriber) {
                 fputcsv($file, [
                     $subscriber->email,
@@ -166,13 +166,13 @@ class NewsletterController extends Controller
                     $subscriber->ip_address ?? 'N/A',
                 ]);
             }
-            
+
             fclose($file);
         };
-        
+
         return Response::stream($callback, 200, $headers);
     }
-    
+
     /**
      * Bulk change status of subscribers.
      */
@@ -183,10 +183,10 @@ class NewsletterController extends Controller
             'ids' => 'required|array',
             'ids.*' => 'integer|exists:newsletters,id',
         ]);
-        
+
         $count = count($validated['ids']);
         $action = $validated['action'];
-        
+
         if ($action === 'subscribe') {
             Newsletter::whereIn('id', $validated['ids'])->update([
                 'status' => 'subscribed',
@@ -204,7 +204,7 @@ class NewsletterController extends Controller
             Newsletter::whereIn('id', $validated['ids'])->delete();
             $message = "{$count} subscribers have been deleted.";
         }
-        
+
         return redirect()->route('admin.newsletters.index')
             ->with('success', $message);
     }

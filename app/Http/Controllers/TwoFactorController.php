@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Writer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Crypt;
 use PragmaRX\Google2FA\Google2FA;
-use BaconQrCode\Renderer\ImageRenderer;
-use BaconQrCode\Renderer\Image\SvgImageBackEnd;
-use BaconQrCode\Renderer\RendererStyle\RendererStyle;
-use BaconQrCode\Writer;
 
 class TwoFactorController extends Controller
 {
@@ -17,23 +17,23 @@ class TwoFactorController extends Controller
 
     public function __construct()
     {
-        $this->google2fa = new Google2FA();
+        $this->google2fa = new Google2FA;
     }
 
     // Show 2FA settings page
     public function index()
     {
-        //$user = auth()->user();
+        // $user = auth()->user();
 
         $id = session()->get('2fa:user:id');
         $user = \App\Models\User::find($id);
 
         return view('auth.two-factor', [
             'user' => $user,
-            'qrCode' => $user->two_factor_secret && !$user->two_factor_confirmed_at
+            'qrCode' => $user->two_factor_secret && ! $user->two_factor_confirmed_at
                 ? $this->generateQrCode($user)
                 : null,
-            'recoveryCodes' => $user->two_factor_secret && !$user->two_factor_confirmed_at
+            'recoveryCodes' => $user->two_factor_secret && ! $user->two_factor_confirmed_at
                 ? $user->getRecoveryCodes()
                 : null,
         ]);
@@ -136,7 +136,7 @@ class TwoFactorController extends Controller
 
         $renderer = new ImageRenderer(
             new RendererStyle(200),
-            new SvgImageBackEnd()
+            new SvgImageBackEnd
         );
 
         $writer = new Writer($renderer);

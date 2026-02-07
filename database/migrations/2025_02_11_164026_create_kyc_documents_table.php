@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      *
@@ -40,8 +41,6 @@ return new class extends Migration {
             $table->string('business_logo')->nullable();
             $table->string('identity_document')->nullable();
             $table->boolean('is_business_verified')->nullable(false);
-
-            
 
             $table->timestamps();
         });

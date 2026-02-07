@@ -33,7 +33,14 @@
                         <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
                         <option value="verified" {{ request('status') == 'verified' ? 'selected' : '' }}>Verified</option>
                     </select>
+                    <div class="col-md-1">
+                        <a href="{{ route('admin.kyc.index') }}" class="btn btn-secondary ml-2">
+                            <i class="fas fa-sync"></i>
+                        </a>
+                    </div>
                 </form>
+
+
             </div>
         </div>
         <div class="card-body">
@@ -59,11 +66,26 @@
                                 <td>{{ $kyc->id }}</td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <div class="me-2">
+                                        {{-- <div class="me-2">
                                             <img src="{{ $kyc->user->profile_picture ? asset('storage/' . $kyc->user->profile_picture) : asset('admin/images/default-avatar.png') }}"
                                                 alt="{{ $kyc->user->name }}" class="avatar-img rounded-circle"
                                                 width="40" height="40">
-                                        </div>
+                                        </div> --}}
+                                        @if ($kyc->user->profile_picture && Storage::disk('public')->exists($kyc->user->profile_picture))
+                                            <div class="me-2">
+
+                                                <img src="{{ $kyc->user->profile_picture ? asset('storage/' . $kyc->user->profile_picture) : asset('admin/images/default-avatar.png') }}"
+                                                    alt="{{ $kyc->user->name }}" class="avatar-img rounded-circle"
+                                                    width="40" height="40">
+                                            </div>
+                                        @else
+                                            <div class="me-2">
+
+                                                <img src="{{ asset('admin/images/default-avatar.png') }}"
+                                                    alt="{{ $kyc->user->name }}" class="avatar-img rounded-circle"
+                                                    width="40" height="40">
+                                            </div>
+                                        @endif
                                         <div>
                                             <h6 class="mb-0">{{ $kyc->user->name }}</h6>
                                             <small>{{ $kyc->user->email }}</small>

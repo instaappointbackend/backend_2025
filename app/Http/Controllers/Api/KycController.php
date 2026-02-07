@@ -5,11 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\KycRequest;
 use App\Http\Resources\KycResponse;
-use Illuminate\Support\Facades\Auth;
 use App\Models\KycDocument;
 use App\Services\User\KycService as UserKycService;
 use App\Traits\ApiResponseTrait;
-use App\User\Services\KycService;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class KycController extends Controller
@@ -90,7 +89,7 @@ class KycController extends Controller
             //     $request->allFiles()
             // );
 
-            $kyc =  $kycService->upload(
+            $kyc = $kycService->upload(
                 $request->only([
                     'aadhar_number',
                     'pan_number',
@@ -109,7 +108,7 @@ class KycController extends Controller
                     'country',
                     'postal_code',
                     'latitude',
-                    'longitude'
+                    'longitude',
                 ]),
                 $request->file(),   // ✅ IMPORTANT
             );
@@ -135,8 +134,7 @@ class KycController extends Controller
         $user = Auth::user();
         $kyc = KycDocument::where('user_id', $user->id)->first();
 
-
-        if (!$kyc) {
+        if (! $kyc) {
             return $this->error([], 'KYC details not found.', 404);
         }
 

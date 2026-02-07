@@ -57,7 +57,7 @@ class OfferController extends Controller
         // Check if creating an admin offer (requires admin permission)
         if ($data['offer_type'] === Offer::TYPE_ADMIN) {
             // Verify the user has admin permissions
-            if (!Auth::user()->isAdmin()) {
+            if (! Auth::user()->isAdmin()) {
                 return $this->error([], 'Unauthorized to create admin offers.', 403);
             }
 
@@ -113,7 +113,7 @@ class OfferController extends Controller
         $data['offer_type'] = $offer->offer_type;
 
         // Admin offers can only be updated by admins
-        if ($offer->offer_type === Offer::TYPE_ADMIN && !Auth::user()->isAdmin()) {
+        if ($offer->offer_type === Offer::TYPE_ADMIN && ! Auth::user()->isAdmin()) {
             return $this->error([], 'Unauthorized to update admin offers.', 403);
         }
 
@@ -137,7 +137,7 @@ class OfferController extends Controller
         $offer = $this->getOfferOrFail($id);
 
         // Admin offers can only be deleted by admins
-        if ($offer->offer_type === Offer::TYPE_ADMIN && !Auth::user()->isAdmin()) {
+        if ($offer->offer_type === Offer::TYPE_ADMIN && ! Auth::user()->isAdmin()) {
             return $this->error([], 'Unauthorized to delete admin offers.', 403);
         }
 
@@ -157,11 +157,11 @@ class OfferController extends Controller
         $offer = $this->getOfferOrFail($id);
 
         // Admin offers can only be modified by admins
-        if ($offer->offer_type === Offer::TYPE_ADMIN && !Auth::user()->isAdmin()) {
+        if ($offer->offer_type === Offer::TYPE_ADMIN && ! Auth::user()->isAdmin()) {
             return $this->error([], 'Unauthorized to modify admin offers.', 403);
         }
 
-        $offer->is_active = !$offer->is_active;
+        $offer->is_active = ! $offer->is_active;
         $offer->save();
 
         return $this->success(
@@ -173,7 +173,7 @@ class OfferController extends Controller
     /**
      * Get all active global admin offers.
      */
-    public function globalOffers($providerId=null, $service_id=null)
+    public function globalOffers($providerId = null, $service_id = null)
     {
         // Get admin offers
         $adminOffersQuery = Offer::admin()
@@ -193,7 +193,7 @@ class OfferController extends Controller
 
             // Filter provider offers by service if service_id is provided
             if ($service_id) {
-                $providerOffersQuery->where(function($query) use ($service_id) {
+                $providerOffersQuery->where(function ($query) use ($service_id) {
                     $query->where('service_id', $service_id)
                         ->orWhereNull('service_id'); // Include offers not tied to any specific service
                 });
@@ -210,7 +210,8 @@ class OfferController extends Controller
             'Service-specific offers retrieved successfully.'
         );
     }
-    public function globalOffers1($providerId=null)
+
+    public function globalOffers1($providerId = null)
     {
         $adminOffers = Offer::admin()
             ->active()
@@ -256,7 +257,7 @@ class OfferController extends Controller
             ->available()
             ->first();
 
-        if (!$offer) {
+        if (! $offer) {
             return $this->error([], 'Invalid or expired coupon code.', 404);
         }
 
@@ -284,7 +285,7 @@ class OfferController extends Controller
             ->available()
             ->first();
 
-        if (!$offer) {
+        if (! $offer) {
             return $this->error([], 'Invalid or expired coupon code.', 404);
         }
 
@@ -303,7 +304,7 @@ class OfferController extends Controller
     public function adminOffers()
     {
         // Verify the user has admin permissions
-        if (!Auth::user()->isAdmin()) {
+        if (! Auth::user()->isAdmin()) {
             return $this->error([], 'Unauthorized to view admin offers.', 403);
         }
 
@@ -325,7 +326,7 @@ class OfferController extends Controller
     {
         $offer = Offer::find($id);
 
-        if (!$offer) {
+        if (! $offer) {
             throw new \Illuminate\Database\Eloquent\ModelNotFoundException('Offer not found');
         }
 

@@ -12,7 +12,7 @@ use Throwable;
 
 class KycService
 {
-    public function upload(array $data, array $files,  $user_id = null): KycDocument
+    public function upload(array $data, array $files, $user_id = null): KycDocument
     {
         try {
 
@@ -22,12 +22,12 @@ class KycService
                 $userId = $user_id ?? Auth::id();
                 $user = User::find($userId);
 
-                if (!$user) {
+                if (! $user) {
                     throw new \Exception('User not found');
                 }
 
                 $kyc = KycDocument::firstOrNew([
-                    'user_id' => $user->id
+                    'user_id' => $user->id,
                 ]);
 
                 $fileFields = [
@@ -44,7 +44,7 @@ class KycService
                     if (isset($files[$field]) && $files[$field] instanceof UploadedFile) {
 
                         // Delete old file if exists
-                        if (!empty($kyc->$field)) {
+                        if (! empty($kyc->$field)) {
                             Storage::disk('public')->delete($kyc->$field);
                         }
 
@@ -58,7 +58,6 @@ class KycService
                 // Fill non-file data
                 $kyc->fill($data);
 
-
                 // Reset verification flags
                 $kyc->is_aadhar_verified = false;
                 $kyc->is_pan_verified = false;
@@ -68,7 +67,7 @@ class KycService
                 $kyc->save();
 
                 $user->update([
-                    'is_kyc_uploaded' => true
+                    'is_kyc_uploaded' => true,
                 ]);
 
                 return $kyc;

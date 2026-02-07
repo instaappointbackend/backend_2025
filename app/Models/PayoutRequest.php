@@ -31,9 +31,13 @@ class PayoutRequest extends Model
      * Status constants.
      */
     const STATUS_PENDING = 'pending';
+
     const STATUS_PROCESSING = 'processing';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_REJECTED = 'rejected';
+
     const STATUS_CANCELLED = 'cancelled';
 
     /**
@@ -97,7 +101,7 @@ class PayoutRequest extends Model
      */
     public function getFormattedAmountAttribute(): string
     {
-        return '₹' . number_format($this->amount, 2);
+        return '₹'.number_format($this->amount, 2);
     }
 
     /**

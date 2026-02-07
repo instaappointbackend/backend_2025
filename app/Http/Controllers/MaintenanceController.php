@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 
 class MaintenanceController extends Controller
@@ -11,7 +10,7 @@ class MaintenanceController extends Controller
     public function dumpAutoload(Request $request)
     {
         // Security check - verify a secret token
-        if (!$request->has('token') || !Hash::check('your-secret-phrase', $request->token)) {
+        if (! $request->has('token') || ! Hash::check('your-secret-phrase', $request->token)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -26,14 +25,14 @@ class MaintenanceController extends Controller
         $returnVar = 0;
 
         // Using cd to change to the root directory before running composer
-        exec('cd ' . $rootPath . ' && ' . $composerPath . ' dump-autoload 2>&1', $output, $returnVar);
+        exec('cd '.$rootPath.' && '.$composerPath.' dump-autoload 2>&1', $output, $returnVar);
 
         // Return the results
         return response()->json([
             'success' => $returnVar === 0,
             'output' => $output,
             'return_code' => $returnVar,
-            'path' => $rootPath
+            'path' => $rootPath,
         ]);
     }
 }

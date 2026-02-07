@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Payment;
 use App\Models\Appointment;
+use App\Models\Payment;
 use App\Models\User;
 use App\Services\NotificationService;
 use Carbon\Carbon;
@@ -29,40 +29,64 @@ class PaymentController extends Controller
         $query = Payment::with(['appointment', 'user', 'provider']);
 
         // Filter by status
-        if ($request->has('status') && $request->status != 'all') {
+        if ($request->filled('status') && $request->status !== 'all') {
             $query->where('status', $request->status);
         }
 
         // Filter by payment method
-        if ($request->has('payment_method') && $request->payment_method != 'all') {
+        if ($request->filled('payment_method') && $request->payment_method !== 'all') {
             $query->where('payment_method', $request->payment_method);
         }
 
         // Filter by date range
-        if ($request->has('start_date') && $request->has('end_date')) {
-            $query->whereBetween('created_at', [$request->start_date . ' 00:00:00', $request->end_date . ' 23:59:59']);
-        } elseif ($request->has('start_date')) {
-            $query->where('created_at', '>=', $request->start_date . ' 00:00:00');
-        } elseif ($request->has('end_date')) {
-            $query->where('created_at', '<=', $request->end_date . ' 23:59:59');
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('created_at', [
+                $request->start_date.' 00:00:00',
+                $request->end_date.' 23:59:59',
+            ]);
+        } elseif ($request->filled('start_date')) {
+            $query->where('created_at', '>=', $request->start_date.' 00:00:00');
+        } elseif ($request->filled('end_date')) {
+            $query->where('created_at', '<=', $request->end_date.' 23:59:59');
         }
 
         // Filter by amount range
-        if ($request->has('min_amount')) {
+        if ($request->filled('min_amount')) {
             $query->where('amount', '>=', $request->min_amount);
         }
-        if ($request->has('max_amount')) {
+
+        if ($request->filled('max_amount')) {
             $query->where('amount', '<=', $request->max_amount);
         }
 
         // Filter by provider
-        if ($request->has('provider_id') && $request->provider_id) {
+        if ($request->filled('provider_id')) {
             $query->where('provider_id', $request->provider_id);
         }
 
         // Filter by customer
-        if ($request->has('user_id') && $request->user_id) {
+        if ($request->filled('user_id')) {
             $query->where('user_id', $request->user_id);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+                // Transaction ID
+                $q->where('transaction_id', 'like', "%{$search}%")
+
+                    // Customer (user)
+                    ->orWhereHas('user', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    })
+
+                    // Provider
+                    ->orWhereHas('provider', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    });
+            });
         }
 
         // Default sorting
@@ -126,7 +150,7 @@ class PaymentController extends Controller
 
             // Update payment details
             $updateData = [
-                'status' => $validated['status']
+                'status' => $validated['status'],
             ];
 
             if ($request->has('payment_method') && $request->payment_method) {
@@ -152,8 +176,8 @@ class PaymentController extends Controller
                         'new_status' => $validated['status'],
                         'notes' => $validated['notes'],
                         'updated_by' => 'admin',
-                        'updated_at' => now()->toIso8601String()
-                    ]
+                        'updated_at' => now()->toIso8601String(),
+                    ],
                 ];
 
                 $updateData['payment_details'] = array_merge($paymentDetails, $statusUpdateNotes);
@@ -167,7 +191,7 @@ class PaymentController extends Controller
                 $payment->appointment->update([
                     'payment_status' => $validated['status'],
                     'payment_method' => $request->has('payment_method') ? $validated['payment_method'] : $payment->appointment->payment_method,
-                    'payment_id' => $request->has('transaction_id') ? $validated['transaction_id'] : $payment->appointment->payment_id
+                    'payment_id' => $request->has('transaction_id') ? $validated['transaction_id'] : $payment->appointment->payment_id,
                 ]);
             }
 
@@ -185,10 +209,10 @@ class PaymentController extends Controller
             // Rollback transaction on error
             DB::rollBack();
 
-            Log::error('Error updating payment: ' . $e->getMessage());
+            Log::error('Error updating payment: '.$e->getMessage());
 
             return redirect()->back()
-                ->with('error', 'Failed to update payment: ' . $e->getMessage())
+                ->with('error', 'Failed to update payment: '.$e->getMessage())
                 ->withInput();
         }
     }
@@ -199,7 +223,7 @@ class PaymentController extends Controller
     public function refund(Request $request, Payment $payment)
     {
         $validated = $request->validate([
-            'refund_amount' => 'required|numeric|min:0|max:' . $payment->amount,
+            'refund_amount' => 'required|numeric|min:0|max:'.$payment->amount,
             'refund_reason' => 'required|string|max:255',
         ]);
 
@@ -213,7 +237,7 @@ class PaymentController extends Controller
             }
 
             // Generate refund ID
-            $refundId = 'REF_' . uniqid();
+            $refundId = 'REF_'.uniqid();
 
             // Update payment status to refunded
             $refundDetails = [
@@ -223,8 +247,8 @@ class PaymentController extends Controller
                     'reason' => $validated['refund_reason'],
                     'initiated_by' => 'admin',
                     'initiated_at' => now()->toIso8601String(),
-                    'status' => 'completed'
-                ]
+                    'status' => 'completed',
+                ],
             ];
 
             // Merge with existing payment details
@@ -236,13 +260,13 @@ class PaymentController extends Controller
 
             $payment->update([
                 'status' => Payment::STATUS_REFUNDED,
-                'payment_details' => $updatedPaymentDetails
+                'payment_details' => $updatedPaymentDetails,
             ]);
 
             // Update appointment payment status
             if ($payment->appointment) {
                 $payment->appointment->update([
-                    'payment_status' => Payment::STATUS_REFUNDED
+                    'payment_status' => Payment::STATUS_REFUNDED,
                 ]);
             }
 
@@ -258,10 +282,10 @@ class PaymentController extends Controller
             // Rollback transaction on error
             DB::rollBack();
 
-            Log::error('Error refunding payment: ' . $e->getMessage());
+            Log::error('Error refunding payment: '.$e->getMessage());
 
             return redirect()->back()
-                ->with('error', 'Failed to refund payment: ' . $e->getMessage())
+                ->with('error', 'Failed to refund payment: '.$e->getMessage())
                 ->withInput();
         }
     }
@@ -348,7 +372,7 @@ class PaymentController extends Controller
                 'date' => $currentDate->format('Y-m-d'),
                 'formatted_date' => $currentDate->format('M d'),
                 'amount' => $dayAmount,
-                'formatted_amount' => '₹' . number_format($dayAmount, 2)
+                'formatted_amount' => '₹'.number_format($dayAmount, 2),
             ];
 
             $currentDate->addDay();
@@ -412,11 +436,11 @@ class PaymentController extends Controller
         }
 
         if ($request->has('start_date') && $request->has('end_date')) {
-            $query->whereBetween('created_at', [$request->start_date . ' 00:00:00', $request->end_date . ' 23:59:59']);
+            $query->whereBetween('created_at', [$request->start_date.' 00:00:00', $request->end_date.' 23:59:59']);
         } elseif ($request->has('start_date')) {
-            $query->where('created_at', '>=', $request->start_date . ' 00:00:00');
+            $query->where('created_at', '>=', $request->start_date.' 00:00:00');
         } elseif ($request->has('end_date')) {
-            $query->where('created_at', '<=', $request->end_date . ' 23:59:59');
+            $query->where('created_at', '<=', $request->end_date.' 23:59:59');
         }
 
         if ($request->has('provider_id') && $request->provider_id) {
@@ -445,7 +469,7 @@ class PaymentController extends Controller
             'Status',
             'Platform Fee',
             'GST',
-            'Provider Earnings'
+            'Provider Earnings',
         ];
 
         // Add payment rows
@@ -470,16 +494,16 @@ class PaymentController extends Controller
                 $payment->getHumanStatusAttribute(),
                 $payment->platform_fee,
                 $payment->gst_amount,
-                $payment->vendor_earnings ?? $payment->booking_price
+                $payment->vendor_earnings ?? $payment->booking_price,
             ];
         }
 
         // Create unique filename
-        $filename = 'payments_export_' . date('Y-m-d_H-i-s') . '.csv';
-        $filepath = storage_path('app/public/exports/' . $filename);
+        $filename = 'payments_export_'.date('Y-m-d_H-i-s').'.csv';
+        $filepath = storage_path('app/public/exports/'.$filename);
 
         // Ensure directory exists
-        if (!file_exists(storage_path('app/public/exports/'))) {
+        if (! file_exists(storage_path('app/public/exports/'))) {
             mkdir(storage_path('app/public/exports/'), 0755, true);
         }
 
@@ -503,17 +527,17 @@ class PaymentController extends Controller
     {
         // Load needed relations if not already loaded
         if (
-            !$payment->relationLoaded('appointment') ||
-            !$payment->relationLoaded('user') ||
-            !$payment->relationLoaded('provider')
+            ! $payment->relationLoaded('appointment') ||
+            ! $payment->relationLoaded('user') ||
+            ! $payment->relationLoaded('provider')
         ) {
             $payment->load(['appointment', 'user', 'provider']);
         }
 
         if ($payment->appointment) {
             if (
-                !$payment->appointment->relationLoaded('service') &&
-                !$payment->appointment->relationLoaded('comboService')
+                ! $payment->appointment->relationLoaded('service') &&
+                ! $payment->appointment->relationLoaded('comboService')
             ) {
                 $payment->appointment->load(['service', 'comboService']);
             }
@@ -551,7 +575,7 @@ class PaymentController extends Controller
                         'payment_method' => $payment->payment_method,
                         'payment_id' => $payment->transaction_id,
                         'appointmentId' => $payment->appointment_id,
-                        'screenName' => 'AppointmentDetails'
+                        'screenName' => 'AppointmentDetails',
                     ];
 
                     $this->notificationService->sendPushNotification(
@@ -577,7 +601,7 @@ class PaymentController extends Controller
                         'payment_method' => $payment->payment_method,
                         'payment_id' => $payment->transaction_id,
                         'appointmentId' => $payment->appointment_id,
-                        'screenName' => 'AppointmentDetails'
+                        'screenName' => 'AppointmentDetails',
                     ];
 
                     $this->notificationService->sendPushNotification(
@@ -604,7 +628,7 @@ class PaymentController extends Controller
                         'amount' => $payment->amount,
                         'payment_method' => $payment->payment_method,
                         'appointmentId' => $payment->appointment_id,
-                        'screenName' => 'AppointmentDetails'
+                        'screenName' => 'AppointmentDetails',
                     ];
 
                     $this->notificationService->sendPushNotification(
@@ -629,17 +653,17 @@ class PaymentController extends Controller
     {
         // Load needed relations if not already loaded
         if (
-            !$payment->relationLoaded('appointment') ||
-            !$payment->relationLoaded('user') ||
-            !$payment->relationLoaded('provider')
+            ! $payment->relationLoaded('appointment') ||
+            ! $payment->relationLoaded('user') ||
+            ! $payment->relationLoaded('provider')
         ) {
             $payment->load(['appointment', 'user', 'provider']);
         }
 
         if ($payment->appointment) {
             if (
-                !$payment->appointment->relationLoaded('service') &&
-                !$payment->appointment->relationLoaded('comboService')
+                ! $payment->appointment->relationLoaded('service') &&
+                ! $payment->appointment->relationLoaded('comboService')
             ) {
                 $payment->appointment->load(['service', 'comboService']);
             }
@@ -672,9 +696,9 @@ class PaymentController extends Controller
                 'amount' => $refundAmount,
                 'reason' => $reason,
                 'payment_method' => $payment->payment_method,
-                'refund_id' => 'REF_' . $payment->transaction_id,
+                'refund_id' => 'REF_'.$payment->transaction_id,
                 'appointmentId' => $payment->appointment_id,
-                'screenName' => 'AppointmentDetails'
+                'screenName' => 'AppointmentDetails',
             ];
 
             $this->notificationService->sendPushNotification(
@@ -699,9 +723,9 @@ class PaymentController extends Controller
                 'amount' => $refundAmount,
                 'reason' => $reason,
                 'payment_method' => $payment->payment_method,
-                'refund_id' => 'REF_' . $payment->transaction_id,
+                'refund_id' => 'REF_'.$payment->transaction_id,
                 'appointmentId' => $payment->appointment_id,
-                'screenName' => 'AppointmentDetails'
+                'screenName' => 'AppointmentDetails',
             ];
 
             $this->notificationService->sendPushNotification(

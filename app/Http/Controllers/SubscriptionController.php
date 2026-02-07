@@ -6,12 +6,12 @@ use App\Models\Subscription;
 use App\Services\PaymentGateways\RazorpayService;
 use App\Services\Payments\SubscriptionService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class SubscriptionController extends Controller
 {
     private $subscriptionService;
+
     private $razorpayService;
 
     public function __construct(SubscriptionService $subscriptionService, RazorpayService $razorpayService)
@@ -27,6 +27,7 @@ class SubscriptionController extends Controller
         }
 
         $selected_plan = $request->get('plan');
+
         return view('subscriptions.index', compact('selected_plan'));
     }
 
@@ -42,10 +43,11 @@ class SubscriptionController extends Controller
 
         $subscription = Subscription::where('transaction_id', $transactionId)->first();
 
-        if (!$subscription) {
+        if (! $subscription) {
             Log::warning('Subscription not found for failed payment', [
-                'transaction_id' => $transactionId
+                'transaction_id' => $transactionId,
             ]);
+
             return;
         }
 
@@ -61,12 +63,12 @@ class SubscriptionController extends Controller
             session()->forget([
                 'order_id',
                 'payment_id',
-                //'signature',
+                // 'signature',
             ]);
 
             return redirect()->route('subscription.status', [
                 'status' => 'failed',
-                'message' => "Payment Failed"
+                'message' => 'Payment Failed',
             ]);
         }
     }
@@ -84,46 +86,40 @@ class SubscriptionController extends Controller
         try {
             $result = $this->subscriptionService->createSubscription($validated);
 
-
             return redirect()->away($result['payment_url']);
         } catch (\Throwable $th) {
             Log::error('Subscription failed', [
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ]);
 
             return back()->with('error', $th->getMessage());
         }
     }
 
-
-
     public function callback(Request $request)
     {
 
-
         $transactionId = $request->input('transactionId', session('payment_transaction_id'));
 
-        //set Razorpay data
+        // set Razorpay data
         $paymentGateway = $request->get('payment_gateway');
         if ($paymentGateway === 'razorpay') {
             session([
                 'order_id' => $request->get('razorpay_order_id'),
                 'payment_id' => $request->get('razorpay_payment_id'),
-                'signature' => $request->get('razorpay_signature')
+                'signature' => $request->get('razorpay_signature'),
             ]);
         }
 
-
-
-        Log::info($paymentGateway . ' callback received for subscription', [
+        Log::info($paymentGateway.' callback received for subscription', [
             'transaction_id' => $transactionId,
-            'data' => $request->all()
+            'data' => $request->all(),
         ]);
 
-        if (!$transactionId) {
+        if (! $transactionId) {
             return redirect()->route('subscription.status', [
                 'status' => 'error',
-                'message' => 'Invalid transaction ID'
+                'message' => 'Invalid transaction ID',
             ]);
         }
 
@@ -142,17 +138,17 @@ class SubscriptionController extends Controller
 
             return redirect()->route('subscription.status', [
                 'status' => 'failed',
-                'message' => $result['message']
+                'message' => $result['message'],
             ]);
         } catch (\Throwable $e) {
             Log::error('Subscription callback failed', [
                 'transaction_id' => $transactionId,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return redirect()->route('subscription.status', [
                 'status' => 'error',
-                'message' => 'An unexpected error occurred. Please contact support'
+                'message' => 'An unexpected error occurred. Please contact support',
             ]);
         }
     }
@@ -174,6 +170,7 @@ class SubscriptionController extends Controller
 
         if ($status === 'failed' || $status === 'error') {
             $message = $request->get('message', 'Payment failed. Please try again.');
+
             return view('subscriptions.failed', compact('message'));
         }
 

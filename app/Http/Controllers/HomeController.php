@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Page;
 use App\Models\AppSetting;
+use App\Models\Page;
 use Illuminate\Support\Facades\Cache;
-
 
 class HomeController extends Controller
 {
@@ -27,19 +25,19 @@ class HomeController extends Controller
             'social_instagram' => $this->getSetting('social_instagram', null),
             'social_linkedin' => $this->getSetting('social_linkedin', null),
         ];
+
         return view('welcome', compact('contactInfo'));
     }
 
     /**
      * Display a page by slug.
      *
-     * @param Page $page
      * @return \Illuminate\View\View
      */
     public function show(Page $page)
     {
         // Check if page is active
-        if (!$page->is_active) {
+        if (! $page->is_active) {
             abort(404);
         }
 
@@ -49,13 +47,13 @@ class HomeController extends Controller
     /**
      * Get a setting value by key.
      *
-     * @param string $key
-     * @param mixed $default
+     * @param  string  $key
+     * @param  mixed  $default
      * @return mixed
      */
     private function getSetting($key, $default = null)
     {
-        //if ($key === 'social_instagram') {
+        // if ($key === 'social_instagram') {
         // Try to get from cache first
         $settings = Cache::remember('app_settings', 3600, function () {
             return AppSetting::pluck('value', 'key')->toArray();
@@ -63,7 +61,7 @@ class HomeController extends Controller
         // $settings = AppSetting::pluck('value', 'key')->toArray();
 
         return $settings[$key] ?? $default;
-        //}
+        // }
     }
 
     public function downloadApk()

@@ -27,7 +27,7 @@ class Review extends Model
         'status',
         'review_response',
         'response_at',
-        'admin_notes'
+        'admin_notes',
     ];
 
     /**
@@ -47,7 +47,9 @@ class Review extends Model
      * The possible status values for a review.
      */
     const STATUS_PENDING = 'pending';
+
     const STATUS_APPROVED = 'approved';
+
     const STATUS_REJECTED = 'rejected';
 
     /**
@@ -110,7 +112,7 @@ class Review extends Model
         return [
             'filled' => $filledStars,
             'half' => $halfStar,
-            'empty' => $emptyStars
+            'empty' => $emptyStars,
         ];
     }
 
@@ -127,7 +129,7 @@ class Review extends Model
      */
     public function getHasResponseAttribute(): bool
     {
-        return !is_null($this->review_response);
+        return ! is_null($this->review_response);
     }
 
     /**
@@ -247,7 +249,7 @@ class Review extends Model
     {
         $this->update([
             'review_response' => $response,
-            'response_at' => now()
+            'response_at' => now(),
         ]);
     }
 
@@ -258,7 +260,7 @@ class Review extends Model
     {
         $this->update([
             'review_response' => null,
-            'response_at' => null
+            'response_at' => null,
         ]);
     }
 
@@ -292,8 +294,8 @@ class Review extends Model
     public static function getAverageRatingForProvider($providerId)
     {
         return self::where('provider_id', $providerId)
-                ->where('status', self::STATUS_APPROVED)
-                ->avg('rating') ?? 0;
+            ->where('status', self::STATUS_APPROVED)
+            ->avg('rating') ?? 0;
     }
 
     /**
@@ -302,8 +304,8 @@ class Review extends Model
     public static function getAverageRatingForService($serviceId)
     {
         return self::where('service_id', $serviceId)
-                ->where('status', self::STATUS_APPROVED)
-                ->avg('rating') ?? 0;
+            ->where('status', self::STATUS_APPROVED)
+            ->avg('rating') ?? 0;
     }
 
     /**
@@ -312,8 +314,8 @@ class Review extends Model
     public static function getAverageRatingForComboService($comboServiceId)
     {
         return self::where('combo_service_id', $comboServiceId)
-                ->where('status', self::STATUS_APPROVED)
-                ->avg('rating') ?? 0;
+            ->where('status', self::STATUS_APPROVED)
+            ->avg('rating') ?? 0;
     }
 
     /**
@@ -335,10 +337,14 @@ class Review extends Model
 
         foreach ($reviews as $review) {
             $rating = floor($review->rating);
-            if ($rating < 1) $rating = 1;
-            if ($rating > 5) $rating = 5;
+            if ($rating < 1) {
+                $rating = 1;
+            }
+            if ($rating > 5) {
+                $rating = 5;
+            }
 
-            $distribution[(string)$rating]++;
+            $distribution[(string) $rating]++;
         }
 
         return $distribution;

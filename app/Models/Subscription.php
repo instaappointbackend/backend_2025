@@ -12,7 +12,7 @@ class Subscription extends Model
         'plan_name',
         'amount',
         'transaction_id',
-        //'phonepe_merchant_transaction_id',
+        // 'phonepe_merchant_transaction_id',
         'status',
         'starts_at',
         'expires_at',
@@ -20,13 +20,13 @@ class Subscription extends Model
         'payment_status',
         'response',
         'payment_method',
-        'razorpay_payment_id'
+        'razorpay_payment_id',
     ];
 
     protected $casts = [
         'starts_at' => 'datetime',
         'expires_at' => 'datetime',
-        'last_notification_sent_at' => 'datetime'
+        'last_notification_sent_at' => 'datetime',
     ];
 
     public function user()
@@ -34,13 +34,10 @@ class Subscription extends Model
         return $this->belongsTo(User::class);
     }
 
-
     /**
      * Set start date and automatically calculate expires_at
      *
-     * @param int $durationValue
-     * @param string $durationUnit 'day', 'month', 'year'
-     * @param Carbon|null $startDate
+     * @param  string  $durationUnit  'day', 'month', 'year'
      * @return void
      */
     public function setDuration(int $durationValue, string $durationUnit, ?Carbon $startDate = null)
@@ -56,8 +53,6 @@ class Subscription extends Model
 
     /**
      * Check if subscription is active
-     *
-     * @return bool
      */
     public function isActive(): bool
     {
@@ -66,8 +61,6 @@ class Subscription extends Model
 
     /**
      * Get remaining days until expiry
-     *
-     * @return int|null
      */
     public function getRemainingDaysAttribute(): ?int
     {
@@ -76,8 +69,6 @@ class Subscription extends Model
 
     /**
      * Shortcut to get expiry date
-     *
-     * @return Carbon|null
      */
     public function getExpiryAttribute(): ?Carbon
     {

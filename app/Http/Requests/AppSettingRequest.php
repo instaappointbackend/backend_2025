@@ -19,18 +19,18 @@ class AppSettingRequest extends FormRequest
     public function rules()
     {
         return [
-            'key' => 'required|string|max:255|unique:app_settings,key,' . $this->route('app_setting'),
+            'key' => 'required|string|max:255|unique:app_settings,key,'.$this->route('app_setting'),
             'value' => 'required|string',
         ];
     }
 
     protected function failedValidation(Validator $validator)
     {
-//        throw new HttpResponseException(response()->json([
-////            'status'  => false,
-////            'message' => $validator->errors()->first(),
-////            'errors'  => $validator->errors(),
-////        ], 422));
+        //        throw new HttpResponseException(response()->json([
+        // //            'status'  => false,
+        // //            'message' => $validator->errors()->first(),
+        // //            'errors'  => $validator->errors(),
+        // //        ], 422));
 
         throw new HttpResponseException($this->error($validator->errors(), $validator->errors()->first(), 422));
     }

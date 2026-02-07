@@ -14,7 +14,7 @@ class FAQController extends Controller
     public function index(Request $request)
     {
         $query = FAQ::query();
-        
+
         // Filter by status
         if ($request->has('status')) {
             if ($request->status === 'active') {
@@ -23,20 +23,20 @@ class FAQController extends Controller
                 $query->where('is_active', false);
             }
         }
-        
+
         // Filter by search query
         if ($request->has('search') && $request->search) {
             $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
                 $q->where('question', 'like', "%{$searchTerm}%")
-                  ->orWhere('answer', 'like', "%{$searchTerm}%");
+                    ->orWhere('answer', 'like', "%{$searchTerm}%");
             });
         }
-        
+
         $faqs = $query->orderBy('created_at', 'desc')
-                     ->paginate(15)
-                     ->withQueryString();
-        
+            ->paginate(15)
+            ->withQueryString();
+
         return view('admin.faqs.index', compact('faqs'));
     }
 
@@ -91,9 +91,8 @@ class FAQController extends Controller
             'answer' => 'required|string',
             'is_active' => 'boolean',
         ]);
-        
 
-        $validated['is_active']=!empty($validated['is_active']) ? true : false;
+        $validated['is_active'] = ! empty($validated['is_active']) ? true : false;
         $faq->update($validated);
 
         return redirect()->route('admin.faqs.index')

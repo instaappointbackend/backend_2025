@@ -29,6 +29,7 @@ class AppointmentReminder extends Model
 
     // Recipient types
     const RECIPIENT_CLIENT = 'client';
+
     const RECIPIENT_PROVIDER = 'provider';
 
     /**
@@ -63,13 +64,13 @@ class AppointmentReminder extends Model
      * Mark reminder as sent
      */
     public static function markReminderSent(
-        int $appointmentId, 
-        int $minutes, 
-        string $recipientType, 
-        int $userId, 
-        array $notificationData = null,
+        int $appointmentId,
+        int $minutes,
+        string $recipientType,
+        int $userId,
+        ?array $notificationData = null,
         bool $success = true,
-        string $error = null
+        ?string $error = null
     ): self {
         return self::create([
             'appointment_id' => $appointmentId,

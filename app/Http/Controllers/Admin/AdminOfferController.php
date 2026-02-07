@@ -41,7 +41,7 @@ class AdminOfferController extends Controller
         // Filter by search query
         if ($request->has('search') && $request->search) {
             $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
                 $q->where('title', 'like', "%{$searchTerm}%")
                     ->orWhere('description', 'like', "%{$searchTerm}%")
                     ->orWhere('coupon_code', 'like', "%{$searchTerm}%");
@@ -79,7 +79,7 @@ class AdminOfferController extends Controller
             'usage_limit' => 'nullable|integer|min:1',
         ]);
 
-        $validated['is_active'] = !empty($validated['is_active']) ? true : false;
+        $validated['is_active'] = ! empty($validated['is_active']) ? true : false;
         $validated['offer_type'] = Offer::TYPE_ADMIN; // Set offer type to admin
         $validated['used_count'] = 0; // Initialize used count to 0
 
@@ -103,7 +103,7 @@ class AdminOfferController extends Controller
         if ($offer->offer_type !== Offer::TYPE_ADMIN) {
             abort(404);
         }
-        
+
         return view('admin.offers.show', compact('offer'));
     }
 
@@ -116,7 +116,7 @@ class AdminOfferController extends Controller
         if ($offer->offer_type !== Offer::TYPE_ADMIN) {
             abort(404);
         }
-        
+
         return view('admin.offers.edit', compact('offer'));
     }
 
@@ -129,19 +129,19 @@ class AdminOfferController extends Controller
         if ($offer->offer_type !== Offer::TYPE_ADMIN) {
             abort(404);
         }
-        
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'discount_percentage' => 'required|numeric|min:0|max:100',
-            'coupon_code' => 'required|string|max:50|unique:offers,coupon_code,' . $offer->id,
+            'coupon_code' => 'required|string|max:50|unique:offers,coupon_code,'.$offer->id,
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'is_active' => 'boolean',
             'usage_limit' => 'nullable|integer|min:1',
         ]);
 
-        $validated['is_active'] = !empty($validated['is_active']) ? true : false;
+        $validated['is_active'] = ! empty($validated['is_active']) ? true : false;
         // Ensure offer_type remains as admin
         $validated['offer_type'] = Offer::TYPE_ADMIN;
 
@@ -160,7 +160,7 @@ class AdminOfferController extends Controller
         if ($offer->offer_type !== Offer::TYPE_ADMIN) {
             abort(404);
         }
-        
+
         $offer->delete();
 
         return redirect()->route('admin.offers.index')
@@ -176,8 +176,8 @@ class AdminOfferController extends Controller
         if ($offer->offer_type !== Offer::TYPE_ADMIN) {
             abort(404);
         }
-        
-        $offer->is_active = !$offer->is_active;
+
+        $offer->is_active = ! $offer->is_active;
         $offer->save();
 
         return redirect()->route('admin.offers.index')

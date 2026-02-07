@@ -4,18 +4,18 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AppointmentSettingsResponse;
+use App\Http\Resources\BlogResponse;
 use App\Http\Resources\ProviderResource;
+use App\Http\Resources\ReviewResource;
 use App\Http\Resources\ServiceResponse;
 use App\Http\Resources\TeamMemberResponse;
-use App\Http\Resources\BlogResponse;
-use App\Http\Resources\ReviewResource;
 use App\Models\AppointmentSettings;
+use App\Models\Blog;
 use App\Models\ComboService;
+use App\Models\Review;
+use App\Models\Service;
 use App\Models\TimeSlot;
 use App\Models\User;
-use App\Models\Service;
-use App\Models\Review;
-use App\Models\Blog;
 use App\Models\UserFavorite;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
@@ -51,7 +51,7 @@ class ProviderController extends Controller
             ->withCount('reviews')
             ->first();
 
-        if (!$provider) {
+        if (! $provider) {
             return $this->error([], 'Service provider not found.', 404);
         }
 
@@ -73,7 +73,7 @@ class ProviderController extends Controller
             ->where('status', true)
             ->first();
 
-        if (!$provider) {
+        if (! $provider) {
             return $this->error([], 'Service provider not found.', 404);
         }
 
@@ -84,7 +84,7 @@ class ProviderController extends Controller
         return $this->success(ServiceResponse::collection($services), 'Provider services retrieved successfully.');
     }
 
-    public function getService($id,$sid)
+    public function getService($id, $sid)
     {
         $provider = User::where('id', $id)
             ->where('role', 'vendor')
@@ -93,7 +93,7 @@ class ProviderController extends Controller
             ->where('status', true)
             ->first();
 
-        if (!$provider) {
+        if (! $provider) {
             return $this->error([], 'Service provider not found.', 404);
         }
 
@@ -119,7 +119,7 @@ class ProviderController extends Controller
             ->where('status', true)
             ->first();
 
-        if (!$provider) {
+        if (! $provider) {
             return $this->error([], 'Service provider not found.', 404);
         }
 
@@ -145,7 +145,7 @@ class ProviderController extends Controller
             ->where('status', true)
             ->first();
 
-        if (!$provider) {
+        if (! $provider) {
             return $this->error([], 'Service provider not found.', 404);
         }
 
@@ -173,7 +173,7 @@ class ProviderController extends Controller
             ->where('status', true)
             ->first();
 
-        if (!$provider) {
+        if (! $provider) {
             return $this->error([], 'Service provider not found.', 404);
         }
 
@@ -182,7 +182,7 @@ class ProviderController extends Controller
             ->where('status', true)
             ->first();
 
-        if (!$blog) {
+        if (! $blog) {
             return $this->error([], 'Blog not found.', 404);
         }
 
@@ -204,7 +204,7 @@ class ProviderController extends Controller
             ->where('status', true)
             ->first();
 
-        if (!$provider) {
+        if (! $provider) {
             return $this->error([], 'Service provider not found.', 404);
         }
 
@@ -219,7 +219,6 @@ class ProviderController extends Controller
     /**
      * Submit a review for a provider
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
@@ -228,7 +227,7 @@ class ProviderController extends Controller
         $validator = Validator::make($request->all(), [
             'rating' => 'required|integer|between:1,5',
             'comment' => 'required|string|max:1000',
-            'service_id' => 'nullable|exists:services,id'
+            'service_id' => 'nullable|exists:services,id',
         ]);
 
         if ($validator->fails()) {
@@ -242,7 +241,7 @@ class ProviderController extends Controller
             ->where('status', true)
             ->first();
 
-        if (!$provider) {
+        if (! $provider) {
             return $this->error([], 'Service provider not found.', 404);
         }
 
@@ -254,7 +253,7 @@ class ProviderController extends Controller
                 ->where('user_id', $id)
                 ->first();
 
-            if (!$service) {
+            if (! $service) {
                 return $this->error([], 'Service not found or does not belong to this provider.', 404);
             }
         }
@@ -269,7 +268,7 @@ class ProviderController extends Controller
             $existingReview->update([
                 'rating' => $request->rating,
                 'comment' => $request->comment,
-                'service_id' => $request->service_id
+                'service_id' => $request->service_id,
             ]);
 
             // Recalculate provider's rating
@@ -284,7 +283,7 @@ class ProviderController extends Controller
             'provider_id' => $id,
             'service_id' => $request->service_id,
             'rating' => $request->rating,
-            'comment' => $request->comment
+            'comment' => $request->comment,
         ]);
 
         // Recalculate provider's rating
@@ -305,7 +304,7 @@ class ProviderController extends Controller
         $roundedRating = round($averageRating, 1);
 
         User::where('id', $providerId)->update([
-            'rating' => $roundedRating
+            'rating' => $roundedRating,
         ]);
     }
 
@@ -313,7 +312,6 @@ class ProviderController extends Controller
      * Get provider availability - time slots
      *
      * @param  int  $id
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function getAvailability($id, Request $request)
@@ -335,7 +333,7 @@ class ProviderController extends Controller
             ->where('status', true)
             ->first();
 
-        if (!$provider) {
+        if (! $provider) {
             return $this->error([], 'Service provider not found.', 404);
         }
 
@@ -349,7 +347,7 @@ class ProviderController extends Controller
         // Set the authenticated user to the provider
         Auth::setUser($provider);
 
-        $timeSlotController = new TimeSlotController();
+        $timeSlotController = new TimeSlotController;
         $availability = [];
 
         // Initialize variables for the current date check
@@ -361,9 +359,9 @@ class ProviderController extends Controller
 
         // Check if the current date is a holiday
         $holiday = $provider->holidays()
-            ->where(function($query) use ($currentDateStr) {
+            ->where(function ($query) use ($currentDateStr) {
                 $query->where('date', $currentDateStr)
-                    ->orWhere(function($q) use ($currentDateStr) {
+                    ->orWhere(function ($q) use ($currentDateStr) {
                         // Check for recurring annual holidays
                         $q->where('is_recurring', true)
                             ->whereRaw("DATE_FORMAT(date, '%m-%d') = ?", [date('m-d', strtotime($currentDateStr))]);
@@ -373,7 +371,7 @@ class ProviderController extends Controller
 
         // Check if the current date is a working day
         $workingHoursToday = $provider->workingHours->where('day_of_week', $currentDayOfWeek)->first();
-        if ($workingHoursToday && $workingHoursToday->is_working_day && !$holiday) {
+        if ($workingHoursToday && $workingHoursToday->is_working_day && ! $holiday) {
             $isWorkingDay = true;
         }
 
@@ -386,7 +384,7 @@ class ProviderController extends Controller
             // Check if this is a holiday
             $isHoliday = $provider->holidays()
                 ->where('date', $date)
-                ->orWhere(function($query) use ($date) {
+                ->orWhere(function ($query) use ($date) {
                     // Check for recurring annual holidays
                     $query->where('is_recurring', true)
                         ->whereRaw("DATE_FORMAT(date, '%m-%d') = ?", [date('m-d', strtotime($date))]);
@@ -403,7 +401,7 @@ class ProviderController extends Controller
             // Check if this is a working day
             $workingHours = $provider->workingHours->where('day_of_week', $dayOfWeek)->first();
 
-            if (!$workingHours || !$workingHours->is_working_day) {
+            if (! $workingHours || ! $workingHours->is_working_day) {
                 continue; // Skip non-working days
             }
 
@@ -423,7 +421,7 @@ class ProviderController extends Controller
                 $generateRequest = new Request([
                     'date' => $date,
                     'interval' => $interval,
-                    'buffer_time' => $bufferTime
+                    'buffer_time' => $bufferTime,
                 ]);
 
                 // Generate time slots - Auth::id() will now be the provider's ID
@@ -440,7 +438,7 @@ class ProviderController extends Controller
 
             if (isset($responseData['data']) && count($responseData['data']) > 0) {
                 // Create properly formatted time slots with the correct date
-                $formattedSlots = collect($responseData['data'])->map(function($slot) use ($date, $carbonDate) {
+                $formattedSlots = collect($responseData['data'])->map(function ($slot) use ($carbonDate) {
                     // Extract time components from start_time and end_time
                     $startTime = Carbon::parse($slot['start_time']);
                     $endTime = Carbon::parse($slot['end_time']);
@@ -468,15 +466,15 @@ class ProviderController extends Controller
                         'id' => $slot['id'],
                         'startTime' => $correctStartTime->toIso8601String(),
                         'endTime' => $correctEndTime->toIso8601String(),
-//                        'isAvailable' => $slot['is_available'] && !$slot['is_booked'],
+                        //                        'isAvailable' => $slot['is_available'] && !$slot['is_booked'],
                         'isAvailable' => $slot['is_available'],
-                        'formatted_time' => $slot['formatted_time']
+                        'formatted_time' => $slot['formatted_time'],
                     ];
                 })->toArray();
 
                 $availability[] = [
                     'date' => $date,
-                    'slots' => $formattedSlots
+                    'slots' => $formattedSlots,
                 ];
             }
         }
@@ -492,7 +490,7 @@ class ProviderController extends Controller
         $debug = [
             'provider_id' => $provider->id,
             'request_date' => $startDate,
-            'days' => $days
+            'days' => $days,
         ];
 
         return $this->success([
@@ -502,6 +500,7 @@ class ProviderController extends Controller
             'holiday' => $holiday ? $holiday->name : '',
         ], 'Provider availability retrieved successfully.');
     }
+
     /**
      * Check if a provider is in the current user's favorites
      *
@@ -534,7 +533,7 @@ class ProviderController extends Controller
             ->where('status', true)
             ->first();
 
-        if (!$provider) {
+        if (! $provider) {
             return $this->error([], 'Service provider not found.', 404);
         }
 
@@ -547,13 +546,15 @@ class ProviderController extends Controller
         if ($favorite) {
             // Remove from favorites
             $favorite->delete();
+
             return $this->success(false, 'Provider removed from favorites.');
         } else {
             // Add to favorites
             UserFavorite::create([
                 'user_id' => $user->id,
-                'vendor_id' => $id
+                'vendor_id' => $id,
             ]);
+
             return $this->success(true, 'Provider added to favorites.');
         }
     }
@@ -561,7 +562,6 @@ class ProviderController extends Controller
     /**
      * Book an appointment with a provider
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
@@ -571,7 +571,7 @@ class ProviderController extends Controller
             'service_id' => 'required|exists:services,id',
             'date' => 'required|date_format:Y-m-d',
             'time_slot_id' => 'required|exists:time_slots,id',
-            'notes' => 'sometimes|string|max:500'
+            'notes' => 'sometimes|string|max:500',
         ]);
 
         if ($validator->fails()) {
@@ -585,7 +585,7 @@ class ProviderController extends Controller
             ->where('status', true)
             ->first();
 
-        if (!$provider) {
+        if (! $provider) {
             return $this->error([], 'Service provider not found.', 404);
         }
 
@@ -595,19 +595,19 @@ class ProviderController extends Controller
             ->where('is_active', true)
             ->first();
 
-        if (!$service) {
+        if (! $service) {
             return $this->error([], 'Service not found or not available.', 404);
         }
 
         // Use the AppointmentController to handle booking
-        $appointmentController = new AppointmentController();
+        $appointmentController = new AppointmentController;
 
         // Create a new request with needed data
         $appointmentRequest = new Request([
             'date' => $request->date,
             'time_slot_id' => $request->time_slot_id,
             'service_id' => $request->service_id,
-            'notes' => $request->notes
+            'notes' => $request->notes,
         ]);
 
         // Set current user on the request
@@ -617,6 +617,7 @@ class ProviderController extends Controller
 
         // Forward to appointment controller
         $response = $appointmentController->store($appointmentRequest);
+
         return $response;
     }
 
@@ -629,24 +630,24 @@ class ProviderController extends Controller
     {
         $user = Auth::user();
 
-        $favorites = UserFavorite::with(['vendor' => function($query) {
+        $favorites = UserFavorite::with(['vendor' => function ($query) {
             $query->with(['kycDocument', 'businessCategory']);
         }])
             ->where('user_id', $user->id)
 
             ->get();
 
-        $providers = $favorites->map(function($favorite) {
+        $providers = $favorites->map(function ($favorite) {
             return $favorite->vendor;
         })->filter();
 
         return $this->success(ProviderResource::collection($providers), 'Favorites retrieved successfully.');
     }
+
     /**
      * Get service providers by category
      *
      * @param  int  $categoryId
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function getProvidersByCategory($categoryId, Request $request)
@@ -670,7 +671,7 @@ class ProviderController extends Controller
             'businessCategory',
             'workingHours',
         ])
-            ->whereHas('kycDocument', function($query) use ($categoryId) {
+            ->whereHas('kycDocument', function ($query) use ($categoryId) {
                 $query->where('business_category_id', $categoryId);
             })
             ->where('role', 'vendor')
@@ -680,11 +681,11 @@ class ProviderController extends Controller
             ->withCount('reviews');
 
         // Apply search if provided
-        if ($request->has('search') && !empty($request->search)) {
+        if ($request->has('search') && ! empty($request->search)) {
             $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
                 $q->where('name', 'like', "%{$searchTerm}%")
-                    ->orWhereHas('kycDocument', function($kq) use ($searchTerm) {
+                    ->orWhereHas('kycDocument', function ($kq) use ($searchTerm) {
                         $kq->where('business_name', 'like', "%{$searchTerm}%")
                             ->orWhere('description', 'like', "%{$searchTerm}%");
                     });
@@ -698,10 +699,10 @@ class ProviderController extends Controller
             $radius = $request->radius ?? 25; // Default 25km radius
 
             // Calculate distance using Haversine formula
-            $query->whereHas('kycDocument', function($q) use ($latitude, $longitude, $radius) {
+            $query->whereHas('kycDocument', function ($q) use ($latitude, $longitude, $radius) {
                 $q->whereNotNull('latitude')
                     ->whereNotNull('longitude')
-                    ->selectRaw("(
+                    ->selectRaw('(
                   6371 * acos(
                       cos(radians(?)) *
                       cos(radians(latitude)) *
@@ -709,8 +710,8 @@ class ProviderController extends Controller
                       sin(radians(?)) *
                       sin(radians(latitude))
                   )
-              ) AS distance", [$latitude, $longitude, $latitude])
-                    ->havingRaw("distance < ?", [$radius]);
+              ) AS distance', [$latitude, $longitude, $latitude])
+                    ->havingRaw('distance < ?', [$radius]);
             });
 
             // Add distance as a select
@@ -733,7 +734,7 @@ class ProviderController extends Controller
         }
 
         // Sort by rating if requested (or by default if no other sort is specified)
-        if (!$request->has('sort_by') || $request->sort_by === 'rating') {
+        if (! $request->has('sort_by') || $request->sort_by === 'rating') {
             $query->orderBy('rating', 'desc');
         }
 
@@ -747,16 +748,15 @@ class ProviderController extends Controller
                 'per_page' => $providers->perPage(),
                 'current_page' => $providers->currentPage(),
                 'last_page' => $providers->lastPage(),
-            ]
+            ],
         ], 'Service providers by category retrieved successfully.');
     }
-
 
     public function getSettings($id)
     {
         $settings = AppointmentSettings::where('user_id', $id)->first();
 
-        if (!$settings) {
+        if (! $settings) {
             $settings = AppointmentSettings::create([
                 'user_id' => Auth::id(),
                 'appointment_duration' => 30,
@@ -775,7 +775,6 @@ class ProviderController extends Controller
     /**
      * Get popular providers near a specified location
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function getPopularNearbyProviders(Request $request)
@@ -784,7 +783,7 @@ class ProviderController extends Controller
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
             'radius' => 'sometimes|numeric|min:1|max:100', // in kilometers
-            'limit' => 'sometimes|integer|min:1|max:50'    // number of results to return
+            'limit' => 'sometimes|integer|min:1|max:50',    // number of results to return
         ]);
 
         if ($validator->fails()) {
@@ -801,7 +800,7 @@ class ProviderController extends Controller
         $providers = User::with([
             'kycDocument',
             'businessCategory',
-            'reviews'
+            'reviews',
         ])
             ->join('kyc_documents', 'users.id', '=', 'kyc_documents.user_id')
             ->select([
@@ -814,7 +813,7 @@ class ProviderController extends Controller
                     sin(radians({$latitude})) *
                     sin(radians(kyc_documents.latitude))
                 )
-            ) AS distance")
+            ) AS distance"),
             ])
             ->where('users.role', 'vendor')
             ->where('users.is_registered', true)
@@ -842,10 +841,10 @@ class ProviderController extends Controller
 
         return $this->success(ProviderResource::collection($providers), 'Popular nearby providers retrieved successfully.');
     }
+
     /**
      * Get nearby vendors/providers based on location
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function getNearbyProviders(Request $request)
@@ -853,7 +852,7 @@ class ProviderController extends Controller
         $validator = Validator::make($request->all(), [
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
-            'radius' => 'sometimes|numeric|min:1|max:100' // in kilometers
+            'radius' => 'sometimes|numeric|min:1|max:100', // in kilometers
         ]);
 
         if ($validator->fails()) {
@@ -868,7 +867,7 @@ class ProviderController extends Controller
         $providers = User::with([
             'kycDocument',
             'businessCategory',
-            'reviews'
+            'reviews',
         ])
             ->join('kyc_documents', 'users.id', '=', 'kyc_documents.user_id')
             ->select([
@@ -881,7 +880,7 @@ class ProviderController extends Controller
                     sin(radians({$latitude})) *
                     sin(radians(kyc_documents.latitude))
                 )
-            ) AS distance")
+            ) AS distance"),
             ])
             ->where('users.role', 'vendor')
             ->where('users.is_registered', true)
@@ -923,7 +922,7 @@ class ProviderController extends Controller
             ->where('status', true)
             ->first();
 
-        if (!$provider) {
+        if (! $provider) {
             return $this->error([], 'Service provider not found.', 404);
         }
 

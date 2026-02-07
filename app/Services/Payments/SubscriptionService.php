@@ -6,7 +6,6 @@ use App\Enums\PlanEnum;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Services\PaymentGateways\Contracts\PaymentGatewayInterface;
-use App\Services\PaymentGateways\PhonePeService;
 use App\Traits\SendSmsTrait;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -41,7 +40,7 @@ class SubscriptionService
             $user = $this->findOrCreateUser([
                 'name' => $data['name'],
                 'email' => $data['email'],
-                'mobile' => $data['mobile']
+                'mobile' => $data['mobile'],
             ]);
 
             // Initiate payment
@@ -55,7 +54,7 @@ class SubscriptionService
                 ]
             );
 
-            if (!$paymentResponse['success']) {
+            if (! $paymentResponse['success']) {
                 throw new \Exception($paymentResponse['message'] ?? 'Failed to initialize payment');
             }
 
@@ -77,13 +76,13 @@ class SubscriptionService
             return [
                 'success' => true,
                 'payment_url' => $paymentResponse['payment_url'],
-                'transaction_id' => $transactionId
+                'transaction_id' => $transactionId,
             ];
         } catch (\Throwable $th) {
             DB::rollBack();
             Log::error('Subscription creation failed', [
                 'error' => $th->getMessage(),
-                'trace' => $th->getTraceAsString()
+                'trace' => $th->getTraceAsString(),
             ]);
 
             throw $th;
@@ -96,10 +95,10 @@ class SubscriptionService
     public function processCallback($transactionId)
     {
         try {
-            if (!$transactionId) {
+            if (! $transactionId) {
                 return [
                     'success' => false,
-                    'message' => 'Missing transaction ID'
+                    'message' => 'Missing transaction ID',
                 ];
             }
 
@@ -107,13 +106,12 @@ class SubscriptionService
                 ->where('transaction_id', $transactionId)
                 ->first();
 
-            if (!$subscription) {
+            if (! $subscription) {
                 return [
                     'success' => false,
-                    'message' => 'Subscription not found'
+                    'message' => 'Subscription not found',
                 ];
             }
-
 
             $status = $this->paymentGateway->checkPaymentStatus($transactionId);
 
@@ -121,7 +119,7 @@ class SubscriptionService
         } catch (\Throwable $e) {
             Log::error('Subscription callback processing failed', [
                 'transaction_id' => $transactionId,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             throw $e;
@@ -136,10 +134,10 @@ class SubscriptionService
         try {
             $transactionId = $webhookData['merchantTransactionId'] ?? null;
 
-            if (!$transactionId) {
+            if (! $transactionId) {
                 return [
                     'success' => false,
-                    'message' => 'Missing transaction ID'
+                    'message' => 'Missing transaction ID',
                 ];
             }
 
@@ -147,10 +145,10 @@ class SubscriptionService
                 ->where('transaction_id', $transactionId)
                 ->first();
 
-            if (!$subscription) {
+            if (! $subscription) {
                 return [
                     'success' => false,
-                    'message' => 'Subscription not found'
+                    'message' => 'Subscription not found',
                 ];
             }
 
@@ -161,7 +159,7 @@ class SubscriptionService
         } catch (\Throwable $e) {
             Log::error('Subscription webhook processing failed', [
                 'webhook_data' => $webhookData,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             throw $e;
@@ -171,12 +169,12 @@ class SubscriptionService
     /**
      * Common subscription updater
      */
-    private function updateSubscriptionFromStatus(Subscription $subscription, array $status,  $webhookData = null)
+    private function updateSubscriptionFromStatus(Subscription $subscription, array $status, $webhookData = null)
     {
         $paymentStatus = null;
         $subscriptionStatus = null;
 
-        if (!empty($status['success']) && $status['success']) {
+        if (! empty($status['success']) && $status['success']) {
             switch ($status['paymentState'] ?? '') {
                 case 'COMPLETED':
                     $paymentStatus = 'completed';
@@ -184,12 +182,12 @@ class SubscriptionService
                     break;
                 case 'FAILED':
                     $paymentStatus = 'failed';
-                    //$subscriptionStatus = 'failed';
+                    // $subscriptionStatus = 'failed';
                     break;
             }
         } else {
             $paymentStatus = 'failed';
-            //$subscriptionStatus = 'failed';
+            // $subscriptionStatus = 'failed';
         }
 
         // Merge response data
@@ -215,12 +213,12 @@ class SubscriptionService
         if ($paymentStatus) {
             $updateData['payment_status'] = $paymentStatus;
         }
-        //dd($status, $updateData, $subscriptionStatus, $paymentStatus);
+        // dd($status, $updateData, $subscriptionStatus, $paymentStatus);
         $subscription->update($updateData);
 
         // Send SMS on completion if not already sent
         if ($paymentStatus === 'completed' && empty($responseData['sms_sent'])) {
-            //$this->sendSms($subscription->user->mobile, 'subscription_success', []);
+            // $this->sendSms($subscription->user->mobile, 'subscription_success', []);
             $responseData['sms_sent'] = true;
             $subscription->update(['response' => json_encode($responseData)]);
         }
@@ -229,10 +227,9 @@ class SubscriptionService
             'success' => $paymentStatus === 'completed',
             'status' => $paymentStatus,
             'subscription' => $subscription,
-            'message' => $paymentStatus === 'completed' ? 'Payment completed successfully' : 'Payment not successful'
+            'message' => $paymentStatus === 'completed' ? 'Payment completed successfully' : 'Payment not successful',
         ];
     }
-
 
     /**
      * Find or create user
@@ -241,7 +238,7 @@ class SubscriptionService
     {
         $user = User::where('mobile', $userData['mobile'])->first();
 
-        if (!$user) {
+        if (! $user) {
             $user = User::create([
                 'name' => $userData['name'],
                 'email' => $userData['email'],
@@ -259,7 +256,7 @@ class SubscriptionService
      */
     private function createSubscriptionRecord($userId, $planName, $amount, $transactionId)
     {
-        $subscription = new Subscription();
+        $subscription = new Subscription;
         $subscription->user_id = $userId;
         $subscription->plan_name = $planName;
         $subscription->amount = $amount;

@@ -1,15 +1,16 @@
 <?php
+
 namespace App\Http\Controllers\Admin;
 
-    use App\Http\Controllers\Controller;
-    use App\Models\Appointment;
-    use App\Models\Service;
-    use App\Models\User;
-    use App\Models\Payment;
-    use App\Services\NotificationService;
-    use Carbon\Carbon;
-    use Illuminate\Http\Request;
-    use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use App\Models\Appointment;
+use App\Models\Payment;
+use App\Models\Service;
+use App\Models\User;
+use App\Services\NotificationService;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AppointmentController extends Controller
 {
@@ -28,50 +29,50 @@ class AppointmentController extends Controller
         $query = Appointment::with(['user', 'client', 'service']);
 
         // Search functionality
-        if ($request->has('search') && !empty($request->search)) {
+        if ($request->has('search') && ! empty($request->search)) {
             $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
-                $q->whereHas('client', function($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
+                $q->whereHas('client', function ($q) use ($searchTerm) {
                     $q->where('name', 'like', "%{$searchTerm}%")
                         ->orWhere('email', 'like', "%{$searchTerm}%");
                 })
-                    ->orWhereHas('user', function($q) use ($searchTerm) {
+                    ->orWhereHas('user', function ($q) use ($searchTerm) {
                         $q->where('name', 'like', "%{$searchTerm}%");
                     })
-                    ->orWhereHas('service', function($q) use ($searchTerm) {
+                    ->orWhereHas('service', function ($q) use ($searchTerm) {
                         $q->where('name', 'like', "%{$searchTerm}%");
                     });
             });
         }
 
         // Filter by status
-        if ($request->has('status') && $request->status != 'all' && !empty($request->status)) {
+        if ($request->has('status') && $request->status != 'all' && ! empty($request->status)) {
             $query->where('status', $request->status);
         }
 
         // Fixed date filtering logic
-        if ($request->has('start_date') && !empty($request->start_date)) {
+        if ($request->has('start_date') && ! empty($request->start_date)) {
             $startDate = Carbon::parse($request->start_date)->startOfDay();
             $query->where('date', '>=', $startDate);
         }
 
-        if ($request->has('end_date') && !empty($request->end_date)) {
+        if ($request->has('end_date') && ! empty($request->end_date)) {
             $endDate = Carbon::parse($request->end_date)->endOfDay();
             $query->where('date', '<=', $endDate);
         }
 
         // Filter by vendor
-        if ($request->has('vendor_id') && !empty($request->vendor_id)) {
+        if ($request->has('vendor_id') && ! empty($request->vendor_id)) {
             $query->where('user_id', $request->vendor_id);
         }
 
         // Filter by client
-        if ($request->has('client_id') && !empty($request->client_id)) {
+        if ($request->has('client_id') && ! empty($request->client_id)) {
             $query->where('client_id', $request->client_id);
         }
 
         // Filter by service
-        if ($request->has('service_id') && !empty($request->service_id)) {
+        if ($request->has('service_id') && ! empty($request->service_id)) {
             $query->where('service_id', $request->service_id);
         }
 
@@ -104,16 +105,16 @@ class AppointmentController extends Controller
             ->map(function ($appointment) {
                 return [
                     'id' => $appointment->id,
-                    'title' => !empty($appointment->service->name) ? $appointment->service->name : $appointment->comboService->name . ' - ' . $appointment->client->name,
-                    'start' => $appointment->date->format('Y-m-d') . 'T' . $appointment->start_time->format('H:i:s'),
-                    'end' => $appointment->date->format('Y-m-d') . 'T' . $appointment->end_time->format('H:i:s'),
+                    'title' => ! empty($appointment->service->name) ? $appointment->service->name : $appointment->comboService->name.' - '.$appointment->client->name,
+                    'start' => $appointment->date->format('Y-m-d').'T'.$appointment->start_time->format('H:i:s'),
+                    'end' => $appointment->date->format('Y-m-d').'T'.$appointment->end_time->format('H:i:s'),
                     'url' => route('admin.appointments.show', $appointment->id),
                     'className' => $this->getStatusClass($appointment->status),
                     'extendedProps' => [
                         'status' => $appointment->status,
-                        'client' => $appointment->client->name,
-                        'vendor' => $appointment->user->name,
-                        'service' => !empty($appointment->service->name) ? $appointment->service->name : $appointment->comboService->name,
+                        'client' => $appointment?->client?->name,
+                        'vendor' => $appointment?->user?->name,
+                        'service' => ! empty($appointment->service->name) ? $appointment->service->name : $appointment->comboService->name,
                         'vendor_id' => $appointment->user_id,
                         'client_id' => $appointment->client_id,
                         'service_id' => $appointment->service_id,
@@ -121,7 +122,7 @@ class AppointmentController extends Controller
                         'visit_type' => $appointment->visit_type ?? 'office',
                         'payment_status' => $appointment->payment_status,
                         'notes' => $appointment->notes,
-                    ]
+                    ],
                 ];
             });
 
@@ -166,7 +167,8 @@ class AppointmentController extends Controller
         $vendors = User::where('role', 'vendor')->get();
         $clients = User::where('role', 'customer')->get();
         $services = Service::where('is_active', true)->get();
-        return view('admin.appointments.show', compact('appointment','vendors','clients','services'));
+
+        return view('admin.appointments.show', compact('appointment', 'vendors', 'clients', 'services'));
     }
 
     /**
@@ -193,12 +195,12 @@ class AppointmentController extends Controller
             'date' => 'required|date',
             'start_time' => 'required',
             'end_time' => 'required|after:start_time',
-            'status' => 'required|in:' . implode(',', [
-                    Appointment::STATUS_PENDING,
-                    Appointment::STATUS_CONFIRMED,
-                    Appointment::STATUS_COMPLETED,
-                    Appointment::STATUS_CANCELLED,
-                ]),
+            'status' => 'required|in:'.implode(',', [
+                Appointment::STATUS_PENDING,
+                Appointment::STATUS_CONFIRMED,
+                Appointment::STATUS_COMPLETED,
+                Appointment::STATUS_CANCELLED,
+            ]),
             'payment_status' => 'nullable|in:pending,paid,failed,refunded',
             'payment_amount' => 'nullable|numeric',
             'payment_method' => 'nullable|string',
@@ -228,15 +230,15 @@ class AppointmentController extends Controller
                     $payment->update([
                         'status' => $validated['payment_status'],
                         'amount' => $validated['payment_amount'] ?? $payment->amount,
-                        'payment_method' => $validated['payment_method'] ?? $payment->payment_method
+                        'payment_method' => $validated['payment_method'] ?? $payment->payment_method,
                     ]);
-                } elseif (!$payment && $validated['payment_status'] === 'paid') {
+                } elseif (! $payment && $validated['payment_status'] === 'paid') {
                     // Create new payment if status is changing to paid
                     Payment::create([
                         'appointment_id' => $appointment->id,
                         'user_id' => $appointment->client_id,
                         'provider_id' => $appointment->user_id,
-                        'transaction_id' => 'ADMIN_' . uniqid(),
+                        'transaction_id' => 'ADMIN_'.uniqid(),
                         'payment_method' => $validated['payment_method'] ?? 'cash',
                         'payment_mode' => $validated['payment_method'] ?? 'cash',
                         'amount' => $validated['payment_amount'] ?? 0,
@@ -280,7 +282,7 @@ class AppointmentController extends Controller
                             'amount' => $appointment->payment_amount,
                             'payment_status' => $appointment->payment_status,
                             'appointmentId' => $appointment->id,
-                            'screenName' => 'AppointmentDetails'
+                            'screenName' => 'AppointmentDetails',
                         ];
 
                         $this->notificationService->sendPushNotification(
@@ -307,7 +309,7 @@ class AppointmentController extends Controller
                             'payment_status' => $appointment->payment_status,
                             'refund_status' => $appointment->isPaid() ? 'processing' : 'not_applicable',
                             'appointmentId' => $appointment->id,
-                            'screenName' => 'AppointmentDetails'
+                            'screenName' => 'AppointmentDetails',
                         ];
 
                         $this->notificationService->sendPushNotification(
@@ -332,7 +334,7 @@ class AppointmentController extends Controller
                             'payment_status' => $appointment->payment_status,
                             'refund_status' => $appointment->isPaid() ? 'processing' : 'not_applicable',
                             'appointmentId' => $appointment->id,
-                            'screenName' => 'AppointmentDetails'
+                            'screenName' => 'AppointmentDetails',
                         ];
 
                         $this->notificationService->sendPushNotification(
@@ -359,7 +361,7 @@ class AppointmentController extends Controller
                             'payment_status' => $appointment->payment_status,
                             'amount' => $appointment->payment_amount,
                             'appointmentId' => $appointment->id,
-                            'screenName' => 'AppointmentDetails'
+                            'screenName' => 'AppointmentDetails',
                         ];
 
                         $this->notificationService->sendPushNotification(
@@ -394,7 +396,7 @@ class AppointmentController extends Controller
                             'discount_amount' => $appointment->discount_amount,
                             'final_price' => $appointment->final_price,
                             'appointmentId' => $appointment->id,
-                            'screenName' => 'AppointmentDetails'
+                            'screenName' => 'AppointmentDetails',
                         ];
 
                         $this->notificationService->sendPushNotification(
@@ -422,7 +424,7 @@ class AppointmentController extends Controller
                             'discount_amount' => $appointment->discount_amount,
                             'final_price' => $appointment->final_price,
                             'appointmentId' => $appointment->id,
-                            'screenName' => 'AppointmentDetails'
+                            'screenName' => 'AppointmentDetails',
                         ];
 
                         $this->notificationService->sendPushNotification(
@@ -448,9 +450,9 @@ class AppointmentController extends Controller
                             'visit_type' => $appointment->visit_type,
                             'amount' => $appointment->payment_amount,
                             'payment_method' => $appointment->payment_method,
-                            'refund_id' => $appointment->payment_id ? 'REF_' . $appointment->payment_id : null,
+                            'refund_id' => $appointment->payment_id ? 'REF_'.$appointment->payment_id : null,
                             'appointmentId' => $appointment->id,
-                            'screenName' => 'AppointmentDetails'
+                            'screenName' => 'AppointmentDetails',
                         ];
 
                         $this->notificationService->sendPushNotification(
@@ -477,7 +479,7 @@ class AppointmentController extends Controller
                             'amount' => $appointment->payment_amount,
                             'payment_method' => $appointment->payment_method,
                             'appointmentId' => $appointment->id,
-                            'screenName' => 'AppointmentDetails'
+                            'screenName' => 'AppointmentDetails',
                         ];
 
                         $this->notificationService->sendPushNotification(
@@ -495,13 +497,12 @@ class AppointmentController extends Controller
 
             return redirect()->route('admin.appointments.index')
                 ->with('success', 'Appointment updated successfully.');
-
         } catch (\Exception $e) {
             // Rollback transaction on error
             DB::rollBack();
 
             return redirect()->back()
-                ->with('error', 'Failed to update appointment: ' . $e->getMessage())
+                ->with('error', 'Failed to update appointment: '.$e->getMessage())
                 ->withInput();
         }
     }
@@ -547,7 +548,7 @@ class AppointmentController extends Controller
                 'provider_name' => $appointment->user->name,
                 'service_name' => $serviceName,
                 'appointmentId' => $appointment->id,
-                'screenName' => 'AppointmentDetails'
+                'screenName' => 'AppointmentDetails',
             ];
 
             $this->notificationService->sendPushNotification(
@@ -568,7 +569,7 @@ class AppointmentController extends Controller
                 'client_name' => $appointment->client->name,
                 'service_name' => $serviceName,
                 'appointmentId' => $appointment->id,
-                'screenName' => 'AppointmentDetails'
+                'screenName' => 'AppointmentDetails',
             ];
 
             $this->notificationService->sendPushNotification(
@@ -581,15 +582,20 @@ class AppointmentController extends Controller
             // Commit transaction
             DB::commit();
 
-            return redirect()->route('admin.appointments.index')
-                ->with('success', 'Appointment deleted successfully.');
-
+            // return redirect()->route('admin.appointments.index')
+            //     ->with('success', 'Appointment deleted successfully.');
+            return response()->json([
+                'success' => true,
+            ]);
         } catch (\Exception $e) {
             // Rollback transaction on error
             DB::rollBack();
 
-            return redirect()->back()
-                ->with('error', 'Failed to delete appointment: ' . $e->getMessage());
+            // return redirect()->back()
+            //     ->with('error', 'Failed to delete appointment: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+            ]);
         }
     }
 
@@ -602,7 +608,7 @@ class AppointmentController extends Controller
         if ($status === null) {
             $status = $request->route('status');
         }
-        
+
         // Begin database transaction
         DB::beginTransaction();
 
@@ -655,7 +661,7 @@ class AppointmentController extends Controller
                             'amount' => $appointment->payment_amount,
                             'payment_status' => $appointment->payment_status,
                             'appointmentId' => $appointment->id,
-                            'screenName' => 'AppointmentDetails'
+                            'screenName' => 'AppointmentDetails',
                         ];
 
                         $this->notificationService->sendPushNotification(
@@ -682,7 +688,7 @@ class AppointmentController extends Controller
                             'payment_status' => $appointment->payment_status,
                             'refund_status' => $appointment->isPaid() ? 'processing' : 'not_applicable',
                             'appointmentId' => $appointment->id,
-                            'screenName' => 'AppointmentDetails'
+                            'screenName' => 'AppointmentDetails',
                         ];
 
                         $this->notificationService->sendPushNotification(
@@ -707,7 +713,7 @@ class AppointmentController extends Controller
                             'payment_status' => $appointment->payment_status,
                             'refund_status' => $appointment->isPaid() ? 'processing' : 'not_applicable',
                             'appointmentId' => $appointment->id,
-                            'screenName' => 'AppointmentDetails'
+                            'screenName' => 'AppointmentDetails',
                         ];
 
                         $this->notificationService->sendPushNotification(
@@ -734,7 +740,7 @@ class AppointmentController extends Controller
                             'payment_status' => $appointment->payment_status,
                             'amount' => $appointment->payment_amount,
                             'appointmentId' => $appointment->id,
-                            'screenName' => 'AppointmentDetails'
+                            'screenName' => 'AppointmentDetails',
                         ];
 
                         $this->notificationService->sendPushNotification(
@@ -751,12 +757,11 @@ class AppointmentController extends Controller
             DB::commit();
 
             return redirect()->back()->with('success', 'Appointment status updated successfully.');
-
         } catch (\Exception $e) {
             // Rollback transaction on error
             DB::rollBack();
 
-            return redirect()->back()->with('error', 'Failed to update appointment status: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to update appointment status: '.$e->getMessage());
         }
     }
 }

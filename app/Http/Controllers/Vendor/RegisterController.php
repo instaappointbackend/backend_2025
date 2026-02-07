@@ -7,18 +7,18 @@ use App\Http\Requests\Vendor\VendorRegisterRequest;
 use App\Models\BusinessCategory;
 use App\Models\User;
 use App\Services\User\UserRegistrationService;
-use Illuminate\Http\Request;
 
 class RegisterController extends Controller
 {
     public function showRegistrationForm()
     {
-        $businessCategory =  BusinessCategory::select(['name', 'id'])->get();
+        $businessCategory = BusinessCategory::select(['name', 'id'])->get();
         $cards = collect(config('business_categories'))
-            ->map(fn($c) => [
+            ->map(fn ($c) => [
                 ...$c,
-                'src' => asset($c['src'])
+                'src' => asset($c['src']),
             ]);
+
         // dd($cards);
         return view('vendor.user.register', compact('cards', 'businessCategory'));
     }
@@ -31,8 +31,9 @@ class RegisterController extends Controller
 
             if ($user) {
 
-                if (!$user->is_kyc_uploaded && $user->role === 'vendor') {
+                if (! $user->is_kyc_uploaded && $user->role === 'vendor') {
                     session()->put('registration_token', $user->id);
+
                     return redirect()
                         ->route('vendor.kycForm')
                         ->with('success', 'Account is already exist. Submit business information');
@@ -41,7 +42,7 @@ class RegisterController extends Controller
                 return back()->withErrors(['mobile' => 'Already registered']);
             }
 
-            $user =  $service->register($request->all());
+            $user = $service->register($request->all());
 
             session()->put('registration_token', $user->id);
 
@@ -50,6 +51,7 @@ class RegisterController extends Controller
                 ->with('success', 'Registration successful');
         } catch (\Throwable $th) {
             dd($th);
+
             return back()->withErrors(['Error' => 'User not created']);
         }
     }

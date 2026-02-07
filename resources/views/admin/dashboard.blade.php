@@ -552,7 +552,7 @@
                                                 {{-- <div class="avatar avatar-sm bg-light rounded-circle me-2 d-flex align-items-center justify-content-center">
                                                     <span class="text-dark">{{ substr($appointment->client->name, 0, 1) }}</span>
                                                 </div> --}}
-                                                {{ $appointment->client->name }}
+                                                {{ $appointment->client->name ?? '' }}
                                             </div>
                                         </td>
                                         <td>

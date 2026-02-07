@@ -3,13 +3,12 @@
 namespace App\Http\Requests;
 
 use App\Traits\ApiResponseTrait;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
 class FAQRequest extends FormRequest
 {
-
     use ApiResponseTrait;
 
     /**
@@ -28,7 +27,7 @@ class FAQRequest extends FormRequest
         if ($this->isMethod('post')) {
             return [
                 'question' => 'required|string|max:500',
-                'answer'   => 'required|string',
+                'answer' => 'required|string',
                 'is_active' => 'boolean',
             ];
         }
@@ -36,7 +35,7 @@ class FAQRequest extends FormRequest
         if ($this->isMethod('put') || $this->isMethod('patch')) {
             return [
                 'question' => 'sometimes|required|string|max:500',
-                'answer'   => 'sometimes|required|string',
+                'answer' => 'sometimes|required|string',
                 'is_active' => 'sometimes|boolean',
             ];
         }

@@ -13,13 +13,13 @@
 
 @section('page-actions')
     <div class="btn-group">
-        <a href="{{ route('admin.newsletters.create') }}" class="btn btn-primary">
+        {{-- <a href="{{ route('admin.newsletters.create') }}" class="btn btn-primary">
             <i class="fas fa-plus me-1"></i> Add Subscriber
         </a>
         <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"
             aria-expanded="false">
             <span class="visually-hidden">Toggle Dropdown</span>
-        </button>
+        </button> --}}
         <ul class="dropdown-menu dropdown-menu-end">
             <li>
                 <a class="dropdown-item" href="{{ route('admin.newsletters.export', ['status' => $status]) }}">
@@ -184,12 +184,12 @@
                                             </a>
                                         @else
                                             <h5>No newsletter subscribers found</h5>
-                                            <p class="text-muted">Add subscribers or integrate the newsletter form on your
+                                            {{-- <p class="text-muted">Add subscribers or integrate the newsletter form on your
                                                 website</p>
                                             <a href="{{ route('admin.newsletters.create') }}"
                                                 class="btn btn-primary mt-2">
                                                 <i class="fas fa-plus me-1"></i> Add Subscriber
-                                            </a>
+                                            </a> --}}
                                         @endif
                                     </div>
                                 </td>
@@ -372,9 +372,9 @@ $otherCount = isset($sourceStats['other']) ? $sourceStats['other'] : rand(3, 10)
                                 <p class="text-muted">Most subscribers are coming from the footer form, followed by the
                                     homepage newsletter section.</p>
                                 <div class="mt-3">
-                                    <a href="{{ route('admin.newsletters.export') }}" class="btn btn-outline-primary">
+                                    {{-- <a href="{{ route('admin.newsletters.export') }}" class="btn btn-outline-primary">
                                         <i class="fas fa-download me-1"></i> Export Full Report
-                                    </a>
+                                    </a> --}}
                                 </div>
                             </div>
                         </div>
@@ -424,7 +424,7 @@ $otherCount = isset($sourceStats['other']) ? $sourceStats['other'] : rand(3, 10)
             if (action === 'delete') {
                 if (!confirm(
                         `Are you sure you want to delete ${checkedCount} subscribers? This action cannot be undone.`
-                        )) {
+                    )) {
                     e.preventDefault();
                     return false;
                 }

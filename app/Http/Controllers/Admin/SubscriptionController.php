@@ -8,14 +8,30 @@ use Illuminate\Http\Request;
 
 class SubscriptionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        //new
-        //$users =  Subscription::with('user')->orderBy('created_at', 'desc')->get();
-        $users = Subscription::latest()
-            ->paginate(10)
-            ->withQueryString();
 
+        $query = Subscription::with('user')
+            ->when($request->filled('search'), function ($q) use ($request) {
+                $search = trim($request->search);
+
+                $q->where(function ($query) use ($search) {
+                    $query->where('transaction_id', 'LIKE', "%{$search}%")
+                        ->orWhere('plan_name', 'LIKE', "%{$search}%")
+                        ->orWhereHas('user', function ($q) use ($search) {
+                            $q->where('name', 'LIKE', "%{$search}%")
+                                ->orWhere('mobile', 'LIKE', "%{$search}%");
+                        });
+                });
+            })
+            ->when($request->filled('status'), function ($q) use ($request) {
+                $q->where('status', trim($request->status));
+            })
+            ->latest();
+
+        $users = $query->paginate(10)->withQueryString();
+
+        // dd($users);
         return view('admin.subscription.index', compact('users'));
     }
 }

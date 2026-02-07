@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Role;
 use App\Models\Permission;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -18,6 +18,7 @@ class RoleController extends Controller
     public function index()
     {
         $roles = Role::withCount('users')->orderBy('name')->get();
+
         return view('admin.roles.index', compact('roles'));
     }
 
@@ -27,6 +28,7 @@ class RoleController extends Controller
     public function create()
     {
         $modulePermissions = Permission::getModulesWithPermissions();
+
         return view('admin.roles.create', compact('modulePermissions'));
     }
 
@@ -75,6 +77,7 @@ class RoleController extends Controller
     {
         $role->load('permissions');
         $users = User::where('role_id', $role->id)->paginate(10);
+
         return view('admin.roles.show', compact('role', 'users'));
     }
 
@@ -178,7 +181,7 @@ class RoleController extends Controller
                 ->with('success', "Successfully assigned {$assignedCount} user(s) to the {$role->display_name} role.");
         } catch (\Exception $e) {
             return redirect()->route('admin.roles.show', $role)
-                ->with('error', 'Failed to assign users to role: ' . $e->getMessage());
+                ->with('error', 'Failed to assign users to role: '.$e->getMessage());
         }
     }
 
