@@ -154,7 +154,7 @@
 
         <div class="row g-4 justify-content-center">
             @foreach ($plans as $plan)
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <div class="card pricing-card h-100 border {{ $plan['border_class'] }}">
                         <div class="card-body">
                             <h5 class="plan-title">
