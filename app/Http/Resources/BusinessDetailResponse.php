@@ -12,15 +12,15 @@ class BusinessDetailResponse extends JsonResource
     public function toArray($request)
     {
         return [
-            'id'            => $this->id,
+            'id' => $this->id,
             'business_name' => $this->business_name,
-            'industry'      => $this->industry,
-            'email'         => $this->email,
-            'phone'         => $this->phone,
-            'website'       => $this->website,
-            'address'       => $this->address,
-            'logo'          => $this->logo ? asset('storage/' . $this->logo) : null,
-            'created_at'    => $this->created_at->format('Y-m-d H:i:s'),
+            'industry' => $this->industry,
+            'email' => $this->email,
+            'phone' => $this->phone,
+            'website' => $this->website,
+            'address' => $this->address,
+            'logo' => $this->logo ? asset('storage/'.$this->logo) : null,
+            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
         ];
     }
 }

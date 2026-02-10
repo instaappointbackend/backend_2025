@@ -21,7 +21,7 @@ return new class extends Migration
             'phonepe' => true,
             'cash' => true,
             'card' => false,
-            'upi' => false
+            'upi' => false,
         ]);
 
         DB::table('appointment_settings')

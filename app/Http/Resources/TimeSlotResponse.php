@@ -21,7 +21,7 @@ class TimeSlotResponse extends JsonResource
             'formatted_date' => $this->date->format('F j, Y'),
             'start_time' => $this->start_time,
             'end_time' => $this->end_time,
-            'formatted_time' => $startTime->format('g:i A') . ' - ' . $endTime->format('g:i A'),
+            'formatted_time' => $startTime->format('g:i A').' - '.$endTime->format('g:i A'),
             'is_available' => $this->is_available,
             'is_booked' => $this->isBooked(),
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),

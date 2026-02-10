@@ -50,6 +50,16 @@
                                 </button>
                             </div>
                         </form>
+                        <form method="POST" action="{{ route('admin.two-factor.disabled') }}" id="codeForm2">
+                            <div class="d-grid mt-2">
+
+                                @csrf
+                                <button type="submit" class="btn btn-warning btn-lg">
+                                    <i class="bi bi-check-circle me-2"></i>Regenerate 2FA
+                                </button>
+
+                            </div>
+                        </form>
 
                         {{-- <div class="text-center my-3">
                             <span class="text-muted">───── OR ─────</span>

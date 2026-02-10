@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Payment;
-use App\Services\Payments\AppointmentPaymentService;
 use App\Services\PaymentGateways\RazorpayService;
+use App\Services\Payments\AppointmentPaymentService;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -19,6 +18,7 @@ class RazorpayTestController extends Controller
     use ApiResponseTrait;
 
     private AppointmentPaymentService $paymentService;
+
     private RazorpayService $razorpayService;
 
     public function __construct(
@@ -38,7 +38,7 @@ class RazorpayTestController extends Controller
 
         return view('razorpay-api-test', [
             'appointmentId' => $appointmentId,
-            'apiBaseUrl' => url('/api')
+            'apiBaseUrl' => url('/api'),
         ]);
     }
 
@@ -57,7 +57,7 @@ class RazorpayTestController extends Controller
             ) {
                 return view('payment.error', [
                     'message' => 'Appointment already booked',
-                    'returnUrl' => route('razorpay.test.page')
+                    'returnUrl' => route('razorpay.test.page'),
                 ]);
             }
 
@@ -76,14 +76,14 @@ class RazorpayTestController extends Controller
                 [
                     'appointment_id' => $payment->appointment_id,
                     'payment_id' => $payment->id,
-                    'type' => 'appointment'
+                    'type' => 'appointment',
                 ]
             );
 
-            if (!$orderResult['success']) {
+            if (! $orderResult['success']) {
                 return view('payment.error', [
                     'message' => $orderResult['message'],
-                    'returnUrl' => route('razorpay.test.page')
+                    'returnUrl' => route('razorpay.test.page'),
                 ]);
             }
 
@@ -93,8 +93,8 @@ class RazorpayTestController extends Controller
                 'payment_method' => 'razorpay',
                 'payment_details' => json_encode([
                     'razorpay_order_id' => $orderResult['order_id'],
-                    'created_at' => now()->toDateTimeString()
-                ])
+                    'created_at' => now()->toDateTimeString(),
+                ]),
             ]);
 
             // Show Razorpay checkout page
@@ -105,18 +105,18 @@ class RazorpayTestController extends Controller
                 'key_id' => $orderResult['key_id'],
                 'payment_id' => $payment->id,
                 'appointment' => $payment->appointment,
-                //'callbackUrl' => route('razorpay.test.callback')
-                'callbackUrl' => route('razorpay.test.api-tester')
+                // 'callbackUrl' => route('razorpay.test.callback')
+                'callbackUrl' => route('razorpay.test.api-tester'),
             ]);
         } catch (\Exception $e) {
             Log::error('Test payment creation failed', [
                 'error' => $e->getMessage(),
-                'appointment_id' => $request->appointment_id
+                'appointment_id' => $request->appointment_id,
             ]);
 
             return view('payment.error', [
-                'message' => 'Failed to create payment: ' . $e->getMessage(),
-                'returnUrl' => route('razorpay.test.page')
+                'message' => 'Failed to create payment: '.$e->getMessage(),
+                'returnUrl' => route('razorpay.test.page'),
             ]);
         }
     }
@@ -134,10 +134,10 @@ class RazorpayTestController extends Controller
             // Find payment
             $payment = Payment::where('transaction_id', $razorpayOrderId)->first();
 
-            if (!$payment) {
+            if (! $payment) {
                 return view('payment.error', [
                     'message' => 'Payment not found',
-                    'returnUrl' => route('razorpay.test.page')
+                    'returnUrl' => route('razorpay.test.page'),
                 ]);
             }
 
@@ -148,13 +148,13 @@ class RazorpayTestController extends Controller
                 $razorpaySignature
             );
 
-            if (!$verificationResult['success'] || !$verificationResult['verified']) {
+            if (! $verificationResult['success'] || ! $verificationResult['verified']) {
                 $payment->update(['status' => 'failed']);
 
                 return view('payment.bridge-failed', [
                     'payment' => $payment,
                     'errorMessage' => 'Payment verification failed',
-                    'returnUrl' => route('razorpay.test.page')
+                    'returnUrl' => route('razorpay.test.page'),
                 ]);
             }
 
@@ -173,7 +173,7 @@ class RazorpayTestController extends Controller
 
             $payment->update([
                 'status' => 'paid',
-                'payment_details' => json_encode($paymentDetails)
+                'payment_details' => json_encode($paymentDetails),
             ]);
 
             // Update appointment
@@ -184,16 +184,16 @@ class RazorpayTestController extends Controller
             return view('payment.bridge-success', [
                 'payment' => $payment,
                 'appointment' => $payment->appointment,
-                'returnUrl' => route('razorpay.test.page')
+                'returnUrl' => route('razorpay.test.page'),
             ]);
         } catch (\Exception $e) {
             Log::error('Test callback error', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return view('payment.error', [
                 'message' => 'Payment processing failed',
-                'returnUrl' => route('razorpay.test.page')
+                'returnUrl' => route('razorpay.test.page'),
             ]);
         }
     }
@@ -206,7 +206,8 @@ class RazorpayTestController extends Controller
         $razorpayPaymentId = $request->razorpay_payment_id ?? $request->query('razorpay_payment_id');
         $razorpayOrderId = $request->razorpay_order_id ?? $request->query('razorpay_order_id');
         $razorpaySignature = $request->razorpay_signature ?? $request->query('razorpay_signature');
-        //dd($razorpaySignature);
+
+        // dd($razorpaySignature);
         return view('razorpay-api-test', compact('razorpayPaymentId', 'razorpayOrderId', 'razorpaySignature'));
     }
 }

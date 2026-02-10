@@ -8,7 +8,6 @@ use Illuminate\Support\Str;
 
 class WebBlog extends Model
 {
-
     use HasFactory;
 
     protected $fillable = [
@@ -22,7 +21,7 @@ class WebBlog extends Model
         'image_path',
         'view_count',
         'read_count',
-        'style'
+        'style',
 
     ];
 
@@ -34,7 +33,7 @@ class WebBlog extends Model
             $count = 1;
 
             while (WebBlog::where('slug', $slug)->exists()) {
-                $slug = $original . '-' . $count++;
+                $slug = $original.'-'.$count++;
             }
 
             $blog->slug = $slug;

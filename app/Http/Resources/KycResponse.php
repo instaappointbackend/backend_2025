@@ -16,34 +16,31 @@ class KycResponse extends JsonResource
     {
         return [
             'kyc_details' => [
-                'aadhar_number'    => $this->aadhar_number,
+                'aadhar_number' => $this->aadhar_number,
 
+                'pan_number' => $this->pan_number,
 
-                'pan_number'       => $this->pan_number,
+                'bank_name' => $this->bank_name,
+                'bank_account' => $this->bank_account,
+                'ifsc_code' => $this->ifsc_code,
 
-
-                'bank_name'        => $this->bank_name,
-                'bank_account'     => $this->bank_account,
-                'ifsc_code'        => $this->ifsc_code,
-
-
-                'business_name'    => $this->business_name,
+                'business_name' => $this->business_name,
                 'business_address' => $this->business_address,
-                'business_category'    => $this->businessCategory->name,
+                'business_category' => $this->businessCategory->name,
                 'business_category_id' => $this->business_category_id,
-                'business_established_date' => date('d-m-Y',strtotime($this->business_established_date)),
-                'description'      => $this->description,
+                'business_established_date' => date('d-m-Y', strtotime($this->business_established_date)),
+                'description' => $this->description,
                 'is_aadhar_verified' => (bool) $this->is_business_verified,
                 'is_pan_verified' => (bool) $this->is_business_verified,
                 'is_bank_verified' => (bool) $this->is_business_verified,
                 'is_business_verified' => (bool) $this->is_business_verified,
-                'feedback'     => $this->feedback,
+                'feedback' => $this->feedback,
                 'documents' => [
-                    'aadhar_attachment'  => $this->aadhar_attachment ? asset('storage/' . $this->aadhar_attachment) : null,
-                    'pan_attachment'     => $this->pan_attachment ? asset('storage/' . $this->pan_attachment) : null,
-                    'bank_attachment'    => $this->bank_attachment ? asset('storage/' . $this->bank_attachment) : null,
-                    'business_logo'      => $this->business_logo ? asset('storage/' . $this->business_logo) : null,
-                    'identity_document'  => $this->identity_document ? asset('storage/' . $this->identity_document) : null,
+                    'aadhar_attachment' => $this->aadhar_attachment ? asset('storage/'.$this->aadhar_attachment) : null,
+                    'pan_attachment' => $this->pan_attachment ? asset('storage/'.$this->pan_attachment) : null,
+                    'bank_attachment' => $this->bank_attachment ? asset('storage/'.$this->bank_attachment) : null,
+                    'business_logo' => $this->business_logo ? asset('storage/'.$this->business_logo) : null,
+                    'identity_document' => $this->identity_document ? asset('storage/'.$this->identity_document) : null,
                 ],
             ],
             'address' => [

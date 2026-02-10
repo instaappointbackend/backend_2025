@@ -1,8 +1,9 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
 use App\Models\Appointment;
 use App\Models\Payment;
+use Illuminate\Database\Migrations\Migration;
+
 return new class extends Migration
 {
     /**
@@ -15,12 +16,12 @@ return new class extends Migration
 
         foreach ($appointments as $appointment) {
             // Skip appointments without payment amount
-            if (!$appointment->payment_amount) {
+            if (! $appointment->payment_amount) {
                 continue;
             }
 
             // Set original price if not already set
-            if (!$appointment->original_price) {
+            if (! $appointment->original_price) {
                 if ($appointment->service) {
                     $appointment->original_price = $appointment->service->price;
                 } elseif ($appointment->comboService) {
@@ -92,8 +93,5 @@ return new class extends Migration
     /**
      * Reverse the migrations.
      */
-    public function down(): void
-    {
-
-    }
+    public function down(): void {}
 };

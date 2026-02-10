@@ -2,12 +2,12 @@
 
 namespace Database\Factories;
 
-use App\Models\Refund;
-use App\Models\Payment;
 use App\Models\Appointment;
+use App\Models\Payment;
+use App\Models\Refund;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Factories\Factory;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Refund>
@@ -42,7 +42,7 @@ class RefundFactory extends Factory
             'policy_tier' => $this->faker->randomElement([
                 Refund::TIER_FULL_REFUND,
                 Refund::TIER_PARTIAL_REFUND,
-                Refund::TIER_NO_REFUND
+                Refund::TIER_NO_REFUND,
             ]),
             'cancellation_time' => $cancellationTime,
             'booking_time' => $bookingTime,
@@ -52,13 +52,13 @@ class RefundFactory extends Factory
                 'Emergency cancellation',
                 'Service provider unavailable',
                 'Weather conditions',
-                'Personal reasons'
+                'Personal reasons',
             ]),
             'status' => $this->faker->randomElement([
                 Refund::STATUS_PENDING,
                 Refund::STATUS_PROCESSING,
                 Refund::STATUS_COMPLETED,
-                Refund::STATUS_FAILED
+                Refund::STATUS_FAILED,
             ]),
             'processed_at' => $this->faker->optional(0.7)->dateTimeBetween($cancellationTime, 'now'),
             'refund_breakdown' => [
@@ -78,8 +78,8 @@ class RefundFactory extends Factory
             'gateway_response' => $this->faker->optional(0.6)->randomElement([
                 ['status' => 'success', 'transaction_id' => $this->faker->uuid],
                 ['status' => 'pending', 'message' => 'Processing refund'],
-                ['status' => 'failed', 'error' => 'Insufficient funds']
-            ])
+                ['status' => 'failed', 'error' => 'Insufficient funds'],
+            ]),
         ];
     }
 
@@ -92,7 +92,7 @@ class RefundFactory extends Factory
             'status' => Refund::STATUS_PENDING,
             'processed_at' => null,
             'gateway_refund_id' => null,
-            'gateway_response' => null
+            'gateway_response' => null,
         ]);
     }
 
@@ -104,8 +104,8 @@ class RefundFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'status' => Refund::STATUS_COMPLETED,
             'processed_at' => $this->faker->dateTimeBetween('-1 week', 'now'),
-            'gateway_refund_id' => 'REF_' . $this->faker->regexify('[A-Z0-9]{10}'),
-            'gateway_response' => ['status' => 'success', 'transaction_id' => $this->faker->uuid]
+            'gateway_refund_id' => 'REF_'.$this->faker->regexify('[A-Z0-9]{10}'),
+            'gateway_response' => ['status' => 'success', 'transaction_id' => $this->faker->uuid],
         ]);
     }
 
@@ -117,7 +117,7 @@ class RefundFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'status' => Refund::STATUS_FAILED,
             'processed_at' => $this->faker->dateTimeBetween('-1 week', 'now'),
-            'gateway_response' => ['status' => 'failed', 'error' => 'Payment gateway error']
+            'gateway_response' => ['status' => 'failed', 'error' => 'Payment gateway error'],
         ]);
     }
 
@@ -128,6 +128,7 @@ class RefundFactory extends Factory
     {
         return $this->state(function (array $attributes) {
             $refundAmount = $attributes['refund_amount'];
+
             return [
                 'policy_tier' => Refund::TIER_FULL_REFUND,
                 'customer_refund' => $refundAmount,
@@ -143,7 +144,7 @@ class RefundFactory extends Factory
                     'refund_percentage' => 100,
                     'vendor_percentage' => 0,
                     'admin_percentage' => 0,
-                ]
+                ],
             ];
         });
     }
@@ -156,6 +157,7 @@ class RefundFactory extends Factory
         return $this->state(function (array $attributes) {
             $refundAmount = $attributes['refund_amount'];
             $serviceCharges = $refundAmount * 0.8;
+
             return [
                 'policy_tier' => Refund::TIER_PARTIAL_REFUND,
                 'customer_refund' => $serviceCharges * 0.75,
@@ -171,7 +173,7 @@ class RefundFactory extends Factory
                     'refund_percentage' => 75,
                     'vendor_percentage' => 15,
                     'admin_percentage' => 10,
-                ]
+                ],
             ];
         });
     }
@@ -184,6 +186,7 @@ class RefundFactory extends Factory
         return $this->state(function (array $attributes) {
             $refundAmount = $attributes['refund_amount'];
             $serviceCharges = $refundAmount * 0.8;
+
             return [
                 'policy_tier' => Refund::TIER_NO_REFUND,
                 'customer_refund' => 0,
@@ -199,7 +202,7 @@ class RefundFactory extends Factory
                     'refund_percentage' => 0,
                     'vendor_percentage' => 50,
                     'admin_percentage' => 50,
-                ]
+                ],
             ];
         });
     }

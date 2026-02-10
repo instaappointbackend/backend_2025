@@ -13,7 +13,7 @@ class Permission extends Model
         'name',
         'display_name',
         'description',
-        'module'
+        'module',
     ];
 
     /**
@@ -45,7 +45,7 @@ class Permission extends Model
                 return [
                     $item->module => self::where('module', $item->module)
                         ->orderBy('display_name')
-                        ->get()
+                        ->get(),
                 ];
             });
     }

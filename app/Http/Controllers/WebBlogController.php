@@ -24,21 +24,21 @@ class WebBlogController extends Controller
         $query = WebBlog::with(['user']);
 
         // Filter by status
-        if ($request->has('status')) {
+        if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
         // Filter by author
-        if ($request->has('user_id') && $request->user_id) {
+        if ($request->filled('user_id') && $request->user_id) {
             $query->where('user_id', $request->user_id);
         }
 
         // Filter by search query
-        if ($request->has('search') && $request->search) {
-            $searchTerm = $request->search;
+        if ($request->filled('search') && $request->search) {
+            $searchTerm = trim($request->search);
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('title', 'like', "%{$searchTerm}%")
-                    ->orWhere('content', 'like', "%{$searchTerm}%");
+                    ->orWhere('description', 'like', "%{$searchTerm}%");
             });
         }
 
@@ -58,9 +58,9 @@ class WebBlogController extends Controller
     {
         $users = User::all();
         $blogCategory = BlogCategory::all();
+
         return view('admin.web-blogs.create', compact('users', 'blogCategory'));
     }
-
 
     /**
      * Show the form for creating a new blog.
@@ -70,10 +70,10 @@ class WebBlogController extends Controller
         try {
             $validatedData = $request->validated();
 
-            //banner-images
+            // banner-images
             if ($request->hasFile('banner-images')) {
                 $image_path = $request->file('banner-images')->store('web_blogs_images', 'public');
-                $validatedData['image_path']   = $image_path;
+                $validatedData['image_path'] = $image_path;
             }
             if (($key = array_search('banner-images', $validatedData)) !== false) {
                 unset($validatedData[$key]);
@@ -110,7 +110,7 @@ class WebBlogController extends Controller
     {
         $blog = WebBlog::with(['user', 'images'])->where('id', $id)->first();
 
-        //dd('here', $blog);
+        // dd('here', $blog);
         return view('admin.web-blogs.show', compact('blog'));
     }
 
@@ -123,6 +123,7 @@ class WebBlogController extends Controller
         $users = User::all();
         $create = false;
         $blogCategory = BlogCategory::all();
+
         return view('admin.web-blogs.edit', compact('blog', 'users', 'blogCategory', 'create'));
     }
 
@@ -213,7 +214,9 @@ class WebBlogController extends Controller
             if ($request->has('existing_images')) {
                 foreach ($request->existing_images as $imgId => $data) {
                     $img = BlogImage::find($imgId);
-                    if (!$img) continue;
+                    if (! $img) {
+                        continue;
+                    }
 
                     // Update description
                     $img->image_description = $data['description'] ?? $img->image_description;
@@ -263,7 +266,6 @@ class WebBlogController extends Controller
                 ->with('false', 'Something went wrong');
         }
     }
-
 
     /**
      * Remove the specified blog from storage.
@@ -316,7 +318,6 @@ class WebBlogController extends Controller
         return view('admin.web-blogs.listing', compact('posts', 'contactInfo'));
     }
 
-
     public function blog($slug)
     {
         // Get 6 posts per page
@@ -328,7 +329,6 @@ class WebBlogController extends Controller
             ->take(6)
             ->get();
 
-
         $contactInfo = [
             'support_email' => $this->getSetting('support_email', 'support@instaappoint.com'),
             'support_phone' => $this->getSetting('support_phone', '+1 (555) 123-4567'),
@@ -339,7 +339,7 @@ class WebBlogController extends Controller
             'social_linkedin' => $this->getSetting('social_linkedin', 'https://www.linkedin.com/company/instaappoint/about/?viewAsMember=true'),
         ];
 
-        //dd('here', $post);
+        // dd('here', $post);
         return view('admin.web-blogs.sinlgeBlog', compact('post', 'contactInfo', 'topBlogs'));
     }
 
@@ -355,7 +355,7 @@ class WebBlogController extends Controller
 
     public function incrementReadCount($id)
     {
-        $key = 'blog_read_' . $id;
+        $key = 'blog_read_'.$id;
         if (session()->has($key)) {
             return response()->json(['success' => false, 'message' => 'Already counted']);
         }

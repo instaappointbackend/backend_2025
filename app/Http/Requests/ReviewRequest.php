@@ -51,7 +51,7 @@ class ReviewRequest extends FormRequest
             'rating.max' => 'Rating cannot be more than 5.',
             'review_text.max' => 'Review text cannot exceed 1000 characters.',
             'appointment_id.required' => 'Appointment ID is required.',
-            'appointment_id.exists' => 'The selected appointment is invalid.'
+            'appointment_id.exists' => 'The selected appointment is invalid.',
         ];
     }
 

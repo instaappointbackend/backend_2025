@@ -55,7 +55,7 @@ class ComboService extends Model
     public function getTotalDurationAttribute()
     {
         // Ensure services are loaded
-        if (!$this->relationLoaded('services')) {
+        if (! $this->relationLoaded('services')) {
             $this->load('services');
         }
 
@@ -68,7 +68,7 @@ class ComboService extends Model
     public function getTotalPriceAttribute()
     {
         // Ensure services are loaded
-        if (!$this->relationLoaded('services')) {
+        if (! $this->relationLoaded('services')) {
             $this->load('services');
         }
 
@@ -82,6 +82,7 @@ class ComboService extends Model
     {
         $totalPrice = $this->total_price;
         $discount = $totalPrice * ($this->discount_percentage / 100);
+
         return $totalPrice - $discount;
     }
 
@@ -93,17 +94,17 @@ class ComboService extends Model
         $minutes = $this->total_duration;
 
         if ($minutes < 60) {
-            return $minutes . ' minutes';
+            return $minutes.' minutes';
         }
 
         $hours = floor($minutes / 60);
         $remainingMinutes = $minutes % 60;
 
         if ($remainingMinutes === 0) {
-            return $hours . ' hour' . ($hours > 1 ? 's' : '');
+            return $hours.' hour'.($hours > 1 ? 's' : '');
         }
 
-        return $hours . ' hour' . ($hours > 1 ? 's' : '') . ' ' . $remainingMinutes . ' minute' . ($remainingMinutes > 1 ? 's' : '');
+        return $hours.' hour'.($hours > 1 ? 's' : '').' '.$remainingMinutes.' minute'.($remainingMinutes > 1 ? 's' : '');
     }
 
     /**
@@ -111,7 +112,7 @@ class ComboService extends Model
      */
     public function getFormattedTotalPriceAttribute()
     {
-        return 'INR ' . number_format($this->total_price, 2);
+        return 'INR '.number_format($this->total_price, 2);
     }
 
     /**
@@ -119,6 +120,6 @@ class ComboService extends Model
      */
     public function getFormattedDiscountedPriceAttribute()
     {
-        return 'INR ' . number_format($this->discounted_price, 2);
+        return 'INR '.number_format($this->discounted_price, 2);
     }
 }

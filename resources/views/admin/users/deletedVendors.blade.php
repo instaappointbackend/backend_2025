@@ -48,6 +48,9 @@
                         <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>Active</option>
                         <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>Inactive</option>
                     </select>
+                    <a href="{{ route('admin.users.deleted.vendors') }}" class="btn btn-secondary ml-2">
+                        <i class="fas fa-sync"></i>
+                    </a>
                 </form>
             </div>
         </div>
@@ -69,6 +72,7 @@
                     </thead>
                     <tbody>
                         @forelse($vendors as $index=>$vendor)
+                            {{-- @dd($vendor->toArray()) --}}
                             <tr>
                                 <td>{{ $vendors->firstItem() + $index }}</td>
                                 <td>{{ $vendor->id }}</td>
@@ -104,6 +108,21 @@
                                     @endif
                                 </td>
                                 <td>{{ $vendor->created_at->format('M d, Y') }}</td>
+                                <td>
+                                    <div class="d-flex">
+                                        <form action="{{ route('admin.users.restore', $vendor->id) }}" method="POST"
+                                            class="d-inline">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="btn btn-sm btn-success"
+                                                data-confirm="Are you sure you want to restore this vendor?"
+                                                data-bs-toggle="tooltip" title="Restore Vendor">
+                                                <i class="fas fa-undo"></i>
+                                            </button>
+
+                                        </form>
+                                    </div>
+                                </td>
                                 {{-- <td>
                                     <div class="d-flex">
                                         <a href="{{ route('admin.users.show', $vendor->id) }}"

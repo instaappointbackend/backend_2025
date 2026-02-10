@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ReviewRequest;
 use App\Http\Resources\ReviewResource;
-use App\Models\Review;
 use App\Models\Appointment;
+use App\Models\Review;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -74,7 +74,7 @@ class ReviewController extends Controller
         $review = Review::where('appointment_id', $appointmentId)
             ->first();
 
-        if (!$review) {
+        if (! $review) {
             return $this->error(null, 'No review found for this appointment.', 404);
         }
 
@@ -88,7 +88,7 @@ class ReviewController extends Controller
     {
         $appointment = Appointment::find($appointmentId);
 
-        if (!$appointment) {
+        if (! $appointment) {
             return $this->error(null, 'Appointment not found.', 404);
         }
 
@@ -119,7 +119,7 @@ class ReviewController extends Controller
         // Validate appointment
         $appointment = Appointment::find($request->appointment_id);
 
-        if (!$appointment) {
+        if (! $appointment) {
             return $this->error(null, 'Appointment not found.', 404);
         }
 
@@ -169,7 +169,7 @@ class ReviewController extends Controller
     {
         $review = Review::find($id);
 
-        if (!$review) {
+        if (! $review) {
             return $this->error(null, 'Review not found.', 404);
         }
 
@@ -200,7 +200,7 @@ class ReviewController extends Controller
     {
         $review = Review::find($id);
 
-        if (!$review) {
+        if (! $review) {
             return $this->error(null, 'Review not found.', 404);
         }
 
@@ -262,7 +262,7 @@ class ReviewController extends Controller
     {
         $review = Review::find($id);
 
-        if (!$review) {
+        if (! $review) {
             return $this->error(null, 'Review not found.', 404);
         }
 

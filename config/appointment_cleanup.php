@@ -36,16 +36,16 @@ return [
     'criteria' => [
         // Draft appointments timeout (minutes)
         'draft_timeout_minutes' => env('DRAFT_TIMEOUT_MINUTES', 30),
-        
+
         // Payment pending appointments timeout (minutes)
         'payment_pending_timeout_minutes' => env('PAYMENT_PENDING_TIMEOUT_MINUTES', 15),
-        
+
         // Failed payment appointments cleanup (hours)
         'failed_payment_cleanup_hours' => env('FAILED_PAYMENT_CLEANUP_HOURS', 24),
-        
+
         // Old cancelled appointments cleanup (days)
         'cancelled_cleanup_days' => env('CANCELLED_CLEANUP_DAYS', 7),
-        
+
         // Expired time slot cleanup (minutes)
         'expired_timeslot_cleanup_minutes' => env('EXPIRED_TIMESLOT_CLEANUP_MINUTES', 5),
     ],
@@ -61,10 +61,10 @@ return [
     'limits' => [
         // Maximum appointments to delete in a single run
         'max_deletions_per_run' => env('MAX_DELETIONS_PER_RUN', 100),
-        
+
         // Maximum execution time in seconds
         'max_execution_time_seconds' => env('MAX_CLEANUP_EXECUTION_TIME', 300),
-        
+
         // Batch size for processing large datasets
         'batch_size' => env('CLEANUP_BATCH_SIZE', 50),
     ],

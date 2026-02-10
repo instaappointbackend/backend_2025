@@ -4,9 +4,9 @@ namespace App\Console\Commands;
 
 use App\Models\Reminder;
 use App\Services\NotificationService;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 
 class SendReminderNotifications extends Command
 {
@@ -25,7 +25,7 @@ class SendReminderNotifications extends Command
      */
     public function handle()
     {
-        Log::info('SendReminderNotifications: Handle method started at ' . now());
+        Log::info('SendReminderNotifications: Handle method started at '.now());
 
         try {
             // Get NotificationService from container instead of constructor injection
@@ -42,7 +42,7 @@ class SendReminderNotifications extends Command
             } catch (\Exception $e) {
                 Log::info('SendReminderNotifications: Test option not available (normal for scheduled execution)');
             }
-            Log::info('SendReminderNotifications: Test mode = ' . ($testMode ? 'true' : 'false'));
+            Log::info('SendReminderNotifications: Test mode = '.($testMode ? 'true' : 'false'));
 
             if ($testMode) {
                 $this->warn('Running in TEST MODE - No actual notifications will be sent');
@@ -76,6 +76,7 @@ class SendReminderNotifications extends Command
                         $this->line("TEST: Would send notification for reminder ID {$reminder->id} to user {$reminder->user_id}");
                         Log::info("SendReminderNotifications: TEST - Would send notification for reminder ID {$reminder->id}");
                         $successCount++;
+
                         continue;
                     }
 
@@ -86,7 +87,7 @@ class SendReminderNotifications extends Command
                     // Mark as sent
                     $reminder->update([
                         'notification_sent' => true,
-                        'is_read' => false // Reset read status for new notification
+                        'is_read' => false, // Reset read status for new notification
                     ]);
 
                     $successCount++;
@@ -95,24 +96,24 @@ class SendReminderNotifications extends Command
 
                 } catch (\Exception $e) {
                     $errorCount++;
-                    $errorMessage = "Failed to send notification for reminder ID {$reminder->id}: " . $e->getMessage();
-                    $this->error("✗ " . $errorMessage);
+                    $errorMessage = "Failed to send notification for reminder ID {$reminder->id}: ".$e->getMessage();
+                    $this->error('✗ '.$errorMessage);
 
                     Log::error('SendReminderNotifications: Notification failed', [
                         'reminder_id' => $reminder->id,
                         'error' => $e->getMessage(),
-                        'trace' => $e->getTraceAsString()
+                        'trace' => $e->getTraceAsString(),
                     ]);
                 }
             }
 
             // Handle recurring reminders
-            if (!$testMode) {
+            if (! $testMode) {
                 Log::info('SendReminderNotifications: Handling recurring reminders');
                 $this->handleRecurringReminders();
             }
 
-            $this->info("Reminder notification process completed!");
+            $this->info('Reminder notification process completed!');
             $this->info("✓ Success: {$successCount}");
 
             Log::info("SendReminderNotifications: Process completed - Success: {$successCount}, Errors: {$errorCount}");
@@ -122,15 +123,17 @@ class SendReminderNotifications extends Command
             }
 
             Log::info('SendReminderNotifications: Handle method completed successfully');
+
             return Command::SUCCESS;
 
         } catch (\Exception $e) {
             Log::error('SendReminderNotifications: Fatal error in handle method', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
-            $this->error('Fatal error: ' . $e->getMessage());
+            $this->error('Fatal error: '.$e->getMessage());
+
             return Command::FAILURE;
         }
     }
@@ -144,10 +147,10 @@ class SendReminderNotifications extends Command
             'reminder_date' => $reminder->reminder_date,
             'reminder_time' => $reminder->reminder_time,
             'reminder_date_type' => gettype($reminder->reminder_date),
-            'reminder_time_type' => gettype($reminder->reminder_time)
+            'reminder_time_type' => gettype($reminder->reminder_time),
         ]);
 
-        $title = 'Reminder: ' . $reminder->title;
+        $title = 'Reminder: '.$reminder->title;
         $body = $reminder->description ?: "You have a {$reminder->priority} priority reminder.";
 
         // Add time context to body - with robust parsing
@@ -156,11 +159,11 @@ class SendReminderNotifications extends Command
             $rawDate = $reminder->getRawOriginal('reminder_date') ?? $reminder->reminder_date;
             $rawTime = $reminder->reminder_time;
 
-            Log::info("SendReminderNotifications: Raw datetime values", [
+            Log::info('SendReminderNotifications: Raw datetime values', [
                 'raw_date' => $rawDate,
                 'raw_time' => $rawTime,
                 'raw_date_type' => gettype($rawDate),
-                'raw_time_type' => gettype($rawTime)
+                'raw_time_type' => gettype($rawTime),
             ]);
 
             // Extract just the date part (handle both date and datetime formats)
@@ -178,26 +181,26 @@ class SendReminderNotifications extends Command
                 $timeOnly .= ':00';
             }
 
-            Log::info("SendReminderNotifications: Cleaned datetime values", [
+            Log::info('SendReminderNotifications: Cleaned datetime values', [
                 'date_only' => $dateOnly,
                 'time_only' => $timeOnly,
-                'combined' => $dateOnly . ' ' . $timeOnly
+                'combined' => $dateOnly.' '.$timeOnly,
             ]);
 
-            $reminderDateTime = Carbon::createFromFormat('Y-m-d H:i:s', $dateOnly . ' ' . $timeOnly);
+            $reminderDateTime = Carbon::createFromFormat('Y-m-d H:i:s', $dateOnly.' '.$timeOnly);
             $body .= " (Scheduled for {$reminderDateTime->format('M j, Y \a\t g:i A')})";
 
         } catch (\Exception $e) {
-            Log::error("SendReminderNotifications: DateTime parsing failed", [
+            Log::error('SendReminderNotifications: DateTime parsing failed', [
                 'reminder_id' => $reminder->id,
                 'reminder_date' => $reminder->reminder_date,
                 'reminder_time' => $reminder->reminder_time,
                 'raw_date' => $reminder->getRawOriginal('reminder_date'),
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             // Fallback - just show date and time without formatting
-            $body .= " (Reminder scheduled)";
+            $body .= ' (Reminder scheduled)';
         }
 
         $data = [
@@ -207,7 +210,7 @@ class SendReminderNotifications extends Command
             'reminder_time' => $reminder->reminder_time,
             'priority' => $reminder->priority,
             'reminder_type' => $reminder->type,
-            'screenName' => 'ReminderDetailScreen'
+            'screenName' => 'ReminderDetailScreen',
         ];
 
         // Add target-specific data if available
@@ -225,10 +228,10 @@ class SendReminderNotifications extends Command
             }
         }
 
-        Log::info("SendReminderNotifications: Calling notification service", [
+        Log::info('SendReminderNotifications: Calling notification service', [
             'user_id' => $reminder->user_id,
             'title' => $title,
-            'body' => $body
+            'body' => $body,
         ]);
 
         // Send the notification
@@ -264,7 +267,7 @@ class SendReminderNotifications extends Command
             } catch (\Exception $e) {
                 Log::error('SendReminderNotifications: Failed to create next recurring reminder', [
                     'reminder_id' => $reminder->id,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
             }
         }
@@ -295,6 +298,7 @@ class SendReminderNotifications extends Command
                 break;
             default:
                 Log::warning("SendReminderNotifications: Unknown recurrence pattern: {$reminder->recurrence_pattern}");
+
                 return; // Unknown pattern
         }
 
@@ -303,6 +307,7 @@ class SendReminderNotifications extends Command
             // Mark the original reminder as completed since recurrence has ended
             $reminder->update(['status' => 'completed']);
             Log::info("SendReminderNotifications: Recurring reminder ID {$reminder->id} reached end date, marked as completed");
+
             return;
         }
 
@@ -320,6 +325,6 @@ class SendReminderNotifications extends Command
 
         $message = "Created next recurring reminder for: {$reminder->title} on {$nextDate->format('Y-m-d')}";
         $this->info($message);
-        Log::info("SendReminderNotifications: " . $message);
+        Log::info('SendReminderNotifications: '.$message);
     }
 }

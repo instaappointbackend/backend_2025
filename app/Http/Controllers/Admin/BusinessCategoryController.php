@@ -64,12 +64,12 @@ class BusinessCategoryController extends Controller
     public function show(BusinessCategory $businessCategory)
     {
         $businessCategory->load([
-            'users' => function($query) {
+            'users' => function ($query) {
                 $query->where('role', 'vendor')->latest()->limit(10);
             },
-            'kycDocuments' => function($query) {
+            'kycDocuments' => function ($query) {
                 $query->latest()->limit(10);
-            }
+            },
         ]);
 
         return view('admin.business-categories.show', compact('businessCategory'));
@@ -89,12 +89,12 @@ class BusinessCategoryController extends Controller
     public function update(Request $request, BusinessCategory $businessCategory)
     {
         $rules = [
-            'name' => 'required|string|max:255|unique:business_categories,name,' . $businessCategory->id,
+            'name' => 'required|string|max:255|unique:business_categories,name,'.$businessCategory->id,
             'description' => 'nullable|string',
         ];
 
         // Only require image if there's no existing image or if remove_image is checked
-        if (!$businessCategory->image || $request->has('remove_image')) {
+        if (! $businessCategory->image || $request->has('remove_image')) {
             $rules['image'] = 'required|image|mimes:jpeg,png,jpg,gif|max:5120';
         } else {
             $rules['image'] = 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120';
@@ -117,7 +117,7 @@ class BusinessCategoryController extends Controller
 
             $imagePath = $request->file('image')->store('business-categories', 'public');
             $validated['image'] = $imagePath;
-        } elseif (!$request->hasFile('image') && !$request->has('remove_image')) {
+        } elseif (! $request->hasFile('image') && ! $request->has('remove_image')) {
             // Keep the existing image if not being replaced or removed
             unset($validated['image']);
         }

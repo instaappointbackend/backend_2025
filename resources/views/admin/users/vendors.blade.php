@@ -51,6 +51,9 @@
                         <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>Active</option>
                         <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>Inactive</option>
                     </select>
+                    <a href="{{ route('admin.users.vendors') }}" class="btn btn-secondary ml-2">
+                        <i class="fas fa-sync"></i>
+                    </a>
                 </form>
             </div>
         </div>
@@ -61,6 +64,7 @@
                         <tr>
                             <th>Sr No</th>
                             <th>ID</th>
+                            <th>Category</th>
                             <th>Vendor</th>
                             <th>Email</th>
                             <th>Mobile</th>
@@ -75,6 +79,7 @@
                             <tr>
                                 <td>{{ $vendors->firstItem() + $index }}</td>
                                 <td>{{ $vendor->id }}</td>
+                                <td>{{ $vendor?->businessCategory?->name }}</td>
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="me-2">

@@ -9,7 +9,6 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 
 class BlogRequest extends FormRequest
 {
-
     use ApiResponseTrait;
 
     /**
@@ -26,9 +25,9 @@ class BlogRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'title'   => 'required|string|max:255',
+            'title' => 'required|string|max:255',
             'content' => 'required|string',
-            'status'  => 'required|in:published,draft',
+            'status' => 'required|in:published,draft',
             'attachment' => 'sometimes|file|max:102400', // Max 20MB, either image or video
         ];
 

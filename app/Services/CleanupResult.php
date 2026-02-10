@@ -104,9 +104,10 @@ class CleanupResult
     public function getFormattedExecutionTime(): string
     {
         if ($this->executionTimeSeconds < 1) {
-            return number_format($this->executionTimeSeconds * 1000, 2) . 'ms';
+            return number_format($this->executionTimeSeconds * 1000, 2).'ms';
         }
-        return number_format($this->executionTimeSeconds, 2) . 's';
+
+        return number_format($this->executionTimeSeconds, 2).'s';
     }
 
     /**
@@ -117,11 +118,12 @@ class CleanupResult
         $summary = [];
         foreach ($this->deletionReasons as $reason) {
             $key = $reason['reason'] ?? 'unknown';
-            if (!isset($summary[$key])) {
+            if (! isset($summary[$key])) {
                 $summary[$key] = 0;
             }
             $summary[$key]++;
         }
+
         return $summary;
     }
 
@@ -133,11 +135,12 @@ class CleanupResult
         $summary = [];
         foreach ($this->errors as $error) {
             $type = $error['type'] ?? 'general';
-            if (!isset($summary[$type])) {
+            if (! isset($summary[$type])) {
                 $summary[$type] = 0;
             }
             $summary[$type]++;
         }
+
         return $summary;
     }
 
@@ -169,20 +172,20 @@ class CleanupResult
     public function getSummaryMessage(): string
     {
         $mode = $this->dryRun ? '[DRY RUN] ' : '';
-        
-        if (!$this->hasCleanedUp()) {
-            return $mode . 'No cleanup required. All appointments are valid.';
+
+        if (! $this->hasCleanedUp()) {
+            return $mode.'No cleanup required. All appointments are valid.';
         }
 
-        $message = $mode . "Cleanup completed: {$this->appointmentsDeleted} appointments deleted, {$this->timeSlotsReleased} time slots released";
-        
-        if (!empty($this->errors)) {
+        $message = $mode."Cleanup completed: {$this->appointmentsDeleted} appointments deleted, {$this->timeSlotsReleased} time slots released";
+
+        if (! empty($this->errors)) {
             $errorCount = count($this->errors);
             $message .= " with {$errorCount} error(s)";
         }
-        
+
         $message .= " in {$this->getFormattedExecutionTime()}.";
-        
+
         return $message;
     }
 

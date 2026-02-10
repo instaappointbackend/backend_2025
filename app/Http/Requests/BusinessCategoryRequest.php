@@ -22,7 +22,7 @@ class BusinessCategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255|unique:business_categories,name,' . ($this->business_categories?->id ?? ''),
+            'name' => 'required|string|max:255|unique:business_categories,name,'.($this->business_categories?->id ?? ''),
             'description' => 'nullable|string',
             'image' => 'nullable|string',
         ];

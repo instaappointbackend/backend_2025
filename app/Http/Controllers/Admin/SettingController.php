@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\AppSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class SettingController extends Controller
 {
@@ -203,6 +203,7 @@ class SettingController extends Controller
             'social_instagram' => $this->getSetting('social_instagram'),
             'social_linkedin' => $this->getSetting('social_linkedin'),
         ];
+
         // dd($apiSettings);
         return view('admin.settings.index', compact(
             'generalSettings',
@@ -368,7 +369,7 @@ class SettingController extends Controller
 
         // Merge defaults with validated data
         foreach ($defaults as $key => $defaultValue) {
-            if (!isset($validated[$key])) {
+            if (! isset($validated[$key])) {
                 $validated[$key] = $defaultValue;
             }
         }
@@ -408,7 +409,7 @@ class SettingController extends Controller
         }
 
         // Handle checkbox values properly
-        $validated['enable_sms_api'] = !empty($validated['enable_sms_api']);
+        $validated['enable_sms_api'] = ! empty($validated['enable_sms_api']);
 
         // Update settings
         foreach ($validated as $key => $value) {
@@ -421,10 +422,10 @@ class SettingController extends Controller
         return redirect()->route('admin.settings.index')
             ->with('success', 'Settings updated successfully.');
     }
+
     /**
      * Test SMS configuration by sending a test message.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function testSms(Request $request)
@@ -450,8 +451,8 @@ class SettingController extends Controller
                 'message' => $validated['message'],
             ];
 
-            $fullUrl = $url . '?' . http_build_query($queryParams);
-//            print_r($fullUrl);die;
+            $fullUrl = $url.'?'.http_build_query($queryParams);
+            //            print_r($fullUrl);die;
             // Make the HTTP request to the SMS API
             $response = Http::get($fullUrl);
 
@@ -465,12 +466,12 @@ class SettingController extends Controller
             if ($response->successful()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'SMS sent successfully'
+                    'message' => 'SMS sent successfully',
                 ]);
             } else {
                 return response()->json([
                     'success' => false,
-                    'message' => 'SMS API returned an error: ' . $response->body()
+                    'message' => 'SMS API returned an error: '.$response->body(),
                 ]);
             }
         } catch (\Exception $e) {
@@ -478,7 +479,7 @@ class SettingController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'An error occurred: ' . $e->getMessage()
+                'message' => 'An error occurred: '.$e->getMessage(),
             ]);
         }
     }
@@ -486,7 +487,6 @@ class SettingController extends Controller
     /**
      * Test Email configuration by sending a test email.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function testEmail(Request $request)
@@ -527,14 +527,14 @@ class SettingController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Email sent successfully'
+                'message' => 'Email sent successfully',
             ]);
         } catch (\Exception $e) {
             Log::error('Email Test Error', ['error' => $e->getMessage()]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'An error occurred: ' . $e->getMessage()
+                'message' => 'An error occurred: '.$e->getMessage(),
             ]);
         }
     }
@@ -542,8 +542,8 @@ class SettingController extends Controller
     /**
      * Get a setting value by key.
      *
-     * @param string $key
-     * @param mixed $default
+     * @param  string  $key
+     * @param  mixed  $default
      * @return mixed
      */
     private function getSetting($key, $default = null)
@@ -559,8 +559,8 @@ class SettingController extends Controller
     /**
      * Update a setting value by key.
      *
-     * @param string $key
-     * @param mixed $value
+     * @param  string  $key
+     * @param  mixed  $value
      * @return void
      */
     private function updateSetting($key, $value)

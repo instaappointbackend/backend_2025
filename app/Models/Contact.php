@@ -24,7 +24,7 @@ class Contact extends Model
         'read_at',
         'ip_address',
         'user_agent',
-        'user_id'
+        'user_id',
     ];
 
     /**
@@ -99,6 +99,7 @@ class Contact extends Model
     {
         $this->status = 'read';
         $this->read_at = now();
+
         return $this->save();
     }
 
@@ -108,6 +109,7 @@ class Contact extends Model
     public function markAsReplied()
     {
         $this->status = 'replied';
+
         return $this->save();
     }
 
@@ -117,6 +119,7 @@ class Contact extends Model
     public function markAsSpam()
     {
         $this->status = 'spam';
+
         return $this->save();
     }
 
@@ -125,7 +128,7 @@ class Contact extends Model
      */
     public function isFromAuthenticatedUser()
     {
-        return !is_null($this->user_id);
+        return ! is_null($this->user_id);
     }
 
     /**
@@ -136,7 +139,7 @@ class Contact extends Model
         if ($this->isFromAuthenticatedUser() && $this->user) {
             return $this->user->name;
         }
-        
+
         return $this->name;
     }
 
@@ -148,7 +151,7 @@ class Contact extends Model
         if ($this->isFromAuthenticatedUser() && $this->user) {
             return $this->user->email;
         }
-        
+
         return $this->email;
     }
 }

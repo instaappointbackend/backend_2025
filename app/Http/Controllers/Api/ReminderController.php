@@ -7,14 +7,12 @@ use App\Http\Requests\ReminderRequest;
 use App\Http\Resources\ReminderResponse;
 use App\Models\Reminder;
 use App\Traits\ApiResponseTrait;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ReminderController extends Controller
 {
     use ApiResponseTrait;
-
 
     /**
      * Get all reminders for the authenticated user.
@@ -81,12 +79,12 @@ class ReminderController extends Controller
     {
         $reminder = Reminder::where('user_id', auth()->id())->find($id);
 
-        if (!$reminder) {
+        if (! $reminder) {
             return $this->error([], 'Reminder not found', 404);
         }
 
         // Mark reminder as read when viewed
-        if (!$reminder->is_read) {
+        if (! $reminder->is_read) {
             $reminder->update(['is_read' => true]);
         }
 
@@ -100,7 +98,7 @@ class ReminderController extends Controller
     {
         $reminder = Reminder::where('user_id', auth()->id())->find($id);
 
-        if (!$reminder) {
+        if (! $reminder) {
             return $this->error([], 'Reminder not found', 404);
         }
 
@@ -117,7 +115,7 @@ class ReminderController extends Controller
     {
         $reminder = Reminder::where('user_id', auth()->id())->find($id);
 
-        if (!$reminder) {
+        if (! $reminder) {
             return $this->error([], 'Reminder not found', 404);
         }
 
@@ -133,7 +131,7 @@ class ReminderController extends Controller
     {
         $reminder = Reminder::where('user_id', auth()->id())->find($id);
 
-        if (!$reminder) {
+        if (! $reminder) {
             return $this->error([], 'Reminder not found', 404);
         }
 
@@ -149,7 +147,7 @@ class ReminderController extends Controller
     {
         $reminder = Reminder::where('user_id', auth()->id())->find($id);
 
-        if (!$reminder) {
+        if (! $reminder) {
             return $this->error([], 'Reminder not found', 404);
         }
 
@@ -194,6 +192,4 @@ class ReminderController extends Controller
 
         return $this->success(ReminderResponse::collection($reminders), 'Target reminders retrieved successfully.');
     }
-
-
 }

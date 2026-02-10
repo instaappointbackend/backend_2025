@@ -7,7 +7,6 @@ use App\Http\Requests\FAQRequest;
 use App\Http\Resources\FAQResource;
 use App\Models\FAQ;
 use App\Traits\ApiResponseTrait;
-use Illuminate\Http\Request;
 
 class FAQController extends Controller
 {
@@ -19,6 +18,7 @@ class FAQController extends Controller
     public function index()
     {
         $faqs = FAQ::where('is_active', true)->get();
+
         return $this->success(FAQResource::collection($faqs), 'FAQs retrieved successfully.');
     }
 
@@ -28,6 +28,7 @@ class FAQController extends Controller
     public function store(FAQRequest $request)
     {
         $faq = FAQ::create($request->validated());
+
         return $this->success(new FAQResource($faq), 'FAQ created successfully.', 201);
     }
 
@@ -37,7 +38,7 @@ class FAQController extends Controller
     public function show($id)
     {
         $faq = FAQ::find($id);
-        if (!$faq) {
+        if (! $faq) {
             return $this->error([], 'FAQ not found.', 404);
         }
 
@@ -50,11 +51,12 @@ class FAQController extends Controller
     public function update(FAQRequest $request, $id)
     {
         $faq = FAQ::find($id);
-        if (!$faq) {
+        if (! $faq) {
             return $this->error([], 'FAQ not found.', 404);
         }
 
         $faq->update($request->validated());
+
         return $this->success(new FAQResource($faq), 'FAQ updated successfully.');
     }
 
@@ -64,11 +66,12 @@ class FAQController extends Controller
     public function destroy($id)
     {
         $faq = FAQ::find($id);
-        if (!$faq) {
+        if (! $faq) {
             return $this->error([], 'FAQ not found.', 404);
         }
 
         $faq->delete();
+
         return $this->success([], 'FAQ deleted successfully.');
     }
 }

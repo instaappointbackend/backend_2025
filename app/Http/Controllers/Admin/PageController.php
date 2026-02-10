@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Page;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class PageController extends Controller
 {
@@ -16,6 +16,7 @@ class PageController extends Controller
     public function index()
     {
         $pages = Page::orderBy('title')->get();
+
         return view('admin.pages.index', compact('pages'));
     }
 

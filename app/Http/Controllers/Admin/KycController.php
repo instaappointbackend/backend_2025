@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\BusinessCategory;
 use App\Models\KycDocument;
 use App\Models\User;
-use App\Models\BusinessCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -35,15 +35,15 @@ class KycController extends Controller
         // Search by user name, email, mobile, or business name
         if ($request->has('search') && $request->search) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->whereHas('user', function($userQuery) use ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('user', function ($userQuery) use ($search) {
                     $userQuery->where('name', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%")
                         ->orWhere('mobile', 'like', "%{$search}%");
                 })
-                ->orWhere('business_name', 'like', "%{$search}%")
-                ->orWhere('aadhar_number', 'like', "%{$search}%")
-                ->orWhere('pan_number', 'like', "%{$search}%");
+                    ->orWhere('business_name', 'like', "%{$search}%")
+                    ->orWhere('aadhar_number', 'like', "%{$search}%")
+                    ->orWhere('pan_number', 'like', "%{$search}%");
             });
         }
 
@@ -62,7 +62,7 @@ class KycController extends Controller
         $kycDocument = KycDocument::with(['user', 'businessCategory'])->find($id);
 
         // Check if KYC document exists
-        if (!$kycDocument) {
+        if (! $kycDocument) {
             return redirect()->route('admin.kyc.index')
                 ->with('error', 'KYC document not found.');
         }
@@ -77,6 +77,7 @@ class KycController extends Controller
     {
         $kycDocument->load('user', 'businessCategory');
         $businessCategories = BusinessCategory::all();
+
         return view('admin.kyc.edit', compact('kycDocument', 'businessCategories'));
     }
 
@@ -86,7 +87,7 @@ class KycController extends Controller
     public function update(Request $request, $id)
     {
 
-        $kycDocument=KycDocument::find($id);
+        $kycDocument = KycDocument::find($id);
 
         // Check if user's KYC is already completed
         if ($kycDocument->user && $kycDocument->user->is_kyc_completed) {
@@ -136,7 +137,7 @@ class KycController extends Controller
         // Check if user's KYC is already completed
         if ($kycDocument->user && $kycDocument->user->is_kyc_completed) {
             return redirect()->route('admin.kyc.show', $kycDocument->id)
-            ->with('warning', 'KYC is already verified. No changes allowed.');
+                ->with('warning', 'KYC is already verified. No changes allowed.');
         }
 
         $validated = $request->validate([
@@ -149,7 +150,7 @@ class KycController extends Controller
         ]);
 
         $field = $request->field;
-        $value = $request->has($field) ? (bool)$request->input($field) : false;
+        $value = $request->has($field) ? (bool) $request->input($field) : false;
 
         // Update the specified field
         $kycDocument->$field = $value;
@@ -169,7 +170,7 @@ class KycController extends Controller
         $fieldName = str_replace('is_', '', str_replace('_verified', '', $field));
 
         return redirect()->back()
-            ->with('success', ucfirst($fieldName) . " document {$status} successfully.");
+            ->with('success', ucfirst($fieldName)." document {$status} successfully.");
     }
 
     /**
@@ -249,7 +250,7 @@ class KycController extends Controller
     private function checkAndUpdateUserKycStatus(KycDocument $kycDocument)
     {
         // Check if user exists
-        if (!$kycDocument->user) {
+        if (! $kycDocument->user) {
             return;
         }
 
@@ -263,7 +264,7 @@ class KycController extends Controller
             (isset($kycDocument->is_aadhar_verified) && $kycDocument->is_aadhar_verified) &&
             (isset($kycDocument->is_pan_verified) && $kycDocument->is_pan_verified) &&
             ($kycDocument->is_business_verified) &&
-            (!$kycDocument->bank_attachment || (isset($kycDocument->is_bank_verified) && $kycDocument->is_bank_verified));
+            (! $kycDocument->bank_attachment || (isset($kycDocument->is_bank_verified) && $kycDocument->is_bank_verified));
 
         if ($allVerified) {
             $user = $kycDocument->user;
@@ -299,7 +300,7 @@ class KycController extends Controller
                 abort(404);
         }
 
-        if (!$fileName || !Storage::disk('public')->exists($fileName)) {
+        if (! $fileName || ! Storage::disk('public')->exists($fileName)) {
             abort(404);
         }
 

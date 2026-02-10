@@ -11,7 +11,7 @@ class BusinessDetail extends Model
 
     protected $fillable = [
         'user_id', 'business_name', 'industry', 'email', 'phone',
-        'website', 'address', 'logo'
+        'website', 'address', 'logo',
     ];
 
     public function user()

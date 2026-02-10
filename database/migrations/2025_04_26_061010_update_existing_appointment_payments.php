@@ -1,11 +1,10 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-use App\Models\Payment;
 use App\Models\Appointment;
+use App\Models\Payment;
+use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+
 return new class extends Migration
 {
     /**
@@ -42,7 +41,7 @@ return new class extends Migration
             // Get related appointment
             $appointment = Appointment::find($payment->appointment_id);
 
-            if (!$appointment) {
+            if (! $appointment) {
                 continue; // Skip if appointment not found
             }
 
@@ -71,7 +70,7 @@ return new class extends Migration
                 ->update([
                     'vendor_earnings' => $vendorEarnings,
                     'admin_earnings' => $adminEarnings,
-                    'updated_at' => now()
+                    'updated_at' => now(),
                 ]);
         }
     }

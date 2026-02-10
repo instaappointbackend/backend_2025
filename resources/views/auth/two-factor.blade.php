@@ -89,7 +89,9 @@
                                         <strong>Two-factor authentication is active</strong>
                                         <p class="mb-0 small">Your account is protected with two-factor authentication.</p>
                                     </div>
+
                                 </div>
+                                <a href="{{ route('admin.password.login') }}">Go To login</a>
 
                                 <!-- Show Recovery Codes -->
                                 @if (session('recoveryCodes'))

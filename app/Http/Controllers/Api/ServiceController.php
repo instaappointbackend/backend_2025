@@ -21,6 +21,7 @@ class ServiceController extends Controller
     public function index()
     {
         $services = Service::where('user_id', Auth::id())->get();
+
         return $this->success(ServiceResponse::collection($services), 'Services retrieved successfully.');
     }
 
@@ -36,6 +37,7 @@ class ServiceController extends Controller
             $data['image'] = $imagePath;
         }
         $service = Service::create($data);
+
         return $this->success(new ServiceResponse($service), 'Service created successfully.', 201);
     }
 
@@ -48,7 +50,7 @@ class ServiceController extends Controller
             ->where('id', $id)
             ->first();
 
-        if (!$service) {
+        if (! $service) {
             return $this->error([], 'Service not found', 404);
         }
 
@@ -64,8 +66,7 @@ class ServiceController extends Controller
             ->where('id', $id)
             ->first();
 
-
-        if (!$service) {
+        if (! $service) {
             return $this->error([], 'Service not found', 404);
         }
 
@@ -93,7 +94,6 @@ class ServiceController extends Controller
             $validated['image'] = $path;
         }
 
-
         $service->update($data);
 
         return $this->success(new ServiceResponse($service), 'Service updated successfully.');
@@ -108,7 +108,7 @@ class ServiceController extends Controller
             ->where('id', $id)
             ->first();
 
-        if (!$service) {
+        if (! $service) {
             return $this->error([], 'Service not found', 404);
         }
 
@@ -133,7 +133,7 @@ class ServiceController extends Controller
             ->where('id', $id)
             ->first();
 
-        if (!$service) {
+        if (! $service) {
             return $this->error([], 'Service not found', 404);
         }
 
@@ -149,12 +149,12 @@ class ServiceController extends Controller
             }
         }
 
-        $service->is_active = !$service->is_active;
+        $service->is_active = ! $service->is_active;
         $service->save();
 
         return $this->success(
             new ServiceResponse($service),
-            'Service ' . ($service->is_active ? 'activated' : 'deactivated') . ' successfully.'
+            'Service '.($service->is_active ? 'activated' : 'deactivated').' successfully.'
         );
     }
 

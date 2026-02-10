@@ -22,7 +22,7 @@ return new class extends Migration
             $table->boolean('delivery_success')->default(true);
             $table->text('delivery_error')->nullable();
             $table->timestamps();
-            
+
             // Indexes for performance
             $table->index(['appointment_id', 'reminder_minutes']);
             $table->index(['sent_at']);

@@ -5,7 +5,6 @@ namespace App\Http\Resources;
 use App\Models\Review;
 use App\Models\UserFavorite;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 class ProviderResource extends JsonResource
 {
@@ -19,6 +18,7 @@ class ProviderResource extends JsonResource
     {
         $kyc = $this->kycDocument;
         $userId = auth()->check() ? auth()->id() : null;
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -27,9 +27,9 @@ class ProviderResource extends JsonResource
             'role' => $this->role,
             'bio' => $this->bio ? $this->bio : '...',
             'experience' => $this->experience,
-            'profile_picture' => $this->profile_picture ? asset('storage/' . $this->profile_picture) : null,
-            'rating'          => $this->role=='vendor' ? number_format(Review::getAverageRatingForProvider($this->id),1) : '',
-            'review_count' => $this->whenHas('reviews_count', function() {
+            'profile_picture' => $this->profile_picture ? asset('storage/'.$this->profile_picture) : null,
+            'rating' => $this->role == 'vendor' ? number_format(Review::getAverageRatingForProvider($this->id), 1) : '',
+            'review_count' => $this->whenHas('reviews_count', function () {
                 return $this->reviews_count;
             }, 0),
             'is_verified' => (bool) $this->is_kyc_completed,
@@ -40,7 +40,7 @@ class ProviderResource extends JsonResource
                 'business_name' => $kyc->business_name,
                 'business_type' => $this->businessCategory ? $this->businessCategory->name : null,
                 'business_category_id' => $kyc->business_category_id,
-                'business_logo' => $kyc->business_logo ? asset('storage/' . $kyc->business_logo) : null,
+                'business_logo' => $kyc->business_logo ? asset('storage/'.$kyc->business_logo) : null,
                 'business_established_date' => $kyc->business_established_date,
                 'description' => $kyc->description,
             ] : null,
@@ -65,7 +65,7 @@ class ProviderResource extends JsonResource
                 'latitude' => (float) $this->latitude,
                 'longitude' => (float) $this->longitude,
             ],
-            'operating_hours' => $this->when($this->workingHours, function() {
+            'operating_hours' => $this->when($this->workingHours, function () {
                 // Use WorkingHoursResponse to format each working hour
                 return $this->workingHours->map(function ($workingHour) {
                     return [
@@ -95,7 +95,7 @@ class ProviderResource extends JsonResource
                 'instagram' => null,
                 'twitter' => null,
             ],
-            'appointment_settings' => $this->when($this->appointmentSettings, function() {
+            'appointment_settings' => $this->when($this->appointmentSettings, function () {
                 return [
                     'appointment_duration' => $this->appointmentSettings->appointment_duration,
                     'buffer_time' => $this->appointmentSettings->buffer_time,
@@ -103,12 +103,12 @@ class ProviderResource extends JsonResource
                     'max_bookings_per_day' => $this->appointmentSettings->max_bookings_per_day,
                     'is_online_booking_enabled' => (bool) $this->appointmentSettings->is_online_booking_enabled,
                     'auto_confirm_appointments' => (bool) $this->appointmentSettings->auto_confirm_appointments,
-                    'appointment_modes' =>  $this->appointmentSettings->appointment_modes,
-                    'payment_methods' =>  $this->appointmentSettings->payment_methods,
+                    'appointment_modes' => $this->appointmentSettings->appointment_modes,
+                    'payment_methods' => $this->appointmentSettings->payment_methods,
                 ];
             }),
-//            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
-//            'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
+            //            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
+            //            'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
         ];
     }
 

@@ -3,15 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ProfileRequest;
 use App\Http\Resources\ProfileResponse;
-use Illuminate\Http\Client\Request;
+use App\Traits\ApiResponseTrait;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Traits\ApiResponseTrait;
-use App\Http\Requests\ProfileRequest;
-
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -23,6 +21,7 @@ class ProfileController extends Controller
     public function getProfile()
     {
         $user = Auth::user();
+
         return $this->success(new ProfileResponse($user), 'Profile retrieved successfully.');
     }
 
@@ -55,9 +54,9 @@ class ProfileController extends Controller
             $user->save();
         });
 
-
         return $this->success(new ProfileResponse($user), 'Profile updated successfully.');
     }
+
     /**
      * Delete the current user's account.
      * This will permanently delete the user and all associated data.
@@ -73,7 +72,7 @@ class ProfileController extends Controller
             Log::info('User account deletion initiated', [
                 'user_id' => $user->id,
                 'mobile' => $user->mobile,
-                'role' => $user->role
+                'role' => $user->role,
             ]);
 
             // Delete user's payout requests first (foreign key constraint)
@@ -172,7 +171,7 @@ class ProfileController extends Controller
 
             Log::info('User account deleted successfully', [
                 'user_id' => $user->id,
-                'mobile' => $user->mobile
+                'mobile' => $user->mobile,
             ]);
 
             return $this->success([], 'Account deleted successfully.');
@@ -182,7 +181,7 @@ class ProfileController extends Controller
             Log::error('Error deleting user account', [
                 'user_id' => Auth::id(),
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return $this->error([], 'Failed to delete account. Please try again.', 500);

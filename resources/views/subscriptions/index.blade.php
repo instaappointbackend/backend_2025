@@ -300,7 +300,7 @@
             border-radius: 0.375rem;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
             padding: 25px;
-            max-width: 400px;
+            max-width: 505px;
             width: 100%;
             margin: 0 auto;
         }

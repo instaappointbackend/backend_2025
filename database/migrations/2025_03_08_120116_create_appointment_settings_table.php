@@ -19,7 +19,7 @@ return new class extends Migration
             $table->boolean('is_online_booking_enabled')->default(true);
             $table->boolean('auto_confirm_appointments')->default(false);
             $table->timestamps();
-            
+
             // Each user can only have one settings record
             $table->unique('user_id');
         });

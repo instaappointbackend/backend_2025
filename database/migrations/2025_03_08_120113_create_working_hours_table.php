@@ -19,7 +19,7 @@ return new class extends Migration
             $table->time('break_start')->nullable();
             $table->time('break_end')->nullable();
             $table->timestamps();
-            
+
             // Each user can only have one record per day of week
             $table->unique(['user_id', 'day_of_week']);
         });

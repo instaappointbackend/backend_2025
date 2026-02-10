@@ -3,8 +3,8 @@
 namespace App\Http\Requests;
 
 use App\Traits\ApiResponseTrait;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
 class SearchRequest extends FormRequest
@@ -67,7 +67,6 @@ class SearchRequest extends FormRequest
     /**
      * Handle a failed validation attempt and return a JSON response.
      *
-     * @param  \Illuminate\Contracts\Validation\Validator  $validator
      * @return void
      *
      * @throws \Illuminate\Http\Exceptions\HttpResponseException

@@ -30,8 +30,8 @@ class KycDocument extends Model
         'description',
         'business_logo',
         'identity_document',
-        'is_business_verified','address','full_address',
-        'street','city','state','country','postal_code','latitude','longitude'
+        'is_business_verified', 'address', 'full_address',
+        'street', 'city', 'state', 'country', 'postal_code', 'latitude', 'longitude',
     ];
 
     protected $casts = [
@@ -51,31 +51,32 @@ class KycDocument extends Model
     {
         return $this->belongsTo(BusinessCategory::class);
     }
+
     /**
      * Get the full storage path for attachments.
      */
     public function getAadharAttachmentUrlAttribute()
     {
-        return $this->aadhar_attachment ? asset('storage/' . $this->aadhar_attachment) : null;
+        return $this->aadhar_attachment ? asset('storage/'.$this->aadhar_attachment) : null;
     }
 
     public function getPanAttachmentUrlAttribute()
     {
-        return $this->pan_attachment ? asset('storage/' . $this->pan_attachment) : null;
+        return $this->pan_attachment ? asset('storage/'.$this->pan_attachment) : null;
     }
 
     public function getBankAttachmentUrlAttribute()
     {
-        return $this->bank_attachment ? asset('storage/' . $this->bank_attachment) : null;
+        return $this->bank_attachment ? asset('storage/'.$this->bank_attachment) : null;
     }
 
     public function getBusinessLogoUrlAttribute()
     {
-        return $this->business_logo ? asset('storage/' . $this->business_logo) : null;
+        return $this->business_logo ? asset('storage/'.$this->business_logo) : null;
     }
 
     public function getIdentityDocumentUrlAttribute()
     {
-        return $this->identity_document ? asset('storage/' . $this->identity_document) : null;
+        return $this->identity_document ? asset('storage/'.$this->identity_document) : null;
     }
 }

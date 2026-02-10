@@ -1,20 +1,16 @@
 <?php
 
-use App\Http\Controllers\Admin\AuthController;
-use App\Http\Controllers\Api\ReminderController;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\ContactController;
-use App\Http\Controllers\NewsletterController;
-use App\Http\Controllers\PhonePeController;
-use App\Http\Controllers\SubscriptionController;
-use App\Http\Controllers\WebBlogController;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Api\AppointmentPayments\PhonePeBridgeController;
 use App\Http\Controllers\Api\AppointmentPayments\RazorpayMobileController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PhonePeController;
 use App\Http\Controllers\RazorpayTestController;
+use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\WebBlogController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/clear-cache', function () {
     $exitCode = Artisan::call('optimize:clear');
@@ -29,10 +25,9 @@ Route::get('/run-migration', function (Request $request) {
 
     Artisan::call('migrate', ['--force' => true]);
 
-    return "Migration executed successfully.";
+    return 'Migration executed successfully.';
 });
 Route::get('/maintenance/dump-autoload', [App\Http\Controllers\MaintenanceController::class, 'dumpAutoload']);
-
 
 /*
 // PhonePe Payment Mobile App  Routes
@@ -69,14 +64,13 @@ Route::prefix('phonepe-bridge')->name('phonepe.bridge.')->group(function () {
         ->name('app');
 });
 
-
 // PhonePe Payment website  Routes
 Route::middleware('web')->prefix('subscription')->name('subscription.')
     ->controller(SubscriptionController::class)
     ->group(function () {
         Route::get('/', 'index')->name('form');
         Route::post('/payment/process', 'subscribe')->name('process');
-        //Route::post('/phonepe/payment/process', 'subscribe')->name('phonepe.pprocess');
+        // Route::post('/phonepe/payment/process', 'subscribe')->name('phonepe.pprocess');
         Route::get('/razorpay/checkout', 'razorpayCheckout')->name('razorpay.checkout');
         Route::get('/payment/status/{status}', 'subscriptionStatus')->name('status');
 
@@ -142,14 +136,11 @@ Route::prefix('razorpay/test')->group(function () {
         ->name('razorpay.test.callback');
 });
 
-
-
-
 // Home page
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/download-mobile', [HomeController::class, 'downloadApk'])->name('downloadApk');
 
-//Blogs
+// Blogs
 Route::get('/blogs', [WebBlogController::class, 'blogs'])->name('blogs');
 Route::get('/blog/{slug}', [WebBlogController::class, 'blog'])->name('blog');
 Route::post('/blog/read/{slug}', [WebBlogController::class, 'incrementReadCount'])->name('blog.read');
@@ -165,10 +156,10 @@ Route::get('/linkstorage', function () {
 });
 
 // Include admin routes
-require __DIR__ . '/admin.php';
+require __DIR__.'/admin.php';
 
 // Include vendor routes
-require __DIR__ . '/vendor.php';
+require __DIR__.'/vendor.php';
 
 // ⚠️ ALWAYS LAST
 Route::get('{page:slug}', [\App\Http\Controllers\HomeController::class, 'show'])

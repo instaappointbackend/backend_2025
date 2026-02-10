@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -36,7 +37,7 @@ return new class extends Migration
             $table->dropColumn([
                 'reservation_expires_at',
                 'reserved_for_appointment_id',
-                'reservation_token'
+                'reservation_token',
             ]);
         });
     }
