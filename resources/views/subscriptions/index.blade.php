@@ -3,7 +3,15 @@
 @php
 
     use App\Enums\PlanEnum;
+    use App\Enums\SocialPlanEnum;
+
     $plans = PlanEnum::getAllPlans();
+
+    $plans_slugs = SocialPlanEnum::getSlugs();
+
+    if (in_array($selected_plan, $plans_slugs)) {
+        $plans = SocialPlanEnum::getAllPlans();
+    }
 @endphp
 
 <head>

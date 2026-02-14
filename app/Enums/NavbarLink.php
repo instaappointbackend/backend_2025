@@ -25,6 +25,7 @@ enum NavbarLink: string
             self::PRICING => 'Pricing',
             self::BLOGS => 'Blogs',
             self::VENDOR_REGISTER => 'Vendor Register',
+            self::SOCIAL_MEDIA => 'Social Plans',
         };
     }
 
@@ -51,6 +52,11 @@ enum NavbarLink: string
         // Vendor register page
         if ($this === self::VENDOR_REGISTER) {
             return Request::is('vendor/register');
+        }
+
+        // Vendor register page
+        if ($this === self::SOCIAL_MEDIA) {
+            return Request::is('social-plans');
         }
 
         // Home page hash sections

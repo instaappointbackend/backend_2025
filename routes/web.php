@@ -46,6 +46,7 @@ Route::get('/linkstorage', function () {
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/download-mobile', [HomeController::class, 'downloadApk'])->name('downloadApk');
+Route::get('/social-plans', [HomeController::class, 'socialPlans'])->name('socialPlans');
 
 /*
 |--------------------------------------------------------------------------

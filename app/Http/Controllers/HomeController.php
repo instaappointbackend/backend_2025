@@ -26,7 +26,7 @@ class HomeController extends Controller
             'social_linkedin' => $this->getSetting('social_linkedin', null),
         ];
 
-        return view('welcome', compact('contactInfo'));
+        return view('public.homePage.welcome', compact('contactInfo'));
     }
 
     /**
@@ -67,5 +67,10 @@ class HomeController extends Controller
     public function downloadApk()
     {
         return view('downloadApk');
+    }
+
+    public function socialPlans()
+    {
+        return view('public.socialPage.socialPage');
     }
 }
