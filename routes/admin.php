@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\SubscriptionController;
+use App\Http\Controllers\Admin\SocialSubscriptionController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\TwoFactorController;
@@ -427,6 +428,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Permission Management
         Route::middleware(['permission:subscriptions'])->group(function () {
             Route::get('/subscriptions', [SubscriptionController::class, 'index'])->name('subscription.index');
+        });
+
+        // Permission Management
+        Route::middleware(['permission:social_subscriptions'])->group(function () {
+            Route::get('/social-subscriptions', [SocialSubscriptionController::class, 'index'])->name('social-subscription.index');
         });
     });
 

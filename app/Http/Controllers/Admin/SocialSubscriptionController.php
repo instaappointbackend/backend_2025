@@ -3,15 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Subscription;
+use App\Models\SocialSubscription;
 use Illuminate\Http\Request;
 
-class SubscriptionController extends Controller
+class SocialSubscriptionController extends Controller
 {
     public function index(Request $request)
     {
-
-        $query = Subscription::with('user')
+        $query = SocialSubscription::with('user')
             ->when($request->filled('search'), function ($q) use ($request) {
                 $search = trim($request->search);
 
@@ -30,7 +29,8 @@ class SubscriptionController extends Controller
             ->latest();
 
         $users = $query->paginate(10)->withQueryString();
-        $isSocial = false;
+        $isSocial = true;
+
         // dd($users);
         return view('admin.subscription.index', compact('users', 'isSocial'));
     }

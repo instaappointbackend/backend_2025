@@ -249,6 +249,15 @@
             </li>
         @endif
 
+        @if (hasPermission('social_subscriptions'))
+            <li class="menu-item {{ request()->routeIs('admin.social-subscription.index*') ? 'active' : '' }}">
+                <a href="{{ route('admin.social-subscription.index') }}">
+                    <i class="fas  fa-user-check"></i>
+                    <span>Social Subscriptions</span>
+                </a>
+            </li>
+        @endif
+
 
 
         <!-- Content Management -->
