@@ -285,7 +285,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Admin offers routes
         Route::middleware(['permission:offers_view_offers'])->group(function () {
             Route::get('/offers', [AdminOfferController::class, 'index'])->name('offers.index');
-            Route::get('/offers/{offer}', [AdminOfferController::class, 'show'])->name('offers.show');
 
             Route::middleware(['permission:offers_create_offers'])->group(function () {
                 Route::get('/offers/create', [AdminOfferController::class, 'create'])->name('offers.create');
@@ -301,6 +300,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::middleware(['permission:offers_delete_offers'])->group(function () {
                 Route::delete('/offers/{offer}', [AdminOfferController::class, 'destroy'])->name('offers.destroy');
             });
+            Route::get('/offers/{offer}', [AdminOfferController::class, 'show'])->name('offers.show');
         });
 
         // Admin Payout Management

@@ -261,6 +261,23 @@ class OfferController extends Controller
             return $this->error([], 'Invalid or expired coupon code.', 404);
         }
 
+        // ✅ NEW USER LOGIC
+        if ($offer->new_user_only) {
+
+            $user = Auth::user(); // API authenticated user
+
+
+            // Already used?
+            if ($user->new_user_coupon_used) {
+                return $this->error([], 'You have already used this coupon.', 422);
+            }
+
+            // Expired? (1 month from registration)
+            if ($user->new_user_coupon_started_at->copy()->addMonth()->isPast()) {
+                return $this->error([], 'This coupon has expired for your account.', 422);
+            }
+        }
+
         return $this->success(
             new OfferResponse($offer),
             'Coupon code is valid.'
@@ -287,6 +304,24 @@ class OfferController extends Controller
 
         if (! $offer) {
             return $this->error([], 'Invalid or expired coupon code.', 404);
+        }
+
+        // ✅ NEW USER LOGIC
+        if ($offer->new_user_only) {
+            $user = Auth::user(); // API authenticated user
+
+            if ($user->new_user_coupon_used) {
+                return $this->error([], 'You have already used this coupon.', 422);
+            }
+
+            if ($user->created_at->copy()->addMonth()->isPast()) {
+                return $this->error([], 'This coupon has expired for your account.', 422);
+            }
+
+            // Mark as used
+            $user->update([
+                'new_user_coupon_used' => true
+            ]);
         }
 
         // Increment the used count

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Payment;
+use App\Models\User;
 use App\Services\PaymentGateways\RazorpayService;
 use App\Services\Payments\AppointmentPaymentService;
 use App\Traits\ApiResponseTrait;
@@ -115,7 +116,7 @@ class RazorpayTestController extends Controller
             ]);
 
             return view('payment.error', [
-                'message' => 'Failed to create payment: '.$e->getMessage(),
+                'message' => 'Failed to create payment: ' . $e->getMessage(),
                 'returnUrl' => route('razorpay.test.page'),
             ]);
         }
@@ -175,6 +176,15 @@ class RazorpayTestController extends Controller
                 'status' => 'paid',
                 'payment_details' => json_encode($paymentDetails),
             ]);
+
+            //get user detail
+            $user = User::where('id', $payment->user_id)->first();
+            // Mark user coupon as used
+            if (! $user->new_user_coupon_used) {
+                $user->update([
+                    'new_user_coupon_used' => true
+                ]);
+            }
 
             // Update appointment
             if ($payment->appointment) {

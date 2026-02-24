@@ -41,7 +41,7 @@ class PaymentController extends Controller
             'payment_mode' => 'nullable|string',
             'amount' => 'required|numeric|min:0',
             'currency' => 'required|string|size:3',
-            'status' => 'required|in:'.implode(',', [
+            'status' => 'required|in:' . implode(',', [
                 Payment::STATUS_PENDING,
                 Payment::STATUS_PAID,
                 Payment::STATUS_FAILED,
@@ -79,6 +79,7 @@ class PaymentController extends Controller
             // Begin database transaction
             DB::beginTransaction();
 
+            $user = Auth::user();
             $userId = Auth::id();
 
             // Get the appointment
@@ -128,13 +129,25 @@ class PaymentController extends Controller
             ];
 
             // Add detailed payment breakdown fields if provided
-            foreach ([
-                'booking_price', 'platform_fee', 'other_charges', 'gst_amount',
-                'discount_amount', 'discount_percentage', 'home_visit_fee',
-                'additional_services_fee', 'net_amount', 'coupon_code',
-                'offer_title', 'vendor_offer_id', 'admin_offer_id', 'offer_type',
-                'additional_notes',
-            ] as $field) {
+            foreach (
+                [
+                    'booking_price',
+                    'platform_fee',
+                    'other_charges',
+                    'gst_amount',
+                    'discount_amount',
+                    'discount_percentage',
+                    'home_visit_fee',
+                    'additional_services_fee',
+                    'net_amount',
+                    'coupon_code',
+                    'offer_title',
+                    'vendor_offer_id',
+                    'admin_offer_id',
+                    'offer_type',
+                    'additional_notes',
+                ] as $field
+            ) {
                 if ($request->has($field)) {
                     $paymentData[$field] = $request->$field;
                 }
@@ -194,6 +207,13 @@ class PaymentController extends Controller
 
             $appointment->update($appointmentUpdateData);
 
+            // // Mark user coupon as used
+            // if (!$user->new_user_coupon_used) {
+            //     $user->update([
+            //         'new_user_coupon_used' => true
+            //     ]);
+            // }
+
             // Commit transaction
             DB::commit();
 
@@ -207,9 +227,9 @@ class PaymentController extends Controller
             // Rollback transaction on error
             DB::rollBack();
 
-            Log::error('Error saving payment details: '.$e->getMessage());
+            Log::error('Error saving payment details: ' . $e->getMessage());
 
-            return $this->error([], 'Failed to save payment details: '.$e->getMessage(), 500);
+            return $this->error([], 'Failed to save payment details: ' . $e->getMessage(), 500);
         }
     }
 
@@ -222,7 +242,7 @@ class PaymentController extends Controller
     public function verifyPayment($transactionId)
     {
         try {
-            Log::info('Verifying payment for transaction: '.$transactionId);
+            Log::info('Verifying payment for transaction: ' . $transactionId);
 
             // In a production environment, you would make an API call to payment gateway's verification endpoint
             // This is a placeholder implementation for development/testing purposes
@@ -255,11 +275,10 @@ class PaymentController extends Controller
 
             // Default fallback response
             return $this->error([], 'Payment verification not implemented in this environment.', 501);
-
         } catch (\Exception $e) {
-            Log::error('Payment verification error: '.$e->getMessage());
+            Log::error('Payment verification error: ' . $e->getMessage());
 
-            return $this->error([], 'Payment verification failed: '.$e->getMessage(), 500);
+            return $this->error([], 'Payment verification failed: ' . $e->getMessage(), 500);
         }
     }
 
@@ -315,9 +334,9 @@ class PaymentController extends Controller
             // Return the response
             return $this->success($result, 'Payment history retrieved successfully.');
         } catch (\Exception $e) {
-            Log::error('Error retrieving payment history: '.$e->getMessage());
+            Log::error('Error retrieving payment history: ' . $e->getMessage());
 
-            return $this->error([], 'Failed to retrieve payment history: '.$e->getMessage(), 500);
+            return $this->error([], 'Failed to retrieve payment history: ' . $e->getMessage(), 500);
         }
     }
 
@@ -375,9 +394,9 @@ class PaymentController extends Controller
             // Return the response
             return $this->success($result, 'Provider payment history retrieved successfully.');
         } catch (\Exception $e) {
-            Log::error('Error retrieving provider payments: '.$e->getMessage());
+            Log::error('Error retrieving provider payments: ' . $e->getMessage());
 
-            return $this->error([], 'Failed to retrieve provider payment history: '.$e->getMessage(), 500);
+            return $this->error([], 'Failed to retrieve provider payment history: ' . $e->getMessage(), 500);
         }
     }
 
@@ -524,9 +543,9 @@ class PaymentController extends Controller
                 $monthlyData[] = [
                     'month' => $monthStart->format('M Y'),
                     'vendor_earnings' => $monthlyVendorEarnings,
-                    'formatted_vendor_earnings' => '₹'.number_format($monthlyVendorEarnings, 2),
+                    'formatted_vendor_earnings' => '₹' . number_format($monthlyVendorEarnings, 2),
                     'transaction_amount' => $monthlyTransactionAmount,
-                    'formatted_transaction_amount' => '₹'.number_format($monthlyTransactionAmount, 2),
+                    'formatted_transaction_amount' => '₹' . number_format($monthlyTransactionAmount, 2),
                 ];
 
                 // Move to next month
@@ -562,9 +581,9 @@ class PaymentController extends Controller
                     ->sum('amount');
 
                 $method->vendor_earnings = $methodVendorEarnings;
-                $method->formatted_vendor_earnings = '₹'.number_format($methodVendorEarnings, 2);
+                $method->formatted_vendor_earnings = '₹' . number_format($methodVendorEarnings, 2);
                 $method->transaction_amount = $methodTransactionAmount;
-                $method->formatted_transaction_amount = '₹'.number_format($methodTransactionAmount, 2);
+                $method->formatted_transaction_amount = '₹' . number_format($methodTransactionAmount, 2);
             }
 
             $formattedPaymentMethods = $paymentMethods->map(function ($item) {
@@ -584,36 +603,36 @@ class PaymentController extends Controller
                 'date_range' => [
                     'start_date' => $startDate->format('Y-m-d'),
                     'end_date' => $endDate->format('Y-m-d'),
-                    'formatted_range' => $startDate->format('d M Y').' - '.$endDate->format('d M Y'),
+                    'formatted_range' => $startDate->format('d M Y') . ' - ' . $endDate->format('d M Y'),
                 ],
                 'earnings' => [
                     // Vendor earnings (what vendors actually receive)
                     'total' => $vendorTotalEarnings,
-                    'formatted_total' => '₹'.number_format($vendorTotalEarnings, 2),
+                    'formatted_total' => '₹' . number_format($vendorTotalEarnings, 2),
                     'pending' => $vendorPendingAmount,
-                    'formatted_pending' => '₹'.number_format($vendorPendingAmount, 2),
+                    'formatted_pending' => '₹' . number_format($vendorPendingAmount, 2),
                     'refunded' => $vendorRefundedAmount,
-                    'formatted_refunded' => '₹'.number_format($vendorRefundedAmount, 2),
+                    'formatted_refunded' => '₹' . number_format($vendorRefundedAmount, 2),
                     'net' => $vendorTotalEarnings, // Net earnings for vendor is the vendor earnings
-                    'formatted_net' => '₹'.number_format($vendorTotalEarnings, 2),
+                    'formatted_net' => '₹' . number_format($vendorTotalEarnings, 2),
 
                     // Admin earnings (for reference)
                     'admin_earnings' => $adminEarnings,
-                    'formatted_admin_earnings' => '₹'.number_format($adminEarnings, 2),
+                    'formatted_admin_earnings' => '₹' . number_format($adminEarnings, 2),
                     'platform_fees' => $platformFees,
-                    'formatted_platform_fees' => '₹'.number_format($platformFees, 2),
+                    'formatted_platform_fees' => '₹' . number_format($platformFees, 2),
                     'other_charges' => $otherCharges,
-                    'formatted_other_charges' => '₹'.number_format($otherCharges, 2),
+                    'formatted_other_charges' => '₹' . number_format($otherCharges, 2),
                     'gst' => $gstAmount,
-                    'formatted_gst' => '₹'.number_format($gstAmount, 2),
+                    'formatted_gst' => '₹' . number_format($gstAmount, 2),
 
                     // Total transaction amount (for reference)
                     'transaction_amount' => $totalTransactionAmount,
-                    'formatted_transaction_amount' => '₹'.number_format($totalTransactionAmount, 2),
+                    'formatted_transaction_amount' => '₹' . number_format($totalTransactionAmount, 2),
                     'pending_transaction_amount' => $pendingTransactionAmount,
-                    'formatted_pending_transaction_amount' => '₹'.number_format($pendingTransactionAmount, 2),
+                    'formatted_pending_transaction_amount' => '₹' . number_format($pendingTransactionAmount, 2),
                     'refunded_transaction_amount' => $refundedTransactionAmount,
-                    'formatted_refunded_transaction_amount' => '₹'.number_format($refundedTransactionAmount, 2),
+                    'formatted_refunded_transaction_amount' => '₹' . number_format($refundedTransactionAmount, 2),
                 ],
                 'counts' => $paymentCounts,
                 'monthly_data' => $monthlyData,
@@ -622,9 +641,9 @@ class PaymentController extends Controller
 
             return $this->success($stats, 'Provider payment statistics retrieved successfully.');
         } catch (\Exception $e) {
-            Log::error('Error retrieving provider payment statistics: '.$e->getMessage());
+            Log::error('Error retrieving provider payment statistics: ' . $e->getMessage());
 
-            return $this->error([], 'Failed to retrieve provider payment statistics: '.$e->getMessage(), 500);
+            return $this->error([], 'Failed to retrieve provider payment statistics: ' . $e->getMessage(), 500);
         }
     }
 
@@ -656,9 +675,9 @@ class PaymentController extends Controller
 
             return $this->success(new PaymentResource($payment), 'Payment details retrieved successfully.');
         } catch (\Exception $e) {
-            Log::error('Error retrieving payment by appointment: '.$e->getMessage());
+            Log::error('Error retrieving payment by appointment: ' . $e->getMessage());
 
-            return $this->error([], 'Failed to retrieve payment details: '.$e->getMessage());
+            return $this->error([], 'Failed to retrieve payment details: ' . $e->getMessage());
         }
     }
 
@@ -707,7 +726,7 @@ class PaymentController extends Controller
             // This is a placeholder implementation for development/testing purposes
 
             // Generate a unique refund ID
-            $refundId = 'REF_'.uniqid();
+            $refundId = 'REF_' . uniqid();
 
             // Update payment status to refunded
             $refundDetails = [
@@ -748,9 +767,9 @@ class PaymentController extends Controller
             return $this->success(new PaymentResource($payment), 'Refund initiated successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error initiating refund: '.$e->getMessage());
+            Log::error('Error initiating refund: ' . $e->getMessage());
 
-            return $this->error([], 'Failed to initiate refund: '.$e->getMessage(), 500);
+            return $this->error([], 'Failed to initiate refund: ' . $e->getMessage(), 500);
         }
     }
 
@@ -840,8 +859,8 @@ class PaymentController extends Controller
             }
 
             // Create a unique filename
-            $filename = 'earnings_export_'.time().'.csv';
-            $filepath = storage_path('app/public/exports/'.$filename);
+            $filename = 'earnings_export_' . time() . '.csv';
+            $filepath = storage_path('app/public/exports/' . $filename);
 
             // Make sure the directory exists
             if (! file_exists(storage_path('app/public/exports/'))) {
@@ -856,13 +875,13 @@ class PaymentController extends Controller
             fclose($file);
 
             // Generate a download URL
-            $downloadUrl = asset('storage/exports/'.$filename);
+            $downloadUrl = asset('storage/exports/' . $filename);
 
             return $this->success(['downloadUrl' => $downloadUrl], 'Payment export created successfully');
         } catch (\Exception $e) {
-            Log::error('Error exporting provider payments: '.$e->getMessage());
+            Log::error('Error exporting provider payments: ' . $e->getMessage());
 
-            return $this->error([], 'Failed to export provider payment history: '.$e->getMessage(), 500);
+            return $this->error([], 'Failed to export provider payment history: ' . $e->getMessage(), 500);
         }
     }
 
@@ -896,9 +915,9 @@ class PaymentController extends Controller
             // Return the payment resource
             return $this->success(new PaymentResource($payment), 'Payment details retrieved successfully.');
         } catch (\Exception $e) {
-            Log::error('Error getting payment details: '.$e->getMessage());
+            Log::error('Error getting payment details: ' . $e->getMessage());
 
-            return $this->error([], 'Failed to retrieve payment details: '.$e->getMessage(), 500);
+            return $this->error([], 'Failed to retrieve payment details: ' . $e->getMessage(), 500);
         }
     }
 
@@ -999,9 +1018,9 @@ class PaymentController extends Controller
 
             return $this->success($receiptData, 'Receipt data generated successfully.');
         } catch (\Exception $e) {
-            Log::error('Error generating receipt: '.$e->getMessage());
+            Log::error('Error generating receipt: ' . $e->getMessage());
 
-            return $this->error([], 'Failed to generate receipt: '.$e->getMessage(), 500);
+            return $this->error([], 'Failed to generate receipt: ' . $e->getMessage(), 500);
         }
     }
 
@@ -1014,13 +1033,13 @@ class PaymentController extends Controller
     public function updatePaymentStatus(Request $request, $paymentId)
     {
         $validator = Validator::make($request->all(), [
-            'status' => 'required|string|in:'.implode(',', [
+            'status' => 'required|string|in:' . implode(',', [
                 Payment::STATUS_PENDING,
                 Payment::STATUS_PAID,
                 Payment::STATUS_FAILED,
                 Payment::STATUS_REFUNDED,
             ]),
-            'payment_method' => 'required_if:status,'.Payment::STATUS_PAID.'|nullable|string',
+            'payment_method' => 'required_if:status,' . Payment::STATUS_PAID . '|nullable|string',
             'notes' => 'nullable|string|max:255',
         ]);
 
@@ -1114,9 +1133,9 @@ class PaymentController extends Controller
             return $this->success(new PaymentResource($payment), 'Payment status updated successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error updating payment status: '.$e->getMessage());
+            Log::error('Error updating payment status: ' . $e->getMessage());
 
-            return $this->error([], 'Failed to update payment status: '.$e->getMessage(), 500);
+            return $this->error([], 'Failed to update payment status: ' . $e->getMessage(), 500);
         }
     }
 
@@ -1226,9 +1245,9 @@ class PaymentController extends Controller
 
             // If action is download, return the file for download
             if ($action === 'download') {
-                return response()->download($fullPath, 'receipt_'.$payment->id.'.pdf', [
+                return response()->download($fullPath, 'receipt_' . $payment->id . '.pdf', [
                     'Content-Type' => 'application/pdf',
-                    'Content-Disposition' => 'attachment; filename="receipt_'.$payment->id.'.pdf"',
+                    'Content-Disposition' => 'attachment; filename="receipt_' . $payment->id . '.pdf"',
                 ]);
             }
 
@@ -1244,11 +1263,10 @@ class PaymentController extends Controller
             return $this->success([
                 'download_url' => $url,
             ], 'Receipt generated successfully');
-
         } catch (\Exception $e) {
-            Log::error('Error generating receipt PDF: '.$e->getMessage());
+            Log::error('Error generating receipt PDF: ' . $e->getMessage());
 
-            return $this->error([], 'Failed to generate receipt PDF: '.$e->getMessage(), 500);
+            return $this->error([], 'Failed to generate receipt PDF: ' . $e->getMessage(), 500);
         }
     }
 
@@ -1354,11 +1372,10 @@ class PaymentController extends Controller
             return $this->success([
                 'download_url' => $url,
             ], 'Receipt generated successfully');
-
         } catch (\Exception $e) {
-            Log::error('Error generating appointment receipt PDF: '.$e->getMessage());
+            Log::error('Error generating appointment receipt PDF: ' . $e->getMessage());
 
-            return $this->error([], 'Failed to generate receipt PDF: '.$e->getMessage(), 500);
+            return $this->error([], 'Failed to generate receipt PDF: ' . $e->getMessage(), 500);
         }
     }
 

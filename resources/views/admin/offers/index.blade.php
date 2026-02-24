@@ -12,9 +12,9 @@
 @endsection
 
 @section('page-actions')
-    {{-- <a href="{{ route('admin.offers.create') }}" class="btn btn-primary">
+    <a href="{{ route('admin.offers.create') }}" class="btn btn-primary">
         <i class="fas fa-plus me-1"></i> Add New Offer
-    </a> --}}
+    </a>
 @endsection
 
 @section('content')
@@ -77,7 +77,19 @@
                                 <td>
                                     <span class="badge bg-dark">{{ $offer->coupon_code }}</span>
                                 </td>
-                                <td>{{ $offer->discount_percentage }}%</td>
+                                <td>
+                                    @if ($offer->discount_type === 'percentage')
+                                        <span class="badge bg-primary">
+                                            {{ number_format($offer->discount_percentage, 2) }}%
+                                        </span>
+                                    @elseif ($offer->discount_type === 'fixed')
+                                        <span class="badge bg-success">
+                                            Rs {{ number_format($offer->discount_fixed, 2) }}
+                                        </span>
+                                    @else
+                                        <span class="badge bg-secondary">N/A</span>
+                                    @endif
+                                </td>
                                 <td>
                                     <small>
                                         {{ $offer->start_date->format('M d, Y') }} -
@@ -128,6 +140,19 @@
                                             class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
+                                        @if (!$offer->new_user_only)
+                                            <form action="{{ route('admin.offers.destroy', $offer->id) }}" method="POST"
+                                                class="d-inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-danger"
+                                                    data-bs-toggle="tooltip" title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        @endif
+
+                                        {{-- @if (!$offer->new_user_only) --}}
                                         <form action="{{ route('admin.offers.toggle-status', $offer->id) }}" method="POST"
                                             class="d-inline">
                                             @csrf
@@ -140,16 +165,7 @@
                                                     class="fas {{ $offer->is_active ? 'fa-toggle-off' : 'fa-toggle-on' }}"></i>
                                             </button>
                                         </form>
-                                        <form action="{{ route('admin.offers.destroy', $offer->id) }}" method="POST"
-                                            class="d-inline"
-                                            onsubmit="return confirm('Are you sure you want to delete this offer?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger" data-bs-toggle="tooltip"
-                                                title="Delete">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
+                                        {{-- @endif --}}
                                     </div>
                                 </td>
                             </tr>
@@ -165,10 +181,10 @@
                                                 Clear filters
                                             </a>
                                         @else
-                                            {{-- <a href="{{ route('admin.offers.create') }}"
+                                            <a href="{{ route('admin.offers.create') }}"
                                                 class="btn btn-sm btn-primary mt-2">
                                                 <i class="fas fa-plus me-1"></i> Add New Offer
-                                            </a> --}}
+                                            </a>
                                         @endif
                                     </div>
                                 </td>

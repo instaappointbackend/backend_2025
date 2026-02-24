@@ -64,6 +64,10 @@ class UserRegistrationService
                 $updateData['experience'] = $data['experience'] ?? null;
             }
 
+            if (($data['role'] ?? null) === 'customer') {
+                $updateData['new_user_coupon_started_at'] = now();
+            }
+
             $updateData['is_registered'] = true;
 
             $user->fill($updateData);
@@ -92,7 +96,7 @@ class UserRegistrationService
 
             if ($attempts >= $maxAttempts) {
                 // Fallback to timestamp-based code
-                $code = Str::upper(Str::random(4).substr(time(), -4));
+                $code = Str::upper(Str::random(4) . substr(time(), -4));
                 break;
             }
         } while (User::where('referral_code', $code)->exists());
