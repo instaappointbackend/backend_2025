@@ -16,7 +16,7 @@ class NewUserOfferSeeder extends Seeder
             ['coupon_code' => 'NEWUSER50'], // unique identifier
             [
                 'title' => 'Welcome Offer for New Users',
-                'description' => 'Get $50 off on your first order!',
+                'description' => 'Get Rs 50 off on your first order!',
                 'discount_type' => 'fixed',
                 'discount_fixed' => 50,
                 'discount_percentage' => null,
