@@ -23,6 +23,7 @@ class OfferResponse extends JsonResource
             'end_date' => $this->end_date->format('Y-m-d'),
             'is_active' => $this->is_active,
             'offer_type' => $this->offer_type,
+
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
         ];
@@ -37,6 +38,9 @@ class OfferResponse extends JsonResource
 
         // Include admin-specific fields
         if ($this->offer_type === 'admin') {
+            $data['new_user_only'] = $this->new_user_only;
+            $data['discount_type'] = $this->discount_type;
+            $data['discount_fixed'] = $this->discount_fixed;
             $data['coupon_code'] = $this->coupon_code;
             $data['usage_limit'] = $this->usage_limit;
             $data['used_count'] = $this->used_count;

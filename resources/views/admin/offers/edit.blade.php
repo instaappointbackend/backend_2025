@@ -101,7 +101,6 @@
                             </select>
                         </div>
                     </div>
-
                     <div class="col-md-6" id="discount_percentage_wrapper">
                         <div class="mb-3">
                             <label for="discount_percentage" class="form-label">Discount Percentage</label>
@@ -114,12 +113,11 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="col-md-6" id="discount_fixed_wrapper">
                         <div class="mb-3">
                             <label for="discount_fixed" class="form-label">Fixed Discount</label>
                             <div class="input-group">
-                                <span class="input-group-text">$</span>
+                                <span class="input-group-text">Rs</span>
                                 <input type="number" class="form-control" id="discount_fixed" name="discount_fixed"
                                     value="{{ old('discount_fixed', $offer->discount_fixed ?? '') }}" min="0"
                                     step="0.01">
@@ -252,13 +250,19 @@
         });
 
         function updateDiscountFields() {
-            const isNewUser = document.getElementById('new_user_only').checked;
+            const newUserOnlyField = document.getElementById('new_user_only');
+
+            let isNewUser = null;
+            if (newUserOnlyField) {
+                isNewUser = document.getElementById('new_user_only').checked;
+            }
+
             const discountType = document.getElementById('discount_type').value;
 
             const percWrapper = document.getElementById('discount_percentage_wrapper');
             const fixedWrapper = document.getElementById('discount_fixed_wrapper');
 
-            if (isNewUser) {
+            if (isNewUser || discountType === 'fixed') {
                 // Force fixed discount
                 document.getElementById('discount_type').value = 'fixed';
                 percWrapper.style.display = 'none';
@@ -279,7 +283,11 @@
         }
 
         // Event listeners
-        document.getElementById('new_user_only').addEventListener('change', updateDiscountFields);
+
+        const newUserOnlyField = document.getElementById('new_user_only');
+        if (newUserOnlyField) {
+            newUserOnlyField.addEventListener('change', updateDiscountFields);
+        }
         document.getElementById('discount_type').addEventListener('change', updateDiscountFields);
         document.addEventListener('DOMContentLoaded', updateDiscountFields);
     </script>
