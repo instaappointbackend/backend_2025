@@ -112,7 +112,7 @@ class AppointmentController extends Controller
                 ]
             );
         } catch (\Exception $e) {
-            Log::error('Error retrieving appointments: '.$e->getMessage());
+            Log::error('Error retrieving appointments: ' . $e->getMessage());
 
             return $this->error([], 'Failed to retrieve appointments', 500);
         }
@@ -370,12 +370,12 @@ class AppointmentController extends Controller
                         'error' => $e->getMessage(),
                     ]);
 
-                    return $this->error([], 'Failed to reserve time slots: '.$e->getMessage(), 422);
+                    return $this->error([], 'Failed to reserve time slots: ' . $e->getMessage(), 422);
                 }
 
                 // STEP 3: Create pending payment record
                 $paymentData['appointment_id'] = $appointment->id;
-                $paymentData['transaction_id'] = 'TXN_'.time().'_'.rand(1000, 9999);
+                $paymentData['transaction_id'] = 'TXN_' . time() . '_' . rand(1000, 9999);
                 $paymentData['status'] = Payment::STATUS_PENDING;
                 $paymentData['payment_details'] = json_encode([
                     'created_for_phonepe' => true,
@@ -390,6 +390,15 @@ class AppointmentController extends Controller
 
                 // Commit transaction
                 DB::commit();
+
+                //get user detail
+                $user = User::where('id', $clientId)->first();
+                // Mark user coupon as used
+                if (! $user->new_user_coupon_used) {
+                    $user->update([
+                        'new_user_coupon_used' => true
+                    ]);
+                }
 
                 Log::info('PhonePe draft appointment created successfully', [
                     'appointment_id' => $appointment->id,
@@ -425,7 +434,7 @@ class AppointmentController extends Controller
 
                 $appointmentData['status'] = $initialStatus;
                 $appointmentData['payment_status'] = $request->payment_status ?? Appointment::PAYMENT_STATUS_PENDING;
-                $appointmentData['payment_id'] = $request->payment_id ?? ('CASH_'.time().'_'.rand(1000, 9999));
+                $appointmentData['payment_id'] = $request->payment_id ?? ('CASH_' . time() . '_' . rand(1000, 9999));
 
                 $appointment = Appointment::create($appointmentData);
 
@@ -444,7 +453,7 @@ class AppointmentController extends Controller
                         'error' => $e->getMessage(),
                     ]);
 
-                    return $this->error([], 'Failed to reserve time slots: '.$e->getMessage(), 422);
+                    return $this->error([], 'Failed to reserve time slots: ' . $e->getMessage(), 422);
                 }
 
                 // Create payment record if payment information is provided
@@ -466,6 +475,15 @@ class AppointmentController extends Controller
                 // Commit transaction
                 DB::commit();
 
+                //get user detail
+                $user = User::where('id', $clientId)->first();
+                // Mark user coupon as used
+                if (! $user->new_user_coupon_used) {
+                    $user->update([
+                        'new_user_coupon_used' => true
+                    ]);
+                }
+
                 Log::info('Immediate appointment created successfully', [
                     'appointment_id' => $appointment->id,
                     'status' => $appointment->status,
@@ -486,12 +504,12 @@ class AppointmentController extends Controller
             // Rollback transaction on error
             DB::rollBack();
 
-            Log::error('Error creating appointment: '.$e->getMessage(), [
+            Log::error('Error creating appointment: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
                 'request_data' => $request->all(),
             ]);
 
-            return $this->error([], 'Failed to create appointment: '.$e->getMessage(), 500);
+            return $this->error([], 'Failed to create appointment: ' . $e->getMessage(), 500);
         }
     }
 
@@ -606,7 +624,7 @@ class AppointmentController extends Controller
                 'Appointment retrieved successfully'
             );
         } catch (\Exception $e) {
-            Log::error('Error retrieving appointment: '.$e->getMessage());
+            Log::error('Error retrieving appointment: ' . $e->getMessage());
 
             return $this->error([], 'Failed to retrieve appointment', 500);
         }
@@ -890,7 +908,7 @@ class AppointmentController extends Controller
                             'appointment_id' => $appointment->id,
                             'user_id' => $appointment->client_id,
                             'provider_id' => $appointment->user_id,
-                            'transaction_id' => $updatableFields['payment_id'] ?? ('PAY_'.uniqid()),
+                            'transaction_id' => $updatableFields['payment_id'] ?? ('PAY_' . uniqid()),
                             'payment_method' => $updatableFields['payment_method'] ?? 'unknown',
                             'payment_mode' => $updatableFields['payment_method'] ?? 'unknown',
                             'amount' => $updatableFields['payment_amount'] ?? 0,
@@ -1117,7 +1135,7 @@ class AppointmentController extends Controller
                                 'visit_type' => $appointment->visit_type,
                                 'amount' => $appointment->payment_amount,
                                 'payment_method' => $appointment->payment_method,
-                                'refund_id' => $appointment->payment_id ? 'REF_'.$appointment->payment_id : null,
+                                'refund_id' => $appointment->payment_id ? 'REF_' . $appointment->payment_id : null,
                             ];
 
                             $this->notificationService->sendPushNotification(
@@ -1161,8 +1179,8 @@ class AppointmentController extends Controller
                     if ($role === 'vendor') {
                         // Provider changed visit type - notify client
                         $clientTitle = 'Appointment Location Changed';
-                        $clientBody = "Your appointment with {$appointment->user->name} for {$serviceName} on {$appointmentDate} has been changed to ".
-                            ($updatableFields['visit_type'] === 'home' ? 'a home visit' : 'in-office visit').'.';
+                        $clientBody = "Your appointment with {$appointment->user->name} for {$serviceName} on {$appointmentDate} has been changed to " .
+                            ($updatableFields['visit_type'] === 'home' ? 'a home visit' : 'in-office visit') . '.';
                         $clientData = [
                             'type' => 'visit_type_changed',
                             'appointment_id' => $appointment->id,
@@ -1184,8 +1202,8 @@ class AppointmentController extends Controller
                     } else {
                         // Client changed visit type - notify provider
                         $providerTitle = 'Appointment Location Changed';
-                        $providerBody = "The appointment with {$appointment->client->name} for {$serviceName} on {$appointmentDate} has been changed to ".
-                            ($updatableFields['visit_type'] === 'home' ? 'a home visit' : 'in-office visit').'.';
+                        $providerBody = "The appointment with {$appointment->client->name} for {$serviceName} on {$appointmentDate} has been changed to " .
+                            ($updatableFields['visit_type'] === 'home' ? 'a home visit' : 'in-office visit') . '.';
                         $providerData = [
                             'type' => 'visit_type_changed',
                             'appointment_id' => $appointment->id,
@@ -1218,7 +1236,7 @@ class AppointmentController extends Controller
 
             return $this->error([], 'No valid fields to update', 422);
         } catch (\Exception $e) {
-            Log::error('Error updating appointment: '.$e->getMessage());
+            Log::error('Error updating appointment: ' . $e->getMessage());
 
             return $this->error([], 'Failed to update appointment', 500);
         }
@@ -1340,7 +1358,7 @@ class AppointmentController extends Controller
             // Rollback transaction on error
             DB::rollBack();
 
-            Log::error('Error deleting appointment: '.$e->getMessage());
+            Log::error('Error deleting appointment: ' . $e->getMessage());
 
             return $this->error([], 'Failed to delete appointment', 500);
         }
@@ -1423,7 +1441,7 @@ class AppointmentController extends Controller
                 'Appointment confirmed successfully'
             );
         } catch (\Exception $e) {
-            Log::error('Error confirming appointment: '.$e->getMessage());
+            Log::error('Error confirming appointment: ' . $e->getMessage());
 
             return $this->error([], 'Failed to confirm appointment', 500);
         }
@@ -1530,7 +1548,7 @@ class AppointmentController extends Controller
                         'appointment_id' => $appointment->id,
                         'user_id' => $appointment->client_id,
                         'provider_id' => $appointment->user_id,
-                        'transaction_id' => 'COMP_'.uniqid(),
+                        'transaction_id' => 'COMP_' . uniqid(),
                         'payment_method' => $appointment->payment_method ?? 'cash',
                         'payment_mode' => $appointment->payment_method ?? 'cash',
                         'amount' => $paymentCalculation['amount'],
@@ -1611,7 +1629,7 @@ class AppointmentController extends Controller
             // Rollback transaction on error
             DB::rollBack();
 
-            Log::error('Error completing appointment: '.$e->getMessage());
+            Log::error('Error completing appointment: ' . $e->getMessage());
 
             return $this->error([], 'Failed to complete appointment', 500);
         }
@@ -1880,9 +1898,9 @@ class AppointmentController extends Controller
             // Rollback transaction on error
             DB::rollBack();
 
-            Log::error('Error rescheduling appointment: '.$e->getMessage());
+            Log::error('Error rescheduling appointment: ' . $e->getMessage());
 
-            return $this->error([], 'Failed to reschedule appointment: '.$e->getMessage(), 500);
+            return $this->error([], 'Failed to reschedule appointment: ' . $e->getMessage(), 500);
         }
     }
 
@@ -2031,7 +2049,7 @@ class AppointmentController extends Controller
 
             return $this->success($counts, 'Appointment statistics retrieved successfully');
         } catch (\Exception $e) {
-            Log::error('Error retrieving appointment statistics: '.$e->getMessage());
+            Log::error('Error retrieving appointment statistics: ' . $e->getMessage());
 
             return $this->error([], 'Failed to retrieve appointment statistics', 500);
         }
@@ -2083,7 +2101,7 @@ class AppointmentController extends Controller
                 'Appointments for date retrieved successfully'
             );
         } catch (\Exception $e) {
-            Log::error('Error retrieving appointments by date: '.$e->getMessage());
+            Log::error('Error retrieving appointments by date: ' . $e->getMessage());
 
             return $this->error([], 'Failed to retrieve appointments for date', 500);
         }
@@ -2364,7 +2382,7 @@ class AppointmentController extends Controller
                                     'reason' => $request->reason ?? 'Payment refunded',
                                     'initiated_by' => $userId,
                                     'initiated_at' => now()->toIso8601String(),
-                                    'refund_id' => $request->refund_id ?? ('REF_'.uniqid()),
+                                    'refund_id' => $request->refund_id ?? ('REF_' . uniqid()),
                                 ],
                             ]
                         ),
@@ -2486,7 +2504,7 @@ class AppointmentController extends Controller
                             'amount' => $appointment->payment_amount,
                             'payment_method' => $appointment->payment_method,
                             'visit_type' => $appointment->visit_type,
-                            'refund_id' => $request->refund_id ?? ('REF_'.uniqid()),
+                            'refund_id' => $request->refund_id ?? ('REF_' . uniqid()),
                         ];
 
                         $this->notificationService->sendPushNotification(
@@ -2513,7 +2531,7 @@ class AppointmentController extends Controller
             // Rollback transaction on error
             DB::rollBack();
 
-            Log::error('Error updating appointment payment status: '.$e->getMessage());
+            Log::error('Error updating appointment payment status: ' . $e->getMessage());
 
             return $this->error([], 'Failed to update appointment payment status', 500);
         }
@@ -2635,7 +2653,7 @@ class AppointmentController extends Controller
                                         'reason' => 'Bulk cancellation',
                                         'initiated_by' => $userId,
                                         'initiated_at' => now()->toIso8601String(),
-                                        'refund_id' => 'REF_BULK_'.uniqid(),
+                                        'refund_id' => 'REF_BULK_' . uniqid(),
                                     ],
                                 ]
                             ),
@@ -2705,7 +2723,7 @@ class AppointmentController extends Controller
             // Rollback transaction on error
             DB::rollBack();
 
-            Log::error('Error in bulk cancellation: '.$e->getMessage());
+            Log::error('Error in bulk cancellation: ' . $e->getMessage());
 
             return $this->error([], 'Failed to process bulk cancellation', 500);
         }
@@ -2750,7 +2768,7 @@ class AppointmentController extends Controller
                 'Upcoming appointments retrieved successfully'
             );
         } catch (\Exception $e) {
-            Log::error('Error retrieving upcoming appointments: '.$e->getMessage());
+            Log::error('Error retrieving upcoming appointments: ' . $e->getMessage());
 
             return $this->error([], 'Failed to retrieve upcoming appointments', 500);
         }
@@ -2793,7 +2811,7 @@ class AppointmentController extends Controller
                 'Today\'s appointments retrieved successfully'
             );
         } catch (\Exception $e) {
-            Log::error('Error retrieving today\'s appointments: '.$e->getMessage());
+            Log::error('Error retrieving today\'s appointments: ' . $e->getMessage());
 
             return $this->error([], 'Failed to retrieve today\'s appointments', 500);
         }
@@ -2856,7 +2874,7 @@ class AppointmentController extends Controller
                 ]
             );
         } catch (\Exception $e) {
-            Log::error('Error retrieving appointments by payment status: '.$e->getMessage());
+            Log::error('Error retrieving appointments by payment status: ' . $e->getMessage());
 
             return $this->error([], 'Failed to retrieve appointments by payment status', 500);
         }
@@ -2936,7 +2954,7 @@ class AppointmentController extends Controller
                 'date_range' => [
                     'start_date' => $startDate->format('Y-m-d'),
                     'end_date' => $endDate->format('Y-m-d'),
-                    'formatted_range' => $startDate->format('M d, Y').' - '.$endDate->format('M d, Y'),
+                    'formatted_range' => $startDate->format('M d, Y') . ' - ' . $endDate->format('M d, Y'),
                 ],
                 'total_appointments' => $totalAppointments,
                 'payment_status' => [
@@ -2947,18 +2965,18 @@ class AppointmentController extends Controller
                 ],
                 'revenue' => [
                     'total' => $totalRevenue,
-                    'formatted_total' => '₹'.number_format($totalRevenue, 2),
+                    'formatted_total' => '₹' . number_format($totalRevenue, 2),
                     'refunded' => $totalRefundAmount,
-                    'formatted_refunded' => '₹'.number_format($totalRefundAmount, 2),
+                    'formatted_refunded' => '₹' . number_format($totalRefundAmount, 2),
                     'net' => $totalRevenue - $totalRefundAmount,
-                    'formatted_net' => '₹'.number_format($totalRevenue - $totalRefundAmount, 2),
+                    'formatted_net' => '₹' . number_format($totalRevenue - $totalRefundAmount, 2),
                 ],
                 'daily_breakdown' => $dailyBreakdown,
             ];
 
             return $this->success($summary, 'Payment summary retrieved successfully');
         } catch (\Exception $e) {
-            Log::error('Error retrieving payment summary: '.$e->getMessage());
+            Log::error('Error retrieving payment summary: ' . $e->getMessage());
 
             return $this->error([], 'Failed to retrieve payment summary', 500);
         }
@@ -3059,7 +3077,7 @@ class AppointmentController extends Controller
             }
 
             // Process refund using RefundService
-            $reason = $request->reason ?? 'Appointment cancelled by '.($role === 'client' ? 'customer' : $role);
+            $reason = $request->reason ?? 'Appointment cancelled by ' . ($role === 'client' ? 'customer' : $role);
             $refund = $this->refundService->processRefund($appointment, $reason, $userId);
 
             // Send cancellation notifications
@@ -3096,7 +3114,7 @@ class AppointmentController extends Controller
 
             return $this->success($responseData, 'Appointment cancelled successfully', 200);
         } catch (\Exception $e) {
-            Log::error('Error cancelling appointment: '.$e->getMessage(), [
+            Log::error('Error cancelling appointment: ' . $e->getMessage(), [
                 'appointment_id' => $id,
                 'user_id' => $userId,
                 'trace' => $e->getTraceAsString(),
@@ -3106,7 +3124,7 @@ class AppointmentController extends Controller
                 'appointment_id' => $id,
                 'user_id' => $userId,
                 'trace' => $e->getTraceAsString(),
-            ], 'Failed to cancel appointment: '.$e->getMessage(), 500);
+            ], 'Failed to cancel appointment: ' . $e->getMessage(), 500);
         }
     }
 
@@ -3142,7 +3160,7 @@ class AppointmentController extends Controller
                 'can_cancel' => $appointment->canBeCancelled($role === 'admin' || $role === 'super_admin'),
             ], 'Refund policy retrieved successfully');
         } catch (\Exception $e) {
-            Log::error('Error retrieving refund policy: '.$e->getMessage());
+            Log::error('Error retrieving refund policy: ' . $e->getMessage());
 
             return $this->error([], 'Failed to retrieve refund policy', 500);
         }
@@ -3187,7 +3205,7 @@ class AppointmentController extends Controller
 
             return $this->success($refundData, 'Refund history retrieved successfully');
         } catch (\Exception $e) {
-            Log::error('Error retrieving refund history: '.$e->getMessage());
+            Log::error('Error retrieving refund history: ' . $e->getMessage());
 
             return $this->error([], 'Failed to retrieve refund history', 500);
         }
@@ -3213,7 +3231,7 @@ class AppointmentController extends Controller
 
             return $this->success($statistics, 'Refund statistics retrieved successfully');
         } catch (\Exception $e) {
-            Log::error('Error retrieving refund statistics: '.$e->getMessage());
+            Log::error('Error retrieving refund statistics: ' . $e->getMessage());
 
             return $this->error([], 'Failed to retrieve refund statistics', 500);
         }
@@ -3261,7 +3279,7 @@ class AppointmentController extends Controller
                 $providerBody = "Appointment with {$appointment->client->name} for {$serviceName} on {$appointmentDate} at {$appointmentTime} has been cancelled.";
 
                 if ($refund && $refund->vendor_amount > 0) {
-                    $providerBody .= ' You will receive ₹'.number_format($refund->vendor_amount, 2).'.';
+                    $providerBody .= ' You will receive ₹' . number_format($refund->vendor_amount, 2) . '.';
                 }
 
                 $providerData = [

@@ -207,12 +207,7 @@ class PaymentController extends Controller
 
             $appointment->update($appointmentUpdateData);
 
-            // // Mark user coupon as used
-            // if (!$user->new_user_coupon_used) {
-            //     $user->update([
-            //         'new_user_coupon_used' => true
-            //     ]);
-            // }
+
 
             // Commit transaction
             DB::commit();

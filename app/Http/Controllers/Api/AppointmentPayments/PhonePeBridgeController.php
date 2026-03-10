@@ -149,13 +149,6 @@ class PhonePeBridgeController extends Controller
 
             // Render success or failure page
             if ($result['success']) {
-                $user = User::where('id', $payment->user_id)->first();
-                // Mark user coupon as used
-                if (! $user->new_user_coupon_used) {
-                    $user->update([
-                        'new_user_coupon_used' => true
-                    ]);
-                }
 
                 return $this->renderSuccess(
                     $result['payment'],
