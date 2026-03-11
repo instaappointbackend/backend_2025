@@ -177,14 +177,7 @@ class RazorpayTestController extends Controller
                 'payment_details' => json_encode($paymentDetails),
             ]);
 
-            //get user detail
-            $user = User::where('id', $payment->user_id)->first();
-            // Mark user coupon as used
-            if (! $user->new_user_coupon_used) {
-                $user->update([
-                    'new_user_coupon_used' => true
-                ]);
-            }
+
 
             // Update appointment
             if ($payment->appointment) {

@@ -435,14 +435,7 @@ class PhonePeBridgeController extends Controller
                     'return_url' => $returnUrlWithParams,
                 ]);
 
-                //get user detail
-                $user = User::where('id', $payment->user_id)->first();
-                // Mark user coupon as used
-                if (! $user->new_user_coupon_used) {
-                    $user->update([
-                        'new_user_coupon_used' => true
-                    ]);
-                }
+
 
                 return view('payment.bridge-success', [
                     'payment' => $payment,

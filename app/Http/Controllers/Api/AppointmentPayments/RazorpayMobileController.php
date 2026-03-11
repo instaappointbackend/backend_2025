@@ -174,13 +174,7 @@ class RazorpayMobileController extends Controller
                 'status' => 'paid',
                 'payment_details' => json_encode($paymentDetails),
             ]);
-            $user = User::where('id', $payment->user_id)->first();
-            // Mark user coupon as used
-            if (! $user->new_user_coupon_used) {
-                $user->update([
-                    'new_user_coupon_used' => true
-                ]);
-            }
+
             // Update appointment status
             if ($payment->appointment) {
                 $payment->appointment->update(['status' => 'confirmed', 'payment_status' => 'paid']);
