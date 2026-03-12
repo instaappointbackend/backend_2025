@@ -3,17 +3,17 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Appointment;
 use App\Models\AppointmentSettings;
+use App\Models\Payment;
 use App\Services\NotificationService;
 use App\Services\TimeSlotBlockingService;
+use App\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use App\Models\Appointment;
-use App\Models\Payment;
-use App\Traits\ApiResponseTrait;
 use Illuminate\Support\Facades\Validator;
 
 class PhonePeBridgeController extends Controller
@@ -21,9 +21,13 @@ class PhonePeBridgeController extends Controller
     use ApiResponseTrait;
 
     protected $merchantId;
+
     protected $saltKey;
+
     protected $saltIndex;
+
     protected $isProduction;
+
     protected $baseUrl;
 
     public function __construct()
@@ -43,7 +47,6 @@ class PhonePeBridgeController extends Controller
     /**
      * Show PhonePe payment page in WebView
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function showPaymentPage(Request $request)
@@ -57,7 +60,7 @@ class PhonePeBridgeController extends Controller
 
         if ($validator->fails()) {
             return response()->view('payment.error', [
-                'message' => 'Invalid request. ' . $validator->errors()->first()
+                'message' => 'Invalid request. '.$validator->errors()->first(),
             ]);
         }
 
@@ -68,35 +71,36 @@ class PhonePeBridgeController extends Controller
         // Check if appointment exists
         $appointment = Appointment::with(['client', 'service', 'provider'])->find($appointmentId);
 
-        if (!$appointment) {
+        if (! $appointment) {
             return response()->view('payment.error', [
-                'message' => 'Appointment not found.'
+                'message' => 'Appointment not found.',
             ]);
         }
 
         // Make sure that provider_id is not null
-        if (!$appointment->user_id) {
+        if (! $appointment->user_id) {
             Log::error("PhonePeBridge error: provider_id (user_id) is null for appointment {$appointmentId}");
+
             return response()->view('payment.error', [
-                'message' => 'Invalid appointment configuration: provider not specified.'
+                'message' => 'Invalid appointment configuration: provider not specified.',
             ]);
         }
 
         // Check if payment exists for this appointment
         $payment = Payment::where('appointment_id', $appointmentId)->first();
-//print_r($payment);die;
-        if (!$payment) {
+        // print_r($payment);die;
+        if (! $payment) {
             // Create a new payment record if it doesn't exist
             try {
                 $payment = new Payment([
                     'appointment_id' => $appointmentId,
                     'user_id' => $appointment->client_id,
                     'provider_id' => $appointment->user_id, // Ensure provider_id is set from appointment
-                    'transaction_id' => 'TXN_' . time() . '_' . rand(1000, 9999),
+                    'transaction_id' => 'TXN_'.time().'_'.rand(1000, 9999),
                     'payment_method' => 'phonepe',
                     'payment_mode' => 'online',
-//                    'amount' => $appointment->payment_amount ?? $appointment->final_price ?? 1, // Default to 1 if not set
-                    'amount' =>  1, // Small test amount (10 paise)
+                    //                    'amount' => $appointment->payment_amount ?? $appointment->final_price ?? 1, // Default to 1 if not set
+                    'amount' => 1, // Small test amount (10 paise)
                     'currency' => 'INR',
                     'status' => Payment::STATUS_PENDING,
                     'booking_price' => $appointment->booking_price,
@@ -110,27 +114,27 @@ class PhonePeBridgeController extends Controller
                     'net_amount' => $appointment->payment_amount ?? $appointment->final_price ?? 0.1,
                     'payment_details' => json_encode([
                         'app_return_url' => $appReturnUrl,
-                        'initiated_at' => now()->toIso8601String()
-                    ])
+                        'initiated_at' => now()->toIso8601String(),
+                    ]),
                 ]);
-//print_r($payment);die;
+                // print_r($payment);die;
                 // Log the payment data for debugging
-                Log::info("Creating new payment for appointment", [
+                Log::info('Creating new payment for appointment', [
                     'appointment_id' => $appointmentId,
                     'user_id' => $appointment->client_id,
                     'provider_id' => $appointment->user_id,
-                    'amount' => $payment->amount
+                    'amount' => $payment->amount,
                 ]);
 
                 $payment->save();
             } catch (\Exception $e) {
-                Log::error("PhonePeBridge payment creation error: " . $e->getMessage(), [
+                Log::error('PhonePeBridge payment creation error: '.$e->getMessage(), [
                     'trace' => $e->getTraceAsString(),
-                    'appointment' => $appointment->toArray()
+                    'appointment' => $appointment->toArray(),
                 ]);
 
                 return response()->view('payment.error', [
-                    'message' => 'Failed to create payment record: ' . $e->getMessage()
+                    'message' => 'Failed to create payment record: '.$e->getMessage(),
                 ]);
             }
         } else {
@@ -145,16 +149,16 @@ class PhonePeBridgeController extends Controller
                     'payment_mode' => 'online',
                     'status' => Payment::STATUS_PENDING,
                     'provider_id' => $appointment->user_id, // Ensure provider_id is updated
-                    'payment_details' => json_encode($paymentDetails)
+                    'payment_details' => json_encode($paymentDetails),
                 ]);
             } catch (\Exception $e) {
-                Log::error("PhonePeBridge payment update error: " . $e->getMessage(), [
+                Log::error('PhonePeBridge payment update error: '.$e->getMessage(), [
                     'trace' => $e->getTraceAsString(),
-                    'payment_id' => $payment->id
+                    'payment_id' => $payment->id,
                 ]);
 
                 return response()->view('payment.error', [
-                    'message' => 'Failed to update payment record: ' . $e->getMessage()
+                    'message' => 'Failed to update payment record: '.$e->getMessage(),
                 ]);
             }
         }
@@ -168,14 +172,13 @@ class PhonePeBridgeController extends Controller
         return view('payment.phonepe-bridge', [
             'appointment' => $appointment,
             'payment' => $payment,
-            'appReturnUrl' => $appReturnUrl
+            'appReturnUrl' => $appReturnUrl,
         ]);
     }
 
     /**
      * Process PhonePe payment from WebView
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function processPhonePePayment(Request $request)
@@ -197,18 +200,18 @@ class PhonePeBridgeController extends Controller
             $appointment = $payment->appointment;
 
             // Double-check that we have a valid provider_id
-            if (!$appointment->user_id) {
+            if (! $appointment->user_id) {
                 throw new \Exception('Provider ID is missing from the appointment');
             }
 
             // Double-check that payment has provider_id
-            if (!$payment->provider_id) {
+            if (! $payment->provider_id) {
                 $payment->provider_id = $appointment->user_id;
                 $payment->save();
 
-                Log::info("Updated missing provider_id for payment", [
+                Log::info('Updated missing provider_id for payment', [
                     'payment_id' => $payment->id,
-                    'provider_id' => $appointment->user_id
+                    'provider_id' => $appointment->user_id,
                 ]);
             }
 
@@ -217,7 +220,7 @@ class PhonePeBridgeController extends Controller
                 'name' => $appointment->client->name ?? 'Customer',
                 'email' => $appointment->client->email ?? 'customer@example.com',
                 'phone' => $appointment->client->phone ?? '1234567890',
-                'amount' => $payment->amount
+                'amount' => $payment->amount,
             ];
 
             // Store the payment ID in session
@@ -229,7 +232,7 @@ class PhonePeBridgeController extends Controller
             Log::info('PhonePe payment initiation', [
                 'transaction_id' => $transactionId,
                 'amount' => $payment->amount,
-                'payment_id' => $payment->id
+                'payment_id' => $payment->id,
             ]);
 
             // Format mobile number - ensure it's 10 digits
@@ -239,7 +242,7 @@ class PhonePeBridgeController extends Controller
             }
 
             // Convert amount to paise (PhonePe requires amount in paise)
-            $amountInPaise = (int)($payment->amount * 100);
+            $amountInPaise = (int) ($payment->amount * 100);
 
             // Set callback URLs
             $callbackUrl = route('phonepe.bridge.callback');
@@ -249,22 +252,22 @@ class PhonePeBridgeController extends Controller
             $payload = [
                 'merchantId' => $this->merchantId,
                 'merchantTransactionId' => $transactionId,
-                'merchantUserId' => 'MUID_' . time(),
+                'merchantUserId' => 'MUID_'.time(),
                 'amount' => $amountInPaise,
                 'redirectUrl' => $callbackUrl,
                 'redirectMode' => 'POST',
                 'callbackUrl' => $webhookUrl,
                 'mobileNumber' => $mobileNumber,
                 'paymentInstrument' => [
-                    'type' => 'PAY_PAGE'
-                ]
+                    'type' => 'PAY_PAGE',
+                ],
             ];
 
             // Convert payload to JSON
             $payloadJson = json_encode($payload);
 
             Log::info('PhonePe payment payload', [
-                'payload' => $payload
+                'payload' => $payload,
             ]);
 
             // Base64 encode the payload
@@ -272,23 +275,23 @@ class PhonePeBridgeController extends Controller
 
             // Generate checksum
             $checksumPath = '/pg/v1/pay';
-            $string = $payloadBase64 . $checksumPath . $this->saltKey;
-            $checksum = hash('sha256', $string) . "###" . $this->saltIndex;
+            $string = $payloadBase64.$checksumPath.$this->saltKey;
+            $checksum = hash('sha256', $string).'###'.$this->saltIndex;
 
             // Prepare final API request URL
-            $requestUrl = $this->baseUrl . '/pg/v1/pay';
+            $requestUrl = $this->baseUrl.'/pg/v1/pay';
 
             // Make the API call to PhonePe
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
-                'X-VERIFY' => $checksum
+                'X-VERIFY' => $checksum,
             ])->post($requestUrl, [
-                'request' => $payloadBase64
+                'request' => $payloadBase64,
             ]);
 
             Log::info('PhonePe initiate response', [
                 'status' => $response->status(),
-                'body' => $response->json()
+                'body' => $response->json(),
             ]);
 
             // Parse the response
@@ -310,22 +313,22 @@ class PhonePeBridgeController extends Controller
             } else {
                 // If payment initiation failed
                 Log::error('PhonePe payment initiation failed', [
-                    'error' => $responseData
+                    'error' => $responseData,
                 ]);
 
                 return view('payment.error', [
-                    'message' => 'Failed to initialize payment: ' . ($responseData['message'] ?? 'Unknown error')
+                    'message' => 'Failed to initialize payment: '.($responseData['message'] ?? 'Unknown error'),
                 ]);
             }
         } catch (\Exception $e) {
             Log::error('Error in PhonePe bridge payment process', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
-                'payment_id' => $payment->id
+                'payment_id' => $payment->id,
             ]);
 
             return view('payment.error', [
-                'message' => 'Payment processing failed: ' . $e->getMessage()
+                'message' => 'Payment processing failed: '.$e->getMessage(),
             ]);
         }
     }
@@ -333,7 +336,6 @@ class PhonePeBridgeController extends Controller
     /**
      * Handle callback from PhonePe for WebView flow
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function handleBridgeCallback(Request $request)
@@ -348,29 +350,31 @@ class PhonePeBridgeController extends Controller
         try {
             $paymentId = session('bridge_payment_id');
 
-            if (!$paymentId && $transactionId) {
+            if (! $paymentId && $transactionId) {
                 $payment = Payment::where('transaction_id', $transactionId)->first();
                 if ($payment) {
                     $paymentId = $payment->id;
                 }
             }
 
-            if (!$paymentId) {
+            if (! $paymentId) {
                 Log::error('PhonePe bridge callback - No payment ID found');
+
                 return view('payment.bridge-failed', [
                     'returnUrl' => session('app_return_url', 'instaappoint://payment/callback?status=error'),
-                    'errorMessage' => 'Payment session expired'
+                    'errorMessage' => 'Payment session expired',
                 ]);
             }
 
             $payment = Payment::with('appointment.client', 'appointment.user', 'appointment.service', 'appointment.comboService')
                 ->find($paymentId);
 
-            if (!$payment || !$payment->appointment) {
+            if (! $payment || ! $payment->appointment) {
                 Log::error('PhonePe bridge callback - Payment or appointment not found');
+
                 return view('payment.bridge-failed', [
                     'returnUrl' => session('app_return_url', 'instaappoint://payment/callback?status=error'),
-                    'errorMessage' => 'Payment record not found'
+                    'errorMessage' => 'Payment record not found',
                 ]);
             }
 
@@ -384,7 +388,7 @@ class PhonePeBridgeController extends Controller
             Log::info('PhonePe payment status', [
                 'status' => $status,
                 'payment_id' => $payment->id,
-                'appointment_id' => $appointment->id
+                'appointment_id' => $appointment->id,
             ]);
 
             DB::beginTransaction();
@@ -398,8 +402,8 @@ class PhonePeBridgeController extends Controller
                     'transaction_id' => $transactionId, // Update with actual transaction ID
                     'payment_details' => json_encode(array_merge($paymentDetails, [
                         'phonepe_response' => $status,
-                        'confirmed_at' => now()->toIso8601String()
-                    ]))
+                        'confirmed_at' => now()->toIso8601String(),
+                    ])),
                 ]);
 
                 // Update appointment status from payment_pending to pending/confirmed
@@ -410,11 +414,11 @@ class PhonePeBridgeController extends Controller
 
                 $appointment->update([
                     'status' => $newStatus,
-                    'payment_status' => Payment::STATUS_PAID
+                    'payment_status' => Payment::STATUS_PAID,
                 ]);
 
                 // Confirm time slot booking
-                $timeSlotService = new TimeSlotBlockingService();
+                $timeSlotService = new TimeSlotBlockingService;
                 $timeSlotService->confirmTimeSlotBooking($appointment->id);
 
                 // NOW send notifications after successful payment
@@ -427,13 +431,13 @@ class PhonePeBridgeController extends Controller
 
                 Log::info('PhonePe payment successful - Showing success page', [
                     'appointment_id' => $appointment->id,
-                    'return_url' => $returnUrlWithParams
+                    'return_url' => $returnUrlWithParams,
                 ]);
 
                 return view('payment.bridge-success', [
                     'payment' => $payment,
                     'appointment' => $appointment,
-                    'returnUrl' => $returnUrlWithParams
+                    'returnUrl' => $returnUrlWithParams,
                 ]);
 
             } else {
@@ -444,12 +448,12 @@ class PhonePeBridgeController extends Controller
                     'status' => Payment::STATUS_FAILED,
                     'payment_details' => json_encode(array_merge($paymentDetails, [
                         'phonepe_response' => $status,
-                        'failed_at' => now()->toIso8601String()
-                    ]))
+                        'failed_at' => now()->toIso8601String(),
+                    ])),
                 ]);
 
                 // Release time slots
-                $timeSlotService = new TimeSlotBlockingService();
+                $timeSlotService = new TimeSlotBlockingService;
                 $timeSlotService->releaseTimeSlotsForAppointment($appointment->id);
 
                 // Delete the draft appointment
@@ -462,14 +466,14 @@ class PhonePeBridgeController extends Controller
 
                 Log::info('PhonePe payment failed - Showing failure page', [
                     'payment_status' => $payment->status,
-                    'return_url' => $returnUrlWithParams
+                    'return_url' => $returnUrlWithParams,
                 ]);
 
                 return view('payment.bridge-failed', [
                     'payment' => $payment,
                     'returnUrl' => $returnUrlWithParams,
                     'status' => $status,
-                    'errorMessage' => $status['message'] ?? 'Payment not successful'
+                    'errorMessage' => $status['message'] ?? 'Payment not successful',
                 ]);
             }
 
@@ -477,13 +481,14 @@ class PhonePeBridgeController extends Controller
             DB::rollBack();
             Log::error('Error in PhonePe bridge callback', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             $appReturnUrl = session('app_return_url', 'instaappoint://payment/callback?status=error');
+
             return view('payment.bridge-failed', [
                 'returnUrl' => $appReturnUrl,
-                'errorMessage' => 'Payment processing failed'
+                'errorMessage' => 'Payment processing failed',
             ]);
         }
     }
@@ -517,7 +522,7 @@ class PhonePeBridgeController extends Controller
             'client_name' => $appointment->client->name,
             'service_name' => $serviceName,
             'payment_status' => 'paid',
-            'amount' => $appointment->payment_amount
+            'amount' => $appointment->payment_amount,
         ];
 
         app(NotificationService::class)->sendPushNotification(
@@ -539,7 +544,7 @@ class PhonePeBridgeController extends Controller
             'provider_name' => $appointment->user->name,
             'service_name' => $serviceName,
             'payment_status' => 'paid',
-            'amount' => $appointment->payment_amount
+            'amount' => $appointment->payment_amount,
         ];
 
         app(NotificationService::class)->sendPushNotification(
@@ -553,14 +558,13 @@ class PhonePeBridgeController extends Controller
     /**
      * Handle webhook from PhonePe (silent notification)
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function handleWebhook(Request $request)
     {
         Log::info('PhonePe webhook received', [
             'data' => $request->all(),
-            'headers' => $request->header()
+            'headers' => $request->header(),
         ]);
 
         try {
@@ -568,20 +572,20 @@ class PhonePeBridgeController extends Controller
             $webhookData = $request->all();
             $transactionId = $webhookData['merchantTransactionId'] ?? null;
 
-            if (!$transactionId) {
+            if (! $transactionId) {
                 return response()->json([
                     'status' => 'FAILURE',
-                    'message' => 'Missing transaction ID'
+                    'message' => 'Missing transaction ID',
                 ], 400);
             }
 
             // Find payment by transaction ID
             $payment = Payment::where('transaction_id', $transactionId)->first();
 
-            if (!$payment) {
+            if (! $payment) {
                 return response()->json([
                     'status' => 'FAILURE',
-                    'message' => 'Payment not found'
+                    'message' => 'Payment not found',
                 ], 404);
             }
 
@@ -594,7 +598,7 @@ class PhonePeBridgeController extends Controller
 
                 if ($status['paymentState'] === 'COMPLETED') {
                     $newStatus = Payment::STATUS_PAID;
-                } else if ($status['paymentState'] === 'FAILED') {
+                } elseif ($status['paymentState'] === 'FAILED') {
                     $newStatus = Payment::STATUS_FAILED;
                 }
 
@@ -606,13 +610,13 @@ class PhonePeBridgeController extends Controller
 
                 $payment->update([
                     'status' => $newStatus,
-                    'payment_details' => json_encode($paymentDetails)
+                    'payment_details' => json_encode($paymentDetails),
                 ]);
 
                 // Update appointment payment status
                 if ($payment->appointment) {
                     $payment->appointment->update([
-                        'payment_status' => $newStatus
+                        'payment_status' => $newStatus,
                     ]);
                 }
             }
@@ -620,17 +624,17 @@ class PhonePeBridgeController extends Controller
             // Return success response to PhonePe
             return response()->json([
                 'status' => 'SUCCESS',
-                'message' => 'Webhook processed successfully'
+                'message' => 'Webhook processed successfully',
             ]);
         } catch (\Exception $e) {
             Log::error('Error processing PhonePe webhook', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'status' => 'FAILURE',
-                'message' => 'Webhook processing failed: ' . $e->getMessage()
+                'message' => 'Webhook processing failed: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -645,29 +649,29 @@ class PhonePeBridgeController extends Controller
     {
         try {
             // Construct the API URL
-            $apiUrl = $this->baseUrl . '/pg/v1/status/' . $this->merchantId . '/' . $transactionId;
+            $apiUrl = $this->baseUrl.'/pg/v1/status/'.$this->merchantId.'/'.$transactionId;
 
             // Generate checksum
-            $string = '/pg/v1/status/' . $this->merchantId . '/' . $transactionId . $this->saltKey;
-            $checksum = hash('sha256', $string) . '###' . $this->saltIndex;
+            $string = '/pg/v1/status/'.$this->merchantId.'/'.$transactionId.$this->saltKey;
+            $checksum = hash('sha256', $string).'###'.$this->saltIndex;
 
             // Log the request
             Log::info('PhonePe status check request', [
                 'url' => $apiUrl,
-                'transaction_id' => $transactionId
+                'transaction_id' => $transactionId,
             ]);
 
             // Make the API call to PhonePe
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
                 'X-VERIFY' => $checksum,
-                'X-MERCHANT-ID' => $this->merchantId
+                'X-MERCHANT-ID' => $this->merchantId,
             ])->get($apiUrl);
 
             // Log the response
             Log::info('PhonePe status check response', [
                 'status' => $response->status(),
-                'body' => $response->json()
+                'body' => $response->json(),
             ]);
 
             // Parse the response
@@ -680,10 +684,10 @@ class PhonePeBridgeController extends Controller
 
                 if (isset($responseData['data']['paymentState']) || isset($responseData['data']['state'])) {
                     $paymentState = $responseData['data']['paymentState'] ?? $responseData['data']['state'];
-                } else if (isset($responseData['code'])) {
+                } elseif (isset($responseData['code'])) {
                     if ($responseData['code'] === 'PAYMENT_SUCCESS') {
                         $paymentState = 'COMPLETED';
-                    } else if ($responseData['code'] === 'PAYMENT_ERROR') {
+                    } elseif ($responseData['code'] === 'PAYMENT_ERROR') {
                         $paymentState = 'FAILED';
                     }
                 }
@@ -696,7 +700,7 @@ class PhonePeBridgeController extends Controller
                     'message' => 'Payment status retrieved successfully',
                     'providerReferenceId' => $responseData['data']['providerReferenceId'] ?? $responseData['data']['transactionId'] ?? null,
                     'responseCode' => $responseData['code'] ?? null,
-                    'responseData' => $responseData['data'] ?? []
+                    'responseData' => $responseData['data'] ?? [],
                 ];
             } else {
                 // Failed to get status
@@ -705,20 +709,20 @@ class PhonePeBridgeController extends Controller
                     'transactionId' => $transactionId,
                     'paymentState' => 'UNKNOWN',
                     'message' => $responseData['message'] ?? 'Failed to check payment status',
-                    'responseCode' => $responseData['code'] ?? null
+                    'responseCode' => $responseData['code'] ?? null,
                 ];
             }
         } catch (\Exception $e) {
             Log::error('Exception in PhonePe status check', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return [
                 'success' => false,
                 'transactionId' => $transactionId,
                 'paymentState' => 'ERROR',
-                'message' => 'Error checking payment status: ' . $e->getMessage()
+                'message' => 'Error checking payment status: '.$e->getMessage(),
             ];
         }
     }
@@ -727,9 +731,9 @@ class PhonePeBridgeController extends Controller
      * Build app return URL with payment status parameters
      * This method handles both standard app scheme URLs and Expo development URLs
      *
-     * @param string $baseUrl
-     * @param \App\Models\Payment $payment
-     * @param string $paymentState
+     * @param  string  $baseUrl
+     * @param  \App\Models\Payment  $payment
+     * @param  string  $paymentState
      * @return string
      */
     private function buildAppReturnUrl($baseUrl, $payment, $paymentState)
@@ -752,7 +756,7 @@ class PhonePeBridgeController extends Controller
 
             Log::info('Constructed Expo dev URL', [
                 'dev_server' => $devServer,
-                'base_url' => $baseUrl
+                'base_url' => $baseUrl,
             ]);
         }
 
@@ -765,21 +769,21 @@ class PhonePeBridgeController extends Controller
             'transaction_id' => $payment->transaction_id,
             'appointment_id' => $payment->appointment_id,
             'amount' => $payment->amount,
-            'payment_state' => $paymentState
+            'payment_state' => $paymentState,
         ];
 
         // Build the query string manually to avoid HTML entity encoding
         $queryString = [];
         foreach ($params as $key => $value) {
-            $queryString[] = $key . '=' . urlencode($value);
+            $queryString[] = $key.'='.urlencode($value);
         }
 
         // Join the parameters and add to the URL
-        $url = $baseUrl . $separator . implode('&', $queryString);
+        $url = $baseUrl.$separator.implode('&', $queryString);
 
         // Log constructed URL for debugging
         Log::info('Built app return URL', [
-            'url' => $url
+            'url' => $url,
         ]);
 
         return $url;

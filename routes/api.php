@@ -1,33 +1,34 @@
 <?php
 
 use App\Http\Controllers\Api\AppointmentController;
+use App\Http\Controllers\Api\AppointmentPayments\RazorpayMobileController;
+use App\Http\Controllers\Api\AppointmentSettingsController;
 use App\Http\Controllers\Api\AppSettingController;
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BlogController;
+use App\Http\Controllers\Api\BusinessCategoryController;
 use App\Http\Controllers\Api\ComboServiceController;
 use App\Http\Controllers\Api\ContactController;
-use App\Http\Controllers\Api\BusinessCategoryController;
+use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\FAQController;
+use App\Http\Controllers\Api\HolidayController;
 use App\Http\Controllers\Api\KycController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\OfferController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\PayoutController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProviderController;
 use App\Http\Controllers\Api\ReminderController;
 use App\Http\Controllers\Api\ReviewController;
-use App\Http\Controllers\Api\TeamMemberController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\FAQController;
-use App\Http\Controllers\Api\WorkingHoursController;
-use App\Http\Controllers\Api\HolidayController;
-use App\Http\Controllers\Api\TimeSlotController;
 use App\Http\Controllers\Api\ServiceController;
-use App\Http\Controllers\Api\AppointmentSettingsController;
-use App\Http\Controllers\Api\OfferController;
-use App\Http\Controllers\Api\PayoutController;
-use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\TeamMemberController;
+use App\Http\Controllers\Api\TimeSlotController;
+use App\Http\Controllers\Api\WorkingHoursController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
-
 
 Route::post('/send-otp', [AuthController::class, 'sendOtp']);
 Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
@@ -48,7 +49,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/get-business-categories', [BusinessCategoryController::class, 'index']);
     // Blog Management
     Route::apiResource('blogs', BlogController::class);
-
 
     Route::apiResource('faqs', FAQController::class);
 
@@ -95,8 +95,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('combo-services/{id}', [ComboServiceController::class, 'destroy']);
     Route::post('combo-services/{id}/toggle-status', [ComboServiceController::class, 'toggleStatus']);
     Route::get('combo-services/active', [ComboServiceController::class, 'active']);
-
-
 
     // Appointments
     Route::get('appointments', [AppointmentController::class, 'index']);
@@ -172,7 +170,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('contact-supports', ContactController::class)
         ->only(['index', 'store', 'show', 'destroy']);
 
-
     // search endpoints
     Route::get('/search', [App\Http\Controllers\Api\SearchController::class, 'search']);
     Route::get('/search/suggestions', [App\Http\Controllers\Api\SearchController::class, 'getSuggestions']);
@@ -185,7 +182,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // Get providers by category
     Route::get('providers/category/{categoryId}', [ProviderController::class, 'getProvidersByCategory'])
         ->name('providers.by-category');
-
 
     // Payment routes
     Route::post('payments/save', [PaymentController::class, 'savePayment']);
@@ -212,7 +208,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/customers/{id}/appointments', [CustomerController::class, 'getCustomerAppointments']);
     Route::get('/customers/{id}/stats', [CustomerController::class, 'getCustomerStats']);
 
-
     Route::get('/user-locations', [App\Http\Controllers\Api\UserLocationController::class, 'index']);
     Route::post('/user-locations', [App\Http\Controllers\Api\UserLocationController::class, 'store']);
     Route::post('/user-locations/{id}/used', [App\Http\Controllers\Api\UserLocationController::class, 'markAsUsed']);
@@ -228,10 +223,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Update the payment/phonepe/bridge-url route in api.php
     Route::get('/payment/phonepe/bridge-url', function (Request $request) {
+
         $validator = Validator::make($request->all(), [
             'appointment_id' => 'required|integer|exists:appointments,id',
             'return_scheme' => 'required|string',
             'dev_server' => 'nullable|string',
+            'payment_gateway' => 'required|in:razorpay,phonepe',
         ]);
 
         if ($validator->fails()) {
@@ -242,9 +239,9 @@ Route::middleware('auth:sanctum')->group(function () {
         }
 
         // Store dev server details in session if provided
-        if ($request->has('dev_server') && !empty($request->dev_server)) {
+        if ($request->has('dev_server') && ! empty($request->dev_server)) {
             session(['dev_server' => $request->dev_server]);
-            Log::info('Stored dev server in session: ' . $request->dev_server);
+            Log::info('Stored dev server in session: '.$request->dev_server);
         }
 
         // Create a return URL for deep linking back to the app
@@ -253,18 +250,19 @@ Route::middleware('auth:sanctum')->group(function () {
         // Handle special case for Expo development
         if ($request->return_scheme === 'expo-dev' && $request->has('dev_server')) {
             // Format: exp://192.168.1.5:8081/--/payment/callback
-            $returnUrl = 'exp://' . $request->dev_server . '/--/payment/callback';
-            Log::info('Created Expo dev return URL: ' . $returnUrl);
+            $returnUrl = 'exp://'.$request->dev_server.'/--/payment/callback';
+            Log::info('Created Expo dev return URL: '.$returnUrl);
         } else {
             // Standard app scheme format
-            $returnUrl = $request->return_scheme . '://payment/callback';
-            Log::info('Created standard app return URL: ' . $returnUrl);
+            $returnUrl = $request->return_scheme.'://payment/callback';
+            Log::info('Created standard app return URL: '.$returnUrl);
         }
 
         // Generate the bridge URL
-        $bridgeUrl = route('phonepe.bridge', [
+        $bridgeUrl = route('phonepe.bridge.page', [
             'appointment_id' => $request->appointment_id,
-            'app_return_url' => $returnUrl
+            'app_return_url' => $returnUrl,
+            'payment_gateway' => request()->get('payment_gateway'),
         ]);
 
         return response()->json([
@@ -272,10 +270,26 @@ Route::middleware('auth:sanctum')->group(function () {
             'message' => 'Bridge URL generated successfully',
             'data' => [
                 'bridge_url' => $bridgeUrl,
-                'return_url' => $returnUrl
-            ]
+                'return_url' => $returnUrl,
+                'payment_gateway' => request()->get('payment_gateway'),
+            ],
         ]);
     })->name('api.payment.phonepe.bridge-url');
+
+    // Razorpay Mobile SDK Routes (Protected)
+    Route::middleware(['auth:sanctum'])->prefix('razorpay/mobile')->group(function () {
+        Route::post('create-order', [RazorpayMobileController::class, 'createOrder'])
+            ->name('razorpay.mobile.create-order');
+
+        Route::post('verify-payment', [RazorpayMobileController::class, 'verifyPayment'])
+            ->name('razorpay.mobile.verify-payment');
+
+        Route::post('payment-failed', [RazorpayMobileController::class, 'handleFailure'])
+            ->name('razorpay.mobile.payment-failed');
+
+        Route::get('payment-status/{paymentId}', [RazorpayMobileController::class, 'getPaymentStatus'])
+            ->name('razorpay.mobile.payment-status');
+    });
 
     Route::prefix('providers')->group(function () {
         // Add these new routes
@@ -283,7 +297,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/nearby', [ProviderController::class, 'getNearbyProviders']);
         // Public routes
         Route::get('/{id}', [ProviderController::class, 'show']);
-
 
         Route::get('/{id}/team-members', [ProviderController::class, 'getTeamMembers']);
         Route::get('/{id}/blogs', [ProviderController::class, 'getBlogs']);
@@ -304,7 +317,6 @@ Route::middleware('auth:sanctum')->group(function () {
         });
     });
 
-
     // Bank Accounts
     Route::get('/bank-accounts', [PayoutController::class, 'getBankAccounts']);
     Route::post('/bank-accounts', [PayoutController::class, 'addBankAccount']);
@@ -317,8 +329,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/payout-requests', [PayoutController::class, 'createPayoutRequest']);
     Route::post('/payout-requests/{id}/cancel', [PayoutController::class, 'cancelPayoutRequest']);
     Route::get('/earnings-summary', [PayoutController::class, 'getEarningsSummary']);
-
-
 
     Route::get('/notifications/token/status', [NotificationController::class, 'getTokenStatus']);
     Route::post('/notifications/test-appointment', [NotificationController::class, 'testAppointmentNotification']);
@@ -337,8 +347,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('reminders/{id}/cancel', [ReminderController::class, 'markAsCancelled']);
     Route::get('reminders-stats', [ReminderController::class, 'stats']);
     Route::get('reminders-by-target', [ReminderController::class, 'getByTarget']);
-
-
 
     // Review Routes
     Route::prefix('reviews')->group(function () {

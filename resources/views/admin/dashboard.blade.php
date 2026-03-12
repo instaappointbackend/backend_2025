@@ -235,10 +235,9 @@
             </div>
         </div>
     </div>
-
-    <!-- Stats Cards -->
     <div class="row">
         <div class="col-md-3 col-sm-6 mb-4">
+<<<<<<< HEAD
             <a href="{{ route('admin.users.index') }}" class="stat-card position-relative bg-white text-decoration-none"
                 data-card="users">
                 <div class="stat-card position-relative bg-white">
@@ -253,6 +252,57 @@
                         </div>
                     </div>
                 </div>
+=======
+
+            <div class="stat-card position-relative bg-white">
+                <div class="stat-card-body">
+                    <div class="stat-card-icon bg-primary">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h6 class="stat-card-title">TOTAL USERS</h6>
+                    <h2 class="stat-card-value">{{ $totalCustomers + $totalVendors }}</h2>
+                    <div class="stat-card-trend trend-up">
+                        <i class="fas fa-arrow-up me-1"></i> 12.5% from last month
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-4">
+            <a href="{{ route('admin.users.index') }}" class="stat-card position-relative bg-white text-decoration-none"
+                data-card="users">
+                <div class="stat-card position-relative bg-white">
+                    <div class="stat-card-body">
+                        <div class="stat-card-icon bg-primary">
+                            <i class="fas fa-user-cog"></i>
+                        </div>
+                        <h6 class="stat-card-title">TOTAL ADMIN USERS</h6>
+                        <h2 class="stat-card-value">{{ $totalUsers }}</h2>
+                        <div class="stat-card-trend trend-up">
+                            <i class="fas fa-arrow-up me-1"></i> 12.5% from last month
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+    <!-- Stats Cards -->
+    <div class="row">
+        <div class="col-md-3 col-sm-6 mb-4">
+            <a href="{{ route('admin.users.customers') }}" class="stat-card position-relative bg-white text-decoration-none"
+                data-card="users">
+                <div class="stat-card position-relative bg-white">
+                    <div class="stat-card-body">
+                        <div class="stat-card-icon bg-primary">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <h6 class="stat-card-title">TOTAL Customers</h6>
+                        <h2 class="stat-card-value">{{ $totalCustomers }}</h2>
+                        <div class="stat-card-trend trend-up">
+                            <i class="fas fa-arrow-up me-1"></i> 12.5% from last month
+                        </div>
+                    </div>
+                </div>
+>>>>>>> 1c1b0c89cbc7550abe67d6dce0e90e0d36cda34b
             </a>
         </div>
 
@@ -516,21 +566,36 @@
                                         </td>
                                         <td>
                                             <div class="d-flex align-items-center">
+<<<<<<< HEAD
                                                 <div
                                                     class="avatar avatar-sm bg-light rounded-circle me-2 d-flex align-items-center justify-content-center">
                                                     <span
                                                         class="text-dark">{{ substr($appointment->client->name, 0, 1) }}</span>
                                                 </div>
                                                 {{ $appointment->client->name }}
+=======
+                                                {{-- <div class="avatar avatar-sm bg-light rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                                    <span class="text-dark">{{ substr($appointment->client->name, 0, 1) }}</span>
+                                                </div> --}}
+                                                {{ $appointment->client->name ?? '' }}
+>>>>>>> 1c1b0c89cbc7550abe67d6dce0e90e0d36cda34b
                                             </div>
                                         </td>
                                         <td>
                                             <div class="d-flex align-items-center">
+<<<<<<< HEAD
                                                 <div
                                                     class="avatar avatar-sm bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center">
                                                     <span>{{ substr($appointment->user->name, 0, 1) }}</span>
                                                 </div>
                                                 {{ $appointment->user->name ?? '-' }}
+=======
+                                                {{-- <div
+                                                    class="avatar avatar-sm bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                                    <span>{{ substr($appointment->user->name, 0, 1) }}</span>
+                                                </div> --}}
+                                                {{ $appointment->user->name }}
+>>>>>>> 1c1b0c89cbc7550abe67d6dce0e90e0d36cda34b
                                             </div>
                                         </td>
                                         <td>

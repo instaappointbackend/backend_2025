@@ -3,13 +3,13 @@
 namespace App\Http\Requests;
 
 use App\Traits\ApiResponseTrait;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rule;
+
 class AuthRequest extends FormRequest
 {
-
     use ApiResponseTrait;
 
     /**
@@ -37,7 +37,7 @@ class AuthRequest extends FormRequest
             case 'verifyOtp':
                 return [
                     'mobile' => 'required|string|digits:10',
-                    'otp'    => 'required|string|digits:6',
+                    'otp' => 'required|string|digits:6',
                 ];
 
             case 'refreshToken':
@@ -62,14 +62,15 @@ class AuthRequest extends FormRequest
                             return request()->role === 'vendor';
                         }),
                         'nullable',
-                        'exists:business_categories,id'
+                        'exists:business_categories,id',
                     ],
                     'experience' => [
                         Rule::requiredIf(function () {
                             return request()->role === 'vendor';
                         }),
                         'nullable',
-                        'string'
+                        'string',
+                        'in:beginner,intermediate,experienced,advanced,expert,master',
                     ],
 
                     // Terms and conditions acceptance

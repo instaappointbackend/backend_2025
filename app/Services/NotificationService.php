@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\NotificationToken;
 use App\Models\Notification;
+use App\Models\NotificationToken;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -15,10 +15,10 @@ class NotificationService
     /**
      * Send push notification to user
      *
-     * @param int $userId User ID to send notification to
-     * @param string $title Notification title
-     * @param string $body Notification body
-     * @param array $data Additional data to send with notification
+     * @param  int  $userId  User ID to send notification to
+     * @param  string  $title  Notification title
+     * @param  string  $body  Notification body
+     * @param  array  $data  Additional data to send with notification
      * @return bool Success status
      */
     public function sendPushNotification($userId, $title, $body, $data = [])
@@ -32,6 +32,7 @@ class NotificationService
 
             if (empty($tokens)) {
                 Log::info('No active notification tokens found for user', ['user_id' => $userId]);
+
                 return false;
             }
 
@@ -43,9 +44,9 @@ class NotificationService
                     'title' => $title,
                     'body' => $body,
                     'data' => $data,
-//                    'sound' => 'default',
-//                    'badge' => 1,
-//                    'channelId' => 'default', // For Android
+                    //                    'sound' => 'default',
+                    //                    'badge' => 1,
+                    //                    'channelId' => 'default', // For Android
                 ];
             }
 
@@ -83,10 +84,10 @@ class NotificationService
     /**
      * Save notification to database
      *
-     * @param int $userId User ID
-     * @param string $title Notification title
-     * @param string $body Notification body
-     * @param array $data Additional data
+     * @param  int  $userId  User ID
+     * @param  string  $title  Notification title
+     * @param  string  $body  Notification body
+     * @param  array  $data  Additional data
      * @return void
      */
     protected function saveNotification($userId, $title, $body, $data = [])

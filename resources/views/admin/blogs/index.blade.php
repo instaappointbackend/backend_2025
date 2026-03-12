@@ -47,7 +47,13 @@
                             </option>
                         @endforeach
                     </select>
+                    <div class="col-md-1">
+                        <a href="{{ route('admin.blogs.index') }}" class="btn btn-secondary ml-2">
+                            <i class="fas fa-sync"></i>
+                        </a>
+                    </div>
                 </form>
+
             </div>
         </div>
         <div class="card-body">
@@ -55,6 +61,7 @@
                 <table class="table table-hover">
                     <thead>
                         <tr>
+                            <th width="5%">Sr No</th>
                             <th width="5%">ID</th>
                             <th width="35%">Title</th>
                             <th width="15%">Author</th>
@@ -65,8 +72,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($blogs as $blog)
+                        @forelse($blogs as $index=>$blog)
                             <tr>
+                                <td>{{ $blogs->firstItem() + $index }}</td>
                                 <td>{{ $blog->id }}</td>
                                 <td>
                                     <a href="{{ route('admin.blogs.show', $blog->id) }}"
@@ -81,19 +89,19 @@
                                     @if ($blog->user)
                                         <div class="d-flex align-items-center">
                                             <div class="me-2">
-                                                @if ($blog->user->profile_picture)
-                                                    <img src="{{ asset('storage/' . $blog->user->profile_picture) }}"
+                                                @if ($blog?->user?->profile_picture && Storage::disk('public')->exists($blog->user->profile_picture))
+                                                    <img src="{{ asset('storage/' . $blog?->user?->profile_picture) }}"
                                                         alt="{{ $blog->user->name }}" class="rounded-circle" width="30"
                                                         height="30">
                                                 @else
                                                     <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center"
                                                         style="width: 30px; height: 30px; color: white;">
-                                                        {{ strtoupper(substr($blog->user->name, 0, 1)) }}
+                                                        {{ strtoupper(substr($blog?->user?->name, 0, 1)) }}
                                                     </div>
                                                 @endif
                                             </div>
                                             <div>
-                                                {{ $blog->user->name }}
+                                                {{ $blog?->user?->name }}
                                             </div>
                                         </div>
                                     @else
@@ -152,10 +160,18 @@
                     </tbody>
                 </table>
             </div>
-
-            <div class="d-flex justify-content-end mt-3">
-                {{ $blogs->links() }}
-            </div>
+            @if ($blogs->hasPages())
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>
+                        Showing {{ $blogs->firstItem() ?? 0 }} to {{ $blogs->lastItem() ?? 0 }} of
+                        {{ $blogs->total() }}
+                        blogs
+                    </div>
+                    <div class="d-flex justify-content-end mt-3">
+                        {{ $blogs->onEachSide(5)->links() }}
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 @endsection

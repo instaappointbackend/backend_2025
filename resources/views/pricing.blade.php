@@ -147,7 +147,7 @@
     }
 </style>
 
-<section class="bg-light gap-4" id="pricing">
+<section class="bg-light gap-3" id="pricing">
     <div class="container py-2 mb-2 text-center">
         <h1 class="mb-3">Choose Your Plan</h1>
         <p class="text-muted mb-4">Flexible pricing tailored to your needs</p>

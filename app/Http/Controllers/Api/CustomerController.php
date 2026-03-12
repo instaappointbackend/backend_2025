@@ -3,18 +3,16 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\CustomerAppointmentResource;
 use App\Http\Resources\CustomerResource;
 use App\Http\Resources\CustomerStatsResource;
-use App\Http\Resources\CustomerAppointmentResource;
 use App\Models\Appointment;
 use App\Models\User;
 use App\Traits\ApiResponseTrait;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
 
 class CustomerController extends Controller
 {
@@ -23,7 +21,6 @@ class CustomerController extends Controller
     /**
      * Get all customers for the vendor
      *
-     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function index(Request $request)
@@ -46,12 +43,12 @@ class CustomerController extends Controller
             $customersQuery = User::whereIn('id', $clientIds);
 
             // Apply search filter if provided
-            if ($request->has('search') && !empty($request->search)) {
+            if ($request->has('search') && ! empty($request->search)) {
                 $search = $request->search;
-                $customersQuery->where(function($query) use ($search) {
+                $customersQuery->where(function ($query) use ($search) {
                     $query->where('name', 'like', "%{$search}%")
-                          ->orWhere('email', 'like', "%{$search}%")
-                          ->orWhere('mobile', 'like', "%{$search}%");
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('mobile', 'like', "%{$search}%");
                 });
             }
 
@@ -59,7 +56,7 @@ class CustomerController extends Controller
             $customers = $customersQuery->get();
 
             // Enhance each customer with appointment history data
-            $enhancedCustomers = $customers->map(function($customer) use ($vendor) {
+            $enhancedCustomers = $customers->map(function ($customer) use ($vendor) {
                 // Count total appointments for this customer with this vendor
                 $appointments = Appointment::where('user_id', $vendor->id)
                     ->where('client_id', $customer->id)
@@ -81,7 +78,7 @@ class CustomerController extends Controller
                     } elseif ($appointmentDate->isYesterday()) {
                         $lastVisitDate = 'Yesterday';
                     } elseif ($appointmentDate->diffInDays($now) < 7) {
-                        $lastVisitDate = (int) $appointmentDate->diffInDays($now) . ' days ago';
+                        $lastVisitDate = (int) $appointmentDate->diffInDays($now).' days ago';
                     } else {
                         $lastVisitDate = $appointmentDate->format('M d, Y');
                     }
@@ -97,8 +94,8 @@ class CustomerController extends Controller
 
             // Filter for recent customers if requested
             if ($request->has('recent') && $request->recent === 'true') {
-                $enhancedCustomers = $enhancedCustomers->filter(function($customer) {
-                    if (!$customer->lastAppointmentDate) {
+                $enhancedCustomers = $enhancedCustomers->filter(function ($customer) {
+                    if (! $customer->lastAppointmentDate) {
                         return false;
                     }
 
@@ -111,7 +108,7 @@ class CustomerController extends Controller
 
             // Filter for frequent customers if requested
             if ($request->has('frequent') && $request->frequent === 'true') {
-                $enhancedCustomers = $enhancedCustomers->filter(function($customer) {
+                $enhancedCustomers = $enhancedCustomers->filter(function ($customer) {
                     return $customer->totalVisits >= 5; // Consider customers with 5+ visits as frequent
                 });
             }
@@ -125,15 +122,16 @@ class CustomerController extends Controller
                 'Customers retrieved successfully'
             );
         } catch (\Exception $e) {
-            Log::error('Error retrieving customers: ' . $e->getMessage());
-            return $this->error([], 'Failed to retrieve customers: ' . $e->getMessage(), 500);
+            Log::error('Error retrieving customers: '.$e->getMessage());
+
+            return $this->error([], 'Failed to retrieve customers: '.$e->getMessage(), 500);
         }
     }
 
     /**
      * Get customer details
      *
-     * @param int $id
+     * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
     public function show($id)
@@ -149,7 +147,7 @@ class CustomerController extends Controller
             // Find the customer
             $customer = User::find($id);
 
-            if (!$customer) {
+            if (! $customer) {
                 return $this->error([], 'Customer not found', 404);
             }
 
@@ -158,7 +156,7 @@ class CustomerController extends Controller
                 ->where('client_id', $customer->id)
                 ->exists();
 
-            if (!$hasAppointments) {
+            if (! $hasAppointments) {
                 return $this->error([], 'Unauthorized. This customer is not associated with your business.', 403);
             }
 
@@ -184,7 +182,7 @@ class CustomerController extends Controller
                 } elseif ($appointmentDate->isYesterday()) {
                     $lastVisitDate = 'Yesterday';
                 } elseif ($appointmentDate->diffInDays($now) < 7) {
-                    $lastVisitDate = $appointmentDate->diffInDays($now) . ' days ago';
+                    $lastVisitDate = $appointmentDate->diffInDays($now).' days ago';
                 } else {
                     $lastVisitDate = $appointmentDate->format('M d, Y');
                 }
@@ -201,15 +199,16 @@ class CustomerController extends Controller
                 'Customer details retrieved successfully'
             );
         } catch (\Exception $e) {
-            Log::error('Error retrieving customer details: ' . $e->getMessage());
-            return $this->error([], 'Failed to retrieve customer details: ' . $e->getMessage(), 500);
+            Log::error('Error retrieving customer details: '.$e->getMessage());
+
+            return $this->error([], 'Failed to retrieve customer details: '.$e->getMessage(), 500);
         }
     }
 
     /**
      * Get customer appointments
      *
-     * @param int $id
+     * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
     public function getCustomerAppointments($id)
@@ -225,7 +224,7 @@ class CustomerController extends Controller
             // Find the customer
             $customer = User::find($id);
 
-            if (!$customer) {
+            if (! $customer) {
                 return $this->error([], 'Customer not found', 404);
             }
 
@@ -243,15 +242,16 @@ class CustomerController extends Controller
                 'Customer appointments retrieved successfully'
             );
         } catch (\Exception $e) {
-            Log::error('Error retrieving customer appointments: ' . $e->getMessage());
-            return $this->error([], 'Failed to retrieve customer appointments: ' . $e->getMessage(), 500);
+            Log::error('Error retrieving customer appointments: '.$e->getMessage());
+
+            return $this->error([], 'Failed to retrieve customer appointments: '.$e->getMessage(), 500);
         }
     }
 
     /**
      * Get customer statistics
      *
-     * @param int $id
+     * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
     public function getCustomerStats($id)
@@ -267,7 +267,7 @@ class CustomerController extends Controller
             // Find the customer
             $customer = User::find($id);
 
-            if (!$customer) {
+            if (! $customer) {
                 return $this->error([], 'Customer not found', 404);
             }
 
@@ -284,7 +284,7 @@ class CustomerController extends Controller
 
             // Calculate total spend
             $totalSpend = $appointments->sum(function ($appointment) {
-                return $appointment->payment ? (float)$appointment->payment->vendor_earnings : 0;
+                return $appointment->payment ? (float) $appointment->payment->vendor_earnings : 0;
             });
 
             // Calculate average spend per visit
@@ -295,10 +295,10 @@ class CustomerController extends Controller
             foreach ($appointments as $appointment) {
                 if ($appointment->service) {
                     $serviceId = $appointment->service->id;
-                    if (!isset($serviceFrequency[$serviceId])) {
+                    if (! isset($serviceFrequency[$serviceId])) {
                         $serviceFrequency[$serviceId] = [
                             'count' => 0,
-                            'name' => $appointment->service->name
+                            'name' => $appointment->service->name,
                         ];
                     }
                     $serviceFrequency[$serviceId]['count']++;
@@ -366,7 +366,7 @@ class CustomerController extends Controller
                 'loyalty_period' => $loyaltyPeriod,
                 'no_show_rate' => round($noShowRate, 2),
                 'cancellation_rate' => round($cancellationRate, 2),
-                'rebook_rate' => round($rebookRate, 2)
+                'rebook_rate' => round($rebookRate, 2),
             ];
 
             // Return stats with the CustomerStatsResource
@@ -375,8 +375,9 @@ class CustomerController extends Controller
                 'Customer statistics retrieved successfully'
             );
         } catch (\Exception $e) {
-            Log::error('Error retrieving customer statistics: ' . $e->getMessage());
-            return $this->error([], 'Failed to retrieve customer statistics: ' . $e->getMessage(), 500);
+            Log::error('Error retrieving customer statistics: '.$e->getMessage());
+
+            return $this->error([], 'Failed to retrieve customer statistics: '.$e->getMessage(), 500);
         }
     }
 }

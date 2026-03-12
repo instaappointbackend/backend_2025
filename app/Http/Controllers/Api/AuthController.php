@@ -3,23 +3,21 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AuthRequest;
 use App\Http\Resources\ProfileResponse;
-use App\Models\User;
 use App\Models\AppSetting;
 use App\Models\NotificationToken;
+use App\Models\User;
+use App\Services\User\UserRegistrationService;
+use App\Traits\ApiResponseTrait;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
-use App\Traits\ApiResponseTrait;
-use App\Http\Requests\AuthRequest;
 use Illuminate\Support\Str;
-use Illuminate\Http\Request;
-use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
@@ -54,7 +52,7 @@ class AuthController extends Controller
                 // Send OTP via SMS
                 $smsSent = $this->sendSmsOtp($user->mobile, $otp, $otpExpireMinutes);
 
-                if (!$smsSent) {
+                if (! $smsSent) {
                     Log::warning('SMS failed, falling back to static OTP', ['mobile' => $user->mobile]);
                     $otp = '123456'; // Fallback to static OTP if SMS fails
                 }
@@ -72,18 +70,18 @@ class AuthController extends Controller
             Log::info('OTP generated successfully', [
                 'mobile' => $user->mobile,
                 'otp' => $otp, // Remove this in production
-                'expires_at' => $user->otp_expires_at
+                'expires_at' => $user->otp_expires_at,
             ]);
 
             return $this->success([
                 'minutes_left' => $otpExpireMinutes,
-                'message' => $enableSmsApi ? 'OTP sent to your mobile number' : 'OTP generated for development'
-            ], 'OTP ' . ($enableSmsApi ? 'sent' : 'generated') . ' successfully.');
+                'message' => $enableSmsApi ? 'OTP sent to your mobile number' : 'OTP generated for development',
+            ], 'OTP '.($enableSmsApi ? 'sent' : 'generated').' successfully.');
         } catch (\Exception $e) {
             Log::error('Error in sendOtp', [
                 'mobile' => $request->mobile,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return $this->error([], 'Failed to send OTP. Please try again.', 500);
@@ -104,13 +102,14 @@ class AuthController extends Controller
             $message = $this->getSetting('otp_verification_sms_template');
 
             // Validate SMS settings
-            if (!$apiKey || !$senderId || !$apiUrl || !$message) {
+            if (! $apiKey || ! $senderId || ! $apiUrl || ! $message) {
                 Log::error('SMS settings incomplete', [
-                    'has_api_key' => !empty($apiKey),
-                    'has_sender_id' => !empty($senderId),
-                    'has_api_url' => !empty($apiUrl),
-                    'has_message' => !empty($message)
+                    'has_api_key' => ! empty($apiKey),
+                    'has_sender_id' => ! empty($senderId),
+                    'has_api_url' => ! empty($apiUrl),
+                    'has_message' => ! empty($message),
                 ]);
+
                 return false;
             }
 
@@ -131,7 +130,7 @@ class AuthController extends Controller
                 $queryParams['templateid'] = $templateId;
             }
 
-            $url = $apiUrl . '?' . http_build_query($queryParams);
+            $url = $apiUrl.'?'.http_build_query($queryParams);
 
             // Send the SMS via API with timeout
             $response = Http::timeout(30)->get($url);
@@ -141,7 +140,7 @@ class AuthController extends Controller
                 'mobile' => $mobile,
                 'status_code' => $response->status(),
                 'response_body' => $response->body(),
-                'success' => $response->successful()
+                'success' => $response->successful(),
             ]);
 
             return $response->successful();
@@ -149,8 +148,9 @@ class AuthController extends Controller
             Log::error('Failed to send SMS', [
                 'mobile' => $mobile,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
+
             return false;
         }
     }
@@ -170,8 +170,9 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             Log::error('Error getting app setting', [
                 'key' => $key,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return $default;
         }
     }
@@ -196,17 +197,17 @@ class AuthController extends Controller
         try {
             $user = User::where('mobile', $request->mobile)->first();
 
-            if (!$user) {
+            if (! $user) {
                 return $this->error([], 'User not found. Please request OTP first.', 404);
             }
 
             // Check if OTP exists
-            if (!$user->otp) {
+            if (! $user->otp) {
                 return $this->error([], 'No OTP found. Please request a new OTP.', 400);
             }
 
             // Check if OTP has expired
-            if (!$user->otp_expires_at || $user->otp_expires_at->lt(now())) {
+            if (! $user->otp_expires_at || $user->otp_expires_at->lt(now())) {
                 return $this->error([], 'OTP has expired. Please request a new one.', 400);
             }
 
@@ -215,8 +216,9 @@ class AuthController extends Controller
                 Log::warning('Invalid OTP attempt', [
                     'mobile' => $request->mobile,
                     'provided_otp' => $request->otp,
-                    'stored_otp' => $user->otp
+                    'stored_otp' => $user->otp,
                 ]);
+
                 return $this->error([], 'Invalid OTP. Please check and try again.', 400);
             }
 
@@ -249,11 +251,11 @@ class AuthController extends Controller
                 'generated_refresh_token' => $refreshToken,
                 'saved_refresh_token' => $user->refresh_token,
                 'tokens_match' => ($refreshToken === $user->refresh_token),
-                'access_token' => $token->plainTextToken
+                'access_token' => $token->plainTextToken,
             ]);
 
             // Register push notification token if provided
-            if ($request->has('token') && !empty($request->token)) {
+            if ($request->has('token') && ! empty($request->token)) {
                 $this->registerNotificationToken(
                     $user->id,
                     $request->token,
@@ -267,7 +269,7 @@ class AuthController extends Controller
             Log::info('OTP verified successfully', [
                 'user_id' => $user->id,
                 'mobile' => $user->mobile,
-                'token_expiry' => $tokenExpiry
+                'token_expiry' => $tokenExpiry,
             ]);
 
             // Create response WITHOUT using ProfileResponse to avoid token conflicts
@@ -284,7 +286,7 @@ class AuthController extends Controller
             Log::error('Error in verifyOtp', [
                 'mobile' => $request->mobile,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return $this->error([], 'Verification failed. Please try again.', 500);
@@ -300,15 +302,16 @@ class AuthController extends Controller
             // Basic validation to prevent storing empty tokens
             if (empty($token)) {
                 Log::warning('Attempted to register empty push notification token', [
-                    'user_id' => $userId
+                    'user_id' => $userId,
                 ]);
+
                 return false;
             }
 
             Log::info('Registering push notification token', [
                 'user_id' => $userId,
                 'token_length' => strlen($token),
-                'user_role' => $userRole
+                'user_role' => $userRole,
             ]);
 
             // Check if this token already exists
@@ -319,7 +322,7 @@ class AuthController extends Controller
                     // Token exists but belongs to a different user - reassign
                     Log::info('Token exists for different user, reassigning', [
                         'old_user_id' => $existingToken->user_id,
-                        'new_user_id' => $userId
+                        'new_user_id' => $userId,
                     ]);
 
                     $existingToken->update([
@@ -327,7 +330,7 @@ class AuthController extends Controller
                         'user_role' => $userRole,
                         'device_info' => $deviceInfo ? (is_array($deviceInfo) ? json_encode($deviceInfo) : $deviceInfo) : null,
                         'is_active' => true,
-                        'last_used_at' => now()
+                        'last_used_at' => now(),
                     ]);
                 } else {
                     // Token already belongs to current user - update last_used_at
@@ -341,12 +344,12 @@ class AuthController extends Controller
                     'user_role' => $userRole,
                     'device_info' => $deviceInfo ? (is_array($deviceInfo) ? json_encode($deviceInfo) : $deviceInfo) : null,
                     'is_active' => true,
-                    'last_used_at' => now()
+                    'last_used_at' => now(),
                 ]);
             }
 
             Log::info('Push notification token registered successfully', [
-                'user_id' => $userId
+                'user_id' => $userId,
             ]);
 
             return true;
@@ -354,8 +357,9 @@ class AuthController extends Controller
             Log::error('Error registering push notification token', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
-                'user_id' => $userId
+                'user_id' => $userId,
             ]);
+
             return false;
         }
     }
@@ -393,7 +397,7 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             Log::error('Error in registerToken endpoint', [
                 'user_id' => Auth::id(),
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return $this->error([], 'Failed to register notification token', 500);
@@ -420,10 +424,11 @@ class AuthController extends Controller
                 ->where('refresh_token_expires_at', '>', now())
                 ->first();
 
-            if (!$user) {
+            if (! $user) {
                 Log::warning('Invalid or expired refresh token attempt', [
-                    'token' => substr($request->refresh_token, 0, 10) . '...'
+                    'token' => substr($request->refresh_token, 0, 10).'...',
                 ]);
+
                 return $this->error([], 'Invalid or expired refresh token.', 401);
             }
 
@@ -449,7 +454,7 @@ class AuthController extends Controller
 
             Log::info('Token refreshed successfully', [
                 'user_id' => $user->id,
-                'new_token_expiry' => $tokenExpiry
+                'new_token_expiry' => $tokenExpiry,
             ]);
 
             // Return new tokens
@@ -467,7 +472,7 @@ class AuthController extends Controller
 
             Log::error('Token refresh error', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return $this->error([], 'Failed to refresh token. Please login again.', 500);
@@ -477,19 +482,138 @@ class AuthController extends Controller
     /**
      * Register user details after OTP verification.
      */
-    public function register(AuthRequest $request)
+    // public function register(AuthRequest $request)
+    // {
+    //     try {
+    //         $user = User::where('mobile', $request->mobile)->first();
+
+    //         if (!$user) {
+    //             return $this->error([], 'User not found. Please verify OTP first.', 404);
+    //         }
+
+    //         // $user1 = User::where('email', $request->email)->first();
+
+    //         // if ($user1) {
+    //         //     return $this->error([], 'Duplicate Email Found.', 400);
+    //         // }
+
+    //         // Check if user is already registered
+    //         if ($user->is_registered) {
+    //             return $this->error([], 'User is already registered.', 400);
+    //         }
+
+    //         DB::beginTransaction();
+
+    //         // Handle profile picture upload
+    //         if ($request->hasFile('profile_picture')) {
+    //             $path = $request->file('profile_picture')->store('profile_pictures', 'public');
+    //             $user->profile_picture = $path;
+    //         }
+
+    //         // Generate a unique referral code if not already set
+    //         if (empty($user->referral_code)) {
+    //             $user->referral_code = $this->generateUniqueReferralCode();
+    //         }
+
+    //         // Convert reference_code to reference_user_id
+    //         if ($request->filled('reference_code')) {
+    //             $referrer = User::where('referral_code', $request->reference_code)->first();
+    //             if ($referrer) {
+    //                 $user->reference_id = $referrer->id;
+    //                 Log::info('User linked to referrer', [
+    //                     'user_id' => $user->id,
+    //                     'referrer_id' => $referrer->id,
+    //                     'reference_code' => $request->reference_code
+    //                 ]);
+    //             } else {
+    //                 Log::warning('Invalid reference code provided', [
+    //                     'user_id' => $user->id,
+    //                     'reference_code' => $request->reference_code
+    //                 ]);
+    //             }
+    //         }
+
+    //         // Update user with registration data
+    //         $updateData = $request->only([
+    //             'name',
+    //             'email',
+    //             'gender',
+    //             'dob',
+    //             'address',
+    //             'full_address',
+    //             'street',
+    //             'city',
+    //             'state',
+    //             'country',
+    //             'postal_code',
+    //             'latitude',
+    //             'longitude',
+    //             'terms_accepted'
+    //         ]);
+
+    //         // Add role-specific fields
+    //         if ($request->role === 'vendor') {
+    //             if ($request->has('business_category_id')) {
+    //                 $updateData['business_category_id'] = $request->business_category_id;
+    //             }
+    //             if ($request->has('experience')) {
+    //                 $updateData['experience'] = $request->experience;
+    //             }
+    //         }
+
+    //         // Set role if provided
+    //         if ($request->has('role')) {
+    //             $updateData['role'] = $request->role;
+    //         }
+
+    //         // Mark as registered
+    //         $updateData['is_registered'] = true;
+
+    //         // Update user
+    //         //dd($updateData);
+    //         $user->update($updateData);
+
+    //         // Register push notification token if provided
+    //         if ($request->has('token') && !empty($request->token)) {
+    //             $this->registerNotificationToken(
+    //                 $user->id,
+    //                 $request->token,
+    //                 $user->role,
+    //                 $request->device_info
+    //             );
+    //         }
+
+    //         DB::commit();
+
+    //         Log::info('User registered successfully', [
+    //             'user_id' => $user->id,
+    //             'mobile' => $user->mobile,
+    //             'role' => $user->role
+    //         ]);
+
+    //         return $this->success(new ProfileResponse($user), 'User registered successfully.');
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Registration error', [
+    //             'mobile' => $request->mobile,
+    //             'error' => $e->getMessage(),
+    //             'trace' => $e->getTraceAsString()
+    //         ]);
+
+    //         return $this->error([
+    //             'mobile' => $request->mobile,
+    //             'error' => $e->getMessage(),
+    //             'trace' => $e->getTraceAsString()
+    //         ], 'Registration failed. Please try again.', 500);
+    //     }
+    // }
+    public function register(AuthRequest $request, UserRegistrationService $service)
     {
         try {
             $user = User::where('mobile', $request->mobile)->first();
-
-            if (!$user) {
+            if (! $user) {
                 return $this->error([], 'User not found. Please verify OTP first.', 404);
-            }
-
-            $user1 = User::where('email', $request->email)->first();
-
-            if ($user1) {
-                return $this->error([], 'Duplicate Email Found.', 400);
             }
 
             // Check if user is already registered
@@ -497,78 +621,9 @@ class AuthController extends Controller
                 return $this->error([], 'User is already registered.', 400);
             }
 
-            DB::beginTransaction();
+            $service->register($request->all(), $user);
 
-            // Handle profile picture upload
-            if ($request->hasFile('profile_picture')) {
-                $path = $request->file('profile_picture')->store('profile_pictures', 'public');
-                $user->profile_picture = $path;
-            }
-
-            // Generate a unique referral code if not already set
-            if (empty($user->referral_code)) {
-                $user->referral_code = $this->generateUniqueReferralCode();
-            }
-
-            // Convert reference_code to reference_user_id
-            if ($request->filled('reference_code')) {
-                $referrer = User::where('referral_code', $request->reference_code)->first();
-                if ($referrer) {
-                    $user->reference_id = $referrer->id;
-                    Log::info('User linked to referrer', [
-                        'user_id' => $user->id,
-                        'referrer_id' => $referrer->id,
-                        'reference_code' => $request->reference_code
-                    ]);
-                } else {
-                    Log::warning('Invalid reference code provided', [
-                        'user_id' => $user->id,
-                        'reference_code' => $request->reference_code
-                    ]);
-                }
-            }
-
-            // Update user with registration data
-            $updateData = $request->only([
-                'name',
-                'email',
-                'gender',
-                'dob',
-                'address',
-                'full_address',
-                'street',
-                'city',
-                'state',
-                'country',
-                'postal_code',
-                'latitude',
-                'longitude',
-                'terms_accepted'
-            ]);
-
-            // Add role-specific fields
-            if ($request->role === 'vendor') {
-                if ($request->has('business_category_id')) {
-                    $updateData['business_category_id'] = $request->business_category_id;
-                }
-                if ($request->has('experience')) {
-                    $updateData['experience'] = $request->experience;
-                }
-            }
-
-            // Set role if provided
-            if ($request->has('role')) {
-                $updateData['role'] = $request->role;
-            }
-
-            // Mark as registered
-            $updateData['is_registered'] = true;
-
-            // Update user
-            $user->update($updateData);
-
-            // Register push notification token if provided
-            if ($request->has('token') && !empty($request->token)) {
+            if ($request->has('token') && ! empty($request->token)) {
                 $this->registerNotificationToken(
                     $user->id,
                     $request->token,
@@ -577,28 +632,19 @@ class AuthController extends Controller
                 );
             }
 
-            DB::commit();
-
-            Log::info('User registered successfully', [
-                'user_id' => $user->id,
-                'mobile' => $user->mobile,
-                'role' => $user->role
-            ]);
-
             return $this->success(new ProfileResponse($user), 'User registered successfully.');
-        } catch (\Exception $e) {
-            DB::rollBack();
+        } catch (\Throwable $th) {
 
             Log::error('Registration error', [
                 'mobile' => $request->mobile,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'error' => $th->getMessage(),
+                'trace' => $th->getTraceAsString(),
             ]);
 
             return $this->error([
                 'mobile' => $request->mobile,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'error' => $th->getMessage(),
+                'trace' => $th->getTraceAsString(),
             ], 'Registration failed. Please try again.', 500);
         }
     }
@@ -617,7 +663,7 @@ class AuthController extends Controller
 
             if ($attempts >= $maxAttempts) {
                 // Fallback to timestamp-based code
-                $code = Str::upper(Str::random(4) . substr(time(), -4));
+                $code = Str::upper(Str::random(4).substr(time(), -4));
                 break;
             }
         } while (User::where('referral_code', $code)->exists());
@@ -642,7 +688,7 @@ class AuthController extends Controller
                 'gender' => $user->gender,
                 'dob' => $user->dob ? date('Y-m-d', strtotime($user->dob)) : null,
                 'role' => $user->role,
-                'profile_picture' => $user->profile_picture ? asset('storage/' . $user->profile_picture) : null,
+                'profile_picture' => $user->profile_picture ? asset('storage/'.$user->profile_picture) : null,
                 'rating' => $user->role == 'vendor' ? number_format(\App\Models\Review::getAverageRatingForProvider($user->id), 1) : '',
                 'referral_code' => $user->referral_code,
                 'is_registered' => (bool) $user->name,
@@ -678,14 +724,14 @@ class AuthController extends Controller
                 'user_id' => $user->id,
                 'response_refresh_token' => $responseData['refresh_token'],
                 'expected_refresh_token' => $refreshToken,
-                'tokens_match' => ($responseData['refresh_token'] === $refreshToken)
+                'tokens_match' => ($responseData['refresh_token'] === $refreshToken),
             ]);
 
             return $this->success($responseData, $message);
         } catch (\Exception $e) {
             Log::error('Error creating direct auth response', [
                 'user_id' => $user->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             // Ultra-minimal fallback response
@@ -725,14 +771,14 @@ class AuthController extends Controller
                 'generated_refresh_token' => $refreshToken,
                 'database_refresh_token' => $user->refresh_token,
                 'response_refresh_token' => $userData['refresh_token'],
-                'tokens_match' => ($refreshToken === $userData['refresh_token'])
+                'tokens_match' => ($refreshToken === $userData['refresh_token']),
             ]);
 
             return $this->success($userData, $message);
         } catch (\Exception $e) {
             Log::error('Error creating auth response', [
                 'user_id' => $user->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             // Fallback to direct response
@@ -761,14 +807,14 @@ class AuthController extends Controller
                 ->update(['is_active' => false]);
 
             Log::info('User logged out successfully', [
-                'user_id' => $user->id
+                'user_id' => $user->id,
             ]);
 
             return $this->success([], 'Logged out successfully.');
         } catch (\Exception $e) {
             Log::error('Logout error', [
                 'user_id' => Auth::id(),
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return $this->error([], 'Logout failed.', 500);
@@ -799,12 +845,13 @@ class AuthController extends Controller
                 'mobile' => $user->mobile,
                 'role' => $request->role, // Remove this in production
             ]);
+
             return $this->success([], 'Role updated successfully.');
         } catch (\Exception $e) {
             Log::error('Error in sendOtp', [
                 'mobile' => $request->mobile,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return $this->error([], 'Failed to update role.', 500);

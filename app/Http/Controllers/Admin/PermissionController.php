@@ -34,6 +34,7 @@ class PermissionController extends Controller
     public function create()
     {
         $modules = Permission::select('module')->distinct()->orderBy('module')->pluck('module');
+
         return view('admin.permissions.create', compact('modules'));
     }
 
@@ -49,7 +50,7 @@ class PermissionController extends Controller
         ]);
 
         // Create a slug-friendly name from the display_name and module
-        $name = Str::slug($request->module . ' ' . $request->display_name, '_');
+        $name = Str::slug($request->module.' '.$request->display_name, '_');
 
         // Check if the name already exists
         if (Permission::where('name', $name)->exists()) {
@@ -76,6 +77,7 @@ class PermissionController extends Controller
     public function show(Permission $permission)
     {
         $permission->load('roles');
+
         return view('admin.permissions.show', compact('permission'));
     }
 
@@ -85,6 +87,7 @@ class PermissionController extends Controller
     public function edit(Permission $permission)
     {
         $modules = Permission::select('module')->distinct()->orderBy('module')->pluck('module');
+
         return view('admin.permissions.edit', compact('permission', 'modules'));
     }
 
@@ -138,6 +141,7 @@ class PermissionController extends Controller
     public function bulkCreate()
     {
         $modules = Permission::select('module')->distinct()->orderBy('module')->pluck('module');
+
         return view('admin.permissions.bulk-create', compact('modules'));
     }
 
@@ -161,7 +165,7 @@ class PermissionController extends Controller
                 continue;
             }
 
-            $name = Str::slug($validated['module'] . ' ' . $permName, '_');
+            $name = Str::slug($validated['module'].' '.$permName, '_');
 
             // Skip if permission already exists
             if (Permission::where('name', $name)->exists()) {
@@ -178,6 +182,6 @@ class PermissionController extends Controller
         }
 
         return redirect()->route('admin.permissions.index')
-            ->with('success', $createdCount . ' permissions created successfully.');
+            ->with('success', $createdCount.' permissions created successfully.');
     }
 }

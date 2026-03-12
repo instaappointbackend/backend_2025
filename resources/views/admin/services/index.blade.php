@@ -24,30 +24,38 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">All Services</h5>
-            
+
             <div class="search-filter">
                 <form action="{{ route('admin.services.index') }}" method="GET" class="d-flex gap-2">
                     <div class="input-group">
-                        <input type="text" name="search" class="form-control" placeholder="Search services..." value="{{ request('search') }}">
+                        <input type="text" name="search" class="form-control" placeholder="Search services..."
+                            value="{{ request('search') }}">
                         <button type="submit" class="btn btn-outline-primary">
                             <i class="fas fa-search"></i>
                         </button>
                     </div>
-                    
+
                     <select name="vendor_id" class="form-select" onchange="this.form.submit()">
                         <option value="">-- Select Vendor --</option>
-                        @foreach($vendors as $vendor)
+                        @foreach ($vendors as $vendor)
                             <option value="{{ $vendor->id }}" {{ request('vendor_id') == $vendor->id ? 'selected' : '' }}>
                                 {{ $vendor->name }}
                             </option>
                         @endforeach
                     </select>
-                    
+
                     <select name="status" class="form-select" onchange="this.form.submit()">
                         <option value="">-- Status --</option>
                         <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
                         <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
                     </select>
+
+                    <div class="col-md-1">
+                        <a href="{{ route('admin.services.index') }}" class="btn btn-secondary ml-2">
+                            <i class="fas fa-sync"></i>
+                        </a>
+                    </div>
+
                 </form>
             </div>
         </div>
@@ -56,6 +64,7 @@
                 <table class="table table-hover">
                     <thead>
                         <tr>
+                            <th>Sr No</th>
                             <th>ID</th>
                             <th>Service</th>
                             <th>Vendor</th>
@@ -66,29 +75,42 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($services as $service)
+                        @forelse($services as $index=>$service)
                             <tr>
+                                <td>{{ $services->firstItem() + $index }}</td>
                                 <td>{{ $service->id }}</td>
                                 <td>
-                                    <div>
-                                        <h6 class="mb-0">{{ $service->name }}</h6>
-                                        <small class="text-muted">{{ Str::limit($service->description, 50) }}</small>
+                                    <div class="d-flex align-items-center">
+                                        @if ($service->image && Storage::disk('public')->exists($service->image))
+                                            <div class="me-2">
+                                                <img src="{{ $service->image ? asset('storage/' . $service->image) : '' }}"
+                                                    alt="{{ $service->name }}" class="avatar-img" width="30"
+                                                    height="30">
+                                            </div>
+                                        @endif
+                                        <div>
+                                            {{ $service->name }}
+                                        </div>
                                     </div>
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <div class="me-2">
-                                            <img src="{{ $service->user->profile_picture ? asset('storage/' . $service->user->profile_picture) : asset('admin/images/default-avatar.png') }}" alt="{{ $service->user->name }}" class="avatar-img" width="30" height="30">
-                                        </div>
+                                        @if ($service->user->profile_picture && Storage::disk('public')->exists($service->user->profile_picture))
+                                            <div class="me-2">
+                                                <img src="{{ $service->user->profile_picture ? asset('storage/' . $service->user->profile_picture) : asset('admin/images/default-avatar.png') }}"
+                                                    alt="{{ $service->user->name }}" class="avatar-img" width="30"
+                                                    height="30">
+                                            </div>
+                                        @endif
                                         <div>
                                             {{ $service->user->name }}
                                         </div>
                                     </div>
                                 </td>
-                                <td>{{ $service->formatted_duration ?? ($service->duration . ' minutes') }}</td>
-                                <td>{{ $service->formatted_price ?? ('₹' . number_format($service->price, 2)) }}</td>
+                                <td>{{ $service->formatted_duration ?? $service->duration . ' minutes' }}</td>
+                                <td>{{ $service->formatted_price ?? '₹' . number_format($service->price, 2) }}</td>
                                 <td>
-                                    @if($service->is_active)
+                                    @if ($service->is_active)
                                         <span class="badge bg-success">Active</span>
                                     @else
                                         <span class="badge bg-danger">Inactive</span>
@@ -96,16 +118,22 @@
                                 </td>
                                 <td>
                                     <div class="d-flex">
-                                        <a href="{{ route('admin.services.show', $service->id) }}" class="btn btn-sm btn-info me-1" data-bs-toggle="tooltip" title="View Details">
+                                        <a href="{{ route('admin.services.show', $service->id) }}"
+                                            class="btn btn-sm btn-info me-1" data-bs-toggle="tooltip" title="View Details">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a href="{{ route('admin.services.edit', $service->id) }}" class="btn btn-sm btn-primary me-1" data-bs-toggle="tooltip" title="Edit Service">
+                                        <a href="{{ route('admin.services.edit', $service->id) }}"
+                                            class="btn btn-sm btn-primary me-1" data-bs-toggle="tooltip"
+                                            title="Edit Service">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <form action="{{ route('admin.services.destroy', $service->id) }}" method="POST" class="d-inline">
+                                        <form action="{{ route('admin.services.destroy', $service->id) }}" method="POST"
+                                            class="d-inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger" data-confirm="Are you sure you want to delete this service?" data-bs-toggle="tooltip" title="Delete Service">
+                                            <button type="submit" class="btn btn-sm btn-danger"
+                                                data-confirm="Are you sure you want to delete this service?"
+                                                data-bs-toggle="tooltip" title="Delete Service">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
@@ -120,30 +148,43 @@
                     </tbody>
                 </table>
             </div>
-            
-            <div class="d-flex justify-content-end mt-3">
-                {{ $services->links() }}
-            </div>
+
+            {{-- <div class="d-flex justify-content-end mt-3">
+                {{ $services->onEachSide(5)->links() }}
+            </div> --}}
+
+            @if ($services->hasPages())
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>
+                        Showing {{ $services->firstItem() ?? 0 }} to {{ $services->lastItem() ?? 0 }} of
+                        {{ $services->total() }}
+                        users
+                    </div>
+                    <div class="d-flex justify-content-end mt-3">
+                        {{ $services->onEachSide(5)->links() }}
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 @endsection
 
 @section('scripts')
-<script>
-    // Initialize tooltips
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl)
-    })
-    
-    // Confirm delete
-    document.querySelectorAll('[data-confirm]').forEach(function(element) {
-        element.addEventListener('click', function(e) {
-            if (!confirm(this.dataset.confirm)) {
-                e.preventDefault();
-                return false;
-            }
+    <script>
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+
+        // Confirm delete
+        document.querySelectorAll('[data-confirm]').forEach(function(element) {
+            element.addEventListener('click', function(e) {
+                if (!confirm(this.dataset.confirm)) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
         });
-    });
-</script>
+    </script>
 @endsection

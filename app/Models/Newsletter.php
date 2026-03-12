@@ -23,7 +23,7 @@ class Newsletter extends Model
         'unsubscribed_at',
         'source',
         'ip_address',
-        'user_agent'
+        'user_agent',
     ];
 
     /**
@@ -78,6 +78,7 @@ class Newsletter extends Model
     {
         $this->status = 'unsubscribed';
         $this->unsubscribed_at = now();
+
         return $this->save();
     }
 
@@ -91,6 +92,7 @@ class Newsletter extends Model
         $this->status = 'subscribed';
         $this->subscribed_at = now();
         $this->unsubscribed_at = null;
+
         return $this->save();
     }
 }

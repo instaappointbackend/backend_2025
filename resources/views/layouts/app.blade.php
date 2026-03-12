@@ -11,6 +11,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Toastr CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/css/toastr.css" rel="stylesheet" />
 
     <!-- Common styles -->
     <style>
@@ -75,7 +77,8 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                @include('partials.navbar')
+                {{-- <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url('/#features') }}">Features</a>
                     </li>
@@ -97,7 +100,7 @@
                     <li class="nav-item ms-lg-3">
                         <a class="btn btn-primary" href="{{ url('/#download') }}">Get App</a>
                     </li>
-                </ul>
+                </ul> --}}
             </div>
         </div>
     </nav>
@@ -240,15 +243,14 @@
                     <div class="mt-3">
                         <a href="https://play.google.com/store/apps/details?id=in.instaappoint.app&pcampaignid=web_share"
                             target="_blank" class="d-inline-block mb-2">
-                            <img src="{{ asset('images/Google_Play_Store_badge_EN.svg') }}"
-                                alt="Get it on Google Play" class="img-fluid download-badge"
-                                style="max-height: 50px;">
+                            <img src="{{ asset('images/Google_Play_Store_badge_EN.svg') }}" alt="Get it on Google Play"
+                                class="img-fluid download-badge" style="width: 150px; height: auto;">
                         </a>
                         <a href="https://apps.apple.com/in/app/instaappoint/id6747049926" target="_blank"
                             class="d-inline-block">
                             <img src="{{ asset('images/Download_on_the_App_Store_Badge.svg') }}"
                                 alt="Download on App Store" class="img-fluid download-badge"
-                                style="max-height: 50px;">
+                                style="width: 150px; height: auto;">
                         </a>
                     </div>
                 </div>
@@ -288,6 +290,11 @@
     <!-- Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+
+    <!-- Toastr JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/js/toastr.js"></script>
     <!-- Common JavaScript -->
     <script>
         // Change navbar background on scroll
@@ -299,6 +306,27 @@
                 navbar.classList.remove('shadow');
             }
         });
+
+        function toasterOptions() {
+            toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": true,
+                "positionClass": "toast-top-right",
+                "preventDuplicates": true,
+                "onclick": null,
+                "showDuration": "100",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "show",
+                "hideMethod": "hide"
+            };
+        };
+        toasterOptions()
     </script>
 
 

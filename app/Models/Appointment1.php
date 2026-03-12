@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Carbon\Carbon;
 
 class Appointment1 extends Model
 {
@@ -72,15 +72,22 @@ class Appointment1 extends Model
      * The possible status values for an appointment.
      */
     const STATUS_PENDING = 'pending';
+
     const STATUS_CONFIRMED = 'confirmed';
+
     const STATUS_CANCELLED = 'cancelled';
+
     const STATUS_COMPLETED = 'completed';
+
     /**
      * The possible payment status values for an appointment.
      */
     const PAYMENT_STATUS_PENDING = 'pending';
+
     const PAYMENT_STATUS_PAID = 'paid';
+
     const PAYMENT_STATUS_FAILED = 'failed';
+
     const PAYMENT_STATUS_REFUNDED = 'refunded';
 
     /**
@@ -98,7 +105,6 @@ class Appointment1 extends Model
     {
         return $this->belongsTo(User::class, 'client_id');
     }
-
 
     /**
      * Get the client for this appointment.
@@ -145,7 +151,7 @@ class Appointment1 extends Model
      */
     public function getFormattedPlatformFeesAttribute(): string
     {
-        return '₹' . number_format($this->platform_fees, 2);
+        return '₹'.number_format($this->platform_fees, 2);
     }
 
     /**
@@ -153,7 +159,7 @@ class Appointment1 extends Model
      */
     public function getFormattedOtherChargesAttribute(): string
     {
-        return '₹' . number_format($this->other_charges, 2);
+        return '₹'.number_format($this->other_charges, 2);
     }
 
     /**
@@ -161,7 +167,7 @@ class Appointment1 extends Model
      */
     public function getFormattedGstAttribute(): string
     {
-        return '₹' . number_format($this->gst, 2);
+        return '₹'.number_format($this->gst, 2);
     }
 
     /**
@@ -169,7 +175,7 @@ class Appointment1 extends Model
      */
     public function getFormattedHomeVisitFeeAttribute(): string
     {
-        return '₹' . number_format($this->home_visit_fee, 2);
+        return '₹'.number_format($this->home_visit_fee, 2);
     }
 
     /**
@@ -177,7 +183,7 @@ class Appointment1 extends Model
      */
     public function getFormattedAdditionalServicesFeeAttribute(): string
     {
-        return '₹' . number_format($this->additional_services_fee, 2);
+        return '₹'.number_format($this->additional_services_fee, 2);
     }
 
     /**
@@ -202,7 +208,6 @@ class Appointment1 extends Model
             'offer_type' => $this->offer_type,
         ];
     }
-
 
     /**
      * Get the services included in this appointment.
@@ -268,6 +273,7 @@ class Appointment1 extends Model
     public function scopeUpcoming($query)
     {
         $today = Carbon::today();
+
         return $query->where('date', '>=', $today)
             ->whereIn('status', [self::STATUS_PENDING, self::STATUS_CONFIRMED]);
     }
@@ -357,11 +363,11 @@ class Appointment1 extends Model
      */
     public function getFormattedPaymentAmountAttribute()
     {
-        if (!$this->payment_amount) {
+        if (! $this->payment_amount) {
             return null;
         }
 
-        return '₹' . number_format($this->payment_amount, 2);
+        return '₹'.number_format($this->payment_amount, 2);
     }
 
     /**
@@ -369,11 +375,11 @@ class Appointment1 extends Model
      */
     public function getFormattedOriginalPriceAttribute()
     {
-        if (!$this->original_price) {
+        if (! $this->original_price) {
             return null;
         }
 
-        return '₹' . number_format($this->original_price, 2);
+        return '₹'.number_format($this->original_price, 2);
     }
 
     /**
@@ -381,11 +387,11 @@ class Appointment1 extends Model
      */
     public function getFormattedDiscountAmountAttribute()
     {
-        if (!$this->discount_amount) {
+        if (! $this->discount_amount) {
             return null;
         }
 
-        return '₹' . number_format($this->discount_amount, 2);
+        return '₹'.number_format($this->discount_amount, 2);
     }
 
     /**
@@ -393,11 +399,11 @@ class Appointment1 extends Model
      */
     public function getFormattedFinalPriceAttribute()
     {
-        if (!$this->final_price) {
+        if (! $this->final_price) {
             return null;
         }
 
-        return '₹' . number_format($this->final_price, 2);
+        return '₹'.number_format($this->final_price, 2);
     }
 
     /**
@@ -533,7 +539,7 @@ class Appointment1 extends Model
     {
         return $this->status === self::STATUS_COMPLETED &&
             $this->date->isPast() &&
-            !Review::where('appointment_id', $this->id)->exists();
+            ! Review::where('appointment_id', $this->id)->exists();
     }
 
     /**

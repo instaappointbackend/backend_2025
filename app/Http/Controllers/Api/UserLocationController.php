@@ -112,7 +112,7 @@ class UserLocationController extends Controller
             ->where('user_id', Auth::id())
             ->first();
 
-        if (!$location) {
+        if (! $location) {
             return $this->error([], 'Location not found', 404);
         }
 
@@ -131,11 +131,11 @@ class UserLocationController extends Controller
             ->where('user_id', Auth::id())
             ->first();
 
-        if (!$location) {
+        if (! $location) {
             return $this->error([], 'Location not found', 404);
         }
 
-        $location->is_favorite = !$location->is_favorite;
+        $location->is_favorite = ! $location->is_favorite;
         $location->last_used_at = now();
         $location->save();
 
@@ -151,7 +151,7 @@ class UserLocationController extends Controller
             ->where('user_id', Auth::id())
             ->first();
 
-        if (!$location) {
+        if (! $location) {
             return $this->error([], 'Location not found', 404);
         }
 

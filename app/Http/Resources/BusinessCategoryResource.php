@@ -25,7 +25,7 @@ class BusinessCategoryResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
-            'image' => $this->image ? asset('storage/' . $this->image) : null,
+            'image' => $this->image ? asset('storage/'.$this->image) : null,
             'provider_count' => $providerCount,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

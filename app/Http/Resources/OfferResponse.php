@@ -30,7 +30,7 @@ class OfferResponse extends JsonResource
         // Include service information for provider offers
         if ($this->service_id) {
             $data['service_id'] = $this->service_id;
-            $data['service_name'] = $this->whenLoaded('service', function() {
+            $data['service_name'] = $this->whenLoaded('service', function () {
                 return $this->service->name;
             });
         }

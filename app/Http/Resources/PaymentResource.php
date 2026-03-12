@@ -2,8 +2,8 @@
 
 namespace App\Http\Resources;
 
-use Illuminate\Http\Resources\Json\JsonResource;
 use Carbon\Carbon;
+use Illuminate\Http\Resources\Json\JsonResource;
 
 class PaymentResource extends JsonResource
 {
@@ -80,7 +80,7 @@ class PaymentResource extends JsonResource
             'updated_at' => $updatedAt ? $updatedAt->toISOString() : null,
 
             // Related appointment data with conditional loading
-            'appointment' => $this->whenLoaded('appointment', function() {
+            'appointment' => $this->whenLoaded('appointment', function () {
                 return [
                     'id' => $this->appointment->id,
                     'date' => $this->appointment->date,
@@ -109,7 +109,7 @@ class PaymentResource extends JsonResource
                             'discount_percentage' => $this->appointment->comboService->discount_percentage,
                         ];
                     }),
-                    'service' => $this->when($this->appointment->service, function() {
+                    'service' => $this->when($this->appointment->service, function () {
                         return [
                             'id' => $this->appointment->service->id,
                             'name' => $this->appointment->service->name,
@@ -119,17 +119,17 @@ class PaymentResource extends JsonResource
                             'formatted_duration' => $this->appointment->service->formatted_duration ?? null,
                         ];
                     }),
-                    'client' => $this->when($this->appointment->client, function() {
+                    'client' => $this->when($this->appointment->client, function () {
                         return [
                             'id' => $this->appointment->client->id,
                             'name' => $this->appointment->client->name,
                             'email' => $this->appointment->client->email,
                             'phone' => $this->appointment->client->phone,
                             'profile_picture' => $this->appointment->client->profile_picture ?
-                                asset('storage/' . $this->appointment->client->profile_picture) : null,
+                                asset('storage/'.$this->appointment->client->profile_picture) : null,
                         ];
                     }),
-                    'provider' => $this->when($this->appointment->provider, function() {
+                    'provider' => $this->when($this->appointment->provider, function () {
                         return [
                             'id' => $this->appointment->provider->id,
                             'name' => $this->appointment->provider->name,
@@ -138,26 +138,26 @@ class PaymentResource extends JsonResource
                             'business_name' => $this->getProviderBusinessName(),
                             'address' => $this->getProviderAddress(),
                             'profile_picture' => $this->appointment->provider->profile_picture ?
-                                asset('storage/' . $this->appointment->provider->profile_picture) : null,
+                                asset('storage/'.$this->appointment->provider->profile_picture) : null,
                         ];
                     }),
                 ];
             }),
 
             // Client data (user who made the payment)
-            'client' => $this->whenLoaded('user', function() {
+            'client' => $this->whenLoaded('user', function () {
                 return [
                     'id' => $this->user->id,
                     'name' => $this->user->name,
                     'email' => $this->user->email,
                     'phone' => $this->user->phone,
                     'profile_picture' => $this->user->profile_picture ?
-                        asset('storage/' . $this->user->profile_picture) : null,
+                        asset('storage/'.$this->user->profile_picture) : null,
                 ];
             }),
 
             // Provider data (user who received the payment)
-            'provider' => $this->whenLoaded('provider', function() {
+            'provider' => $this->whenLoaded('provider', function () {
                 return [
                     'id' => $this->provider->id,
                     'name' => $this->provider->name,
@@ -166,7 +166,7 @@ class PaymentResource extends JsonResource
                     'business_name' => $this->getProviderBusinessName(),
                     'address' => $this->getProviderAddress(),
                     'profile_picture' => $this->provider->profile_picture ?
-                        asset('storage/' . $this->provider->profile_picture) : null,
+                        asset('storage/'.$this->provider->profile_picture) : null,
                     'business_details' => $this->provider->kycDetails ? [
                         'business_name' => $this->provider->kycDetails->business_name,
                         'business_type' => $this->provider->businessCategory ?
@@ -182,7 +182,7 @@ class PaymentResource extends JsonResource
      */
     protected function getFormattedAppointmentTime()
     {
-        if (!$this->appointment) {
+        if (! $this->appointment) {
             return null;
         }
 
@@ -194,6 +194,7 @@ class PaymentResource extends JsonResource
             if ($this->appointment->start_time && $this->appointment->end_time) {
                 $startTime = Carbon::parse($this->appointment->start_time)->format('g:i A');
                 $endTime = Carbon::parse($this->appointment->end_time)->format('g:i A');
+
                 return "$startTime - $endTime";
             }
         } catch (\Exception $e) {

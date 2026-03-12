@@ -16,10 +16,10 @@ class WorkingHoursResponse extends JsonResource
             'day_of_week' => $this->day_of_week,
             'day_name' => $this->getDayName(),
             'is_working_day' => $this->is_working_day,
-            'start_time' => date('H:i',strtotime($this->start_time)),
-            'end_time' => date('H:i',strtotime($this->end_time)),
-            'break_start' => date('H:i',strtotime($this->break_start)),
-            'break_end' => date('H:i',strtotime($this->break_end)),
+            'start_time' => date('H:i', strtotime($this->start_time)),
+            'end_time' => date('H:i', strtotime($this->end_time)),
+            'break_start' => date('H:i', strtotime($this->break_start)),
+            'break_end' => date('H:i', strtotime($this->break_end)),
             'has_break' => ($this->break_start && $this->break_end),
         ];
     }

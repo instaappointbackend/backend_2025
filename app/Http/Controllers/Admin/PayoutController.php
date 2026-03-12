@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\PayoutRequest;
-use App\Models\User;
 use App\Models\BankAccount;
 use App\Models\Payment;
+use App\Models\PayoutRequest;
+use App\Models\User;
 use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -30,29 +30,29 @@ class PayoutController extends Controller
         $query = PayoutRequest::with(['user', 'bankAccount']);
 
         // Filter by status
-        if ($request->has('status') && $request->status != 'all') {
+        if ($request->filled('status') && $request->status != 'all') {
             $query->where('status', $request->status);
         }
 
         // Filter by date range
-        if ($request->has('start_date') && $request->has('end_date')) {
-            $query->whereBetween('created_at', [$request->start_date . ' 00:00:00', $request->end_date . ' 23:59:59']);
-        } elseif ($request->has('start_date')) {
-            $query->where('created_at', '>=', $request->start_date . ' 00:00:00');
-        } elseif ($request->has('end_date')) {
-            $query->where('created_at', '<=', $request->end_date . ' 23:59:59');
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('created_at', [$request->start_date.' 00:00:00', $request->end_date.' 23:59:59']);
+        } elseif ($request->filled('start_date')) {
+            $query->where('created_at', '>=', $request->start_date.' 00:00:00');
+        } elseif ($request->filled('end_date')) {
+            $query->where('created_at', '<=', $request->end_date.' 23:59:59');
         }
 
         // Filter by amount range
-        if ($request->has('min_amount')) {
+        if ($request->filled('min_amount')) {
             $query->where('amount', '>=', $request->min_amount);
         }
-        if ($request->has('max_amount')) {
+        if ($request->filled('max_amount')) {
             $query->where('amount', '<=', $request->max_amount);
         }
 
         // Filter by provider (user)
-        if ($request->has('user_id') && $request->user_id) {
+        if ($request->filled('user_id') && $request->user_id) {
             $query->where('user_id', $request->user_id);
         }
 
@@ -115,7 +115,7 @@ class PayoutController extends Controller
 
             // Update payout request details
             $updateData = [
-                'status' => $validated['status']
+                'status' => $validated['status'],
             ];
 
             // Set additional fields based on status
@@ -139,15 +139,14 @@ class PayoutController extends Controller
 
             return redirect()->route('admin.payouts.show', $payoutRequest->id)
                 ->with('success', 'Payout request status updated successfully.');
-
         } catch (\Exception $e) {
             // Rollback transaction on error
             DB::rollBack();
 
-            Log::error('Error updating payout request: ' . $e->getMessage());
+            Log::error('Error updating payout request: '.$e->getMessage());
 
             return redirect()->back()
-                ->with('error', 'Failed to update payout request: ' . $e->getMessage())
+                ->with('error', 'Failed to update payout request: '.$e->getMessage())
                 ->withInput();
         }
     }
@@ -177,7 +176,7 @@ class PayoutController extends Controller
             foreach ($validated['payout_ids'] as $index => $id) {
                 $payoutRequest = PayoutRequest::find($id);
 
-                if (!$payoutRequest) {
+                if (! $payoutRequest) {
                     continue;
                 }
 
@@ -198,7 +197,7 @@ class PayoutController extends Controller
                         if (isset($validated['transaction_details'][$id])) {
                             $updateData['transaction_id'] = $validated['transaction_details'][$id];
                         } else {
-                            $updateData['transaction_id'] = 'BATCH_TXN_' . uniqid() . '_' . $id;
+                            $updateData['transaction_id'] = 'BATCH_TXN_'.uniqid().'_'.$id;
                         }
 
                         // Set transaction date if provided
@@ -229,15 +228,14 @@ class PayoutController extends Controller
 
             return redirect()->route('admin.payouts.index')
                 ->with('success', "Successfully processed $processed payout requests.");
-
         } catch (\Exception $e) {
             // Rollback transaction on error
             DB::rollBack();
 
-            Log::error('Error processing batch payouts: ' . $e->getMessage());
+            Log::error('Error processing batch payouts: '.$e->getMessage());
 
             return redirect()->back()
-                ->with('error', 'Failed to process batch payouts: ' . $e->getMessage())
+                ->with('error', 'Failed to process batch payouts: '.$e->getMessage())
                 ->withInput();
         }
     }
@@ -255,11 +253,11 @@ class PayoutController extends Controller
         }
 
         if ($request->has('start_date') && $request->has('end_date')) {
-            $query->whereBetween('created_at', [$request->start_date . ' 00:00:00', $request->end_date . ' 23:59:59']);
+            $query->whereBetween('created_at', [$request->start_date.' 00:00:00', $request->end_date.' 23:59:59']);
         } elseif ($request->has('start_date')) {
-            $query->where('created_at', '>=', $request->start_date . ' 00:00:00');
+            $query->where('created_at', '>=', $request->start_date.' 00:00:00');
         } elseif ($request->has('end_date')) {
-            $query->where('created_at', '<=', $request->end_date . ' 23:59:59');
+            $query->where('created_at', '<=', $request->end_date.' 23:59:59');
         }
 
         if ($request->has('user_id') && $request->user_id) {
@@ -282,13 +280,13 @@ class PayoutController extends Controller
             'Status',
             'Transaction ID',
             'Transaction Date',
-            'Rejection Reason'
+            'Rejection Reason',
         ];
 
         // Add payout request rows
         foreach ($payoutRequests as $payout) {
             $bankDetails = $payout->bankAccount ?
-                ($payout->bankAccount->bank_name . ' - ' .
+                ($payout->bankAccount->bank_name.' - '.
                     $payout->bankAccount->account_number) : 'N/A';
 
             $csvData[] = [
@@ -300,16 +298,16 @@ class PayoutController extends Controller
                 $payout->getHumanStatusAttribute(),
                 $payout->transaction_id ?? 'N/A',
                 $payout->transaction_date ? $payout->transaction_date->format('Y-m-d H:i:s') : 'N/A',
-                $payout->rejection_reason ?? 'N/A'
+                $payout->rejection_reason ?? 'N/A',
             ];
         }
 
         // Create unique filename
-        $filename = 'payout_requests_export_' . date('Y-m-d_H-i-s') . '.csv';
-        $filepath = storage_path('app/public/exports/' . $filename);
+        $filename = 'payout_requests_export_'.date('Y-m-d_H-i-s').'.csv';
+        $filepath = storage_path('app/public/exports/'.$filename);
 
         // Ensure directory exists
-        if (!file_exists(storage_path('app/public/exports/'))) {
+        if (! file_exists(storage_path('app/public/exports/'))) {
             mkdir(storage_path('app/public/exports/'), 0755, true);
         }
 
@@ -390,7 +388,7 @@ class PayoutController extends Controller
                 'date' => $currentDate->format('Y-m-d'),
                 'formatted_date' => $currentDate->format('M d'),
                 'amount' => $dayAmount,
-                'formatted_amount' => '₹' . number_format($dayAmount, 2)
+                'formatted_amount' => '₹'.number_format($dayAmount, 2),
             ];
 
             $currentDate->addDay();
@@ -421,7 +419,7 @@ class PayoutController extends Controller
             $monthlyStats[] = [
                 'month' => $startMonth->format('M Y'),
                 'amount' => $monthAmount,
-                'formatted_amount' => '₹' . number_format($monthAmount, 2)
+                'formatted_amount' => '₹'.number_format($monthAmount, 2),
             ];
 
             $startMonth = $nextMonth;
@@ -528,15 +526,14 @@ class PayoutController extends Controller
 
             return redirect()->route('admin.payouts.provider_earnings', $userId)
                 ->with('success', 'Manual payout created successfully.');
-
         } catch (\Exception $e) {
             // Rollback transaction on error
             DB::rollBack();
 
-            Log::error('Error creating manual payout: ' . $e->getMessage());
+            Log::error('Error creating manual payout: '.$e->getMessage());
 
             return redirect()->back()
-                ->with('error', 'Failed to create manual payout: ' . $e->getMessage())
+                ->with('error', 'Failed to create manual payout: '.$e->getMessage())
                 ->withInput();
         }
     }
@@ -576,15 +573,15 @@ class PayoutController extends Controller
 
         return [
             'total_earnings' => $totalEarnings,
-            'formatted_total_earnings' => '₹' . number_format($totalEarnings, 2),
+            'formatted_total_earnings' => '₹'.number_format($totalEarnings, 2),
             'available_balance' => $availableBalance,
-            'formatted_available_balance' => '₹' . number_format($availableBalance, 2),
+            'formatted_available_balance' => '₹'.number_format($availableBalance, 2),
             'pending_amount' => $pendingAmount,
-            'formatted_pending_amount' => '₹' . number_format($pendingAmount, 2),
+            'formatted_pending_amount' => '₹'.number_format($pendingAmount, 2),
             'withdrawn_amount' => $withdrawnAmount,
-            'formatted_withdrawn_amount' => '₹' . number_format($withdrawnAmount, 2),
+            'formatted_withdrawn_amount' => '₹'.number_format($withdrawnAmount, 2),
             'minimum_withdrawal_amount' => $minimumWithdrawalAmount,
-            'formatted_minimum_withdrawal_amount' => '₹' . number_format($minimumWithdrawalAmount, 2),
+            'formatted_minimum_withdrawal_amount' => '₹'.number_format($minimumWithdrawalAmount, 2),
         ];
     }
 
@@ -594,26 +591,26 @@ class PayoutController extends Controller
     private function sendPayoutStatusNotifications(PayoutRequest $payoutRequest, $oldStatus, $newStatus, $data = [])
     {
         // Load user relation if not already loaded
-        if (!$payoutRequest->relationLoaded('user')) {
+        if (! $payoutRequest->relationLoaded('user')) {
             $payoutRequest->load('user');
         }
 
         // Load bank account relation if not already loaded
-        if (!$payoutRequest->relationLoaded('bankAccount')) {
+        if (! $payoutRequest->relationLoaded('bankAccount')) {
             $payoutRequest->load('bankAccount');
         }
 
         $provider = $payoutRequest->user;
-        if (!$provider) {
+        if (! $provider) {
             return;
         }
 
         // Format amount for notifications
-        $formattedAmount = '₹' . number_format($payoutRequest->amount, 2);
+        $formattedAmount = '₹'.number_format($payoutRequest->amount, 2);
 
         // Get bank details
         $bankDetails = $payoutRequest->bankAccount ?
-            ($payoutRequest->bankAccount->bank_name . ' - ' .
+            ($payoutRequest->bankAccount->bank_name.' - '.
                 substr($payoutRequest->bankAccount->account_number, -4)) : 'your bank account';
 
         switch ($newStatus) {
@@ -625,7 +622,7 @@ class PayoutController extends Controller
                     'payout_request_id' => $payoutRequest->id,
                     'amount' => $payoutRequest->amount,
                     'status' => $payoutRequest->status,
-                    'screenName' => 'PayoutDetails'
+                    'screenName' => 'PayoutDetails',
                 ];
                 break;
 
@@ -639,7 +636,7 @@ class PayoutController extends Controller
                     'transaction_id' => $payoutRequest->transaction_id,
                     'transaction_date' => $payoutRequest->transaction_date ? $payoutRequest->transaction_date->format('Y-m-d H:i:s') : null,
                     'status' => $payoutRequest->status,
-                    'screenName' => 'PayoutDetails'
+                    'screenName' => 'PayoutDetails',
                 ];
                 break;
 
@@ -652,7 +649,7 @@ class PayoutController extends Controller
                     'amount' => $payoutRequest->amount,
                     'rejection_reason' => $payoutRequest->rejection_reason,
                     'status' => $payoutRequest->status,
-                    'screenName' => 'PayoutDetails'
+                    'screenName' => 'PayoutDetails',
                 ];
                 break;
 
@@ -675,20 +672,20 @@ class PayoutController extends Controller
     private function sendManualPayoutNotification(PayoutRequest $payoutRequest)
     {
         // Load needed relations if not already loaded
-        if (!$payoutRequest->relationLoaded('user') || !$payoutRequest->relationLoaded('bankAccount')) {
+        if (! $payoutRequest->relationLoaded('user') || ! $payoutRequest->relationLoaded('bankAccount')) {
             $payoutRequest->load(['user', 'bankAccount']);
         }
 
-        if (!$payoutRequest->user) {
+        if (! $payoutRequest->user) {
             return;
         }
 
         // Format amount for notification
-        $formattedAmount = '₹' . number_format($payoutRequest->amount, 2);
+        $formattedAmount = '₹'.number_format($payoutRequest->amount, 2);
 
         // Get bank details
         $bankDetails = $payoutRequest->bankAccount ?
-            ($payoutRequest->bankAccount->bank_name . ' - ' .
+            ($payoutRequest->bankAccount->bank_name.' - '.
                 substr($payoutRequest->bankAccount->account_number, -4)) : 'your bank account';
 
         $title = 'Payout Processed';
@@ -700,7 +697,7 @@ class PayoutController extends Controller
             'transaction_id' => $payoutRequest->transaction_id,
             'transaction_date' => $payoutRequest->transaction_date ? $payoutRequest->transaction_date->format('Y-m-d H:i:s') : null,
             'status' => $payoutRequest->status,
-            'screenName' => 'PayoutDetails'
+            'screenName' => 'PayoutDetails',
         ];
 
         // Send the notification
@@ -719,22 +716,22 @@ class PayoutController extends Controller
     {
         // Get all vendors with pending/processing payouts
         $vendors = User::where('role', 'vendor')
-            ->whereHas('payoutRequests', function($query) {
+            ->whereHas('payoutRequests', function ($query) {
                 $query->whereIn('status', [
                     PayoutRequest::STATUS_PENDING,
-                    PayoutRequest::STATUS_PROCESSING
+                    PayoutRequest::STATUS_PROCESSING,
                 ]);
             })
-            ->withCount(['payoutRequests as pending_payout_count' => function($query) {
+            ->withCount(['payoutRequests as pending_payout_count' => function ($query) {
                 $query->whereIn('status', [
                     PayoutRequest::STATUS_PENDING,
-                    PayoutRequest::STATUS_PROCESSING
+                    PayoutRequest::STATUS_PROCESSING,
                 ]);
             }])
-            ->withSum(['payoutRequests as pending_payout_amount' => function($query) {
+            ->withSum(['payoutRequests as pending_payout_amount' => function ($query) {
                 $query->whereIn('status', [
                     PayoutRequest::STATUS_PENDING,
-                    PayoutRequest::STATUS_PROCESSING
+                    PayoutRequest::STATUS_PROCESSING,
                 ]);
             }], 'amount')
             ->orderBy('pending_payout_amount', 'desc')

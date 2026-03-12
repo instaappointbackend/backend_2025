@@ -21,6 +21,7 @@ class ServiceController extends Controller
     public function index()
     {
         $services = Service::where('user_id', Auth::id())->get();
+
         return $this->success(ServiceResponse::collection($services), 'Services retrieved successfully.');
     }
 
@@ -32,10 +33,11 @@ class ServiceController extends Controller
         $data = $request->validated();
         $data['user_id'] = Auth::id();
         if ($request->hasFile('image')) {
-            $file = $request->file('image');
-                $data['image'] = $file->store('image', 'public');
+            $imagePath = $request->file('image')->store('services', 'public');
+            $data['image'] = $imagePath;
         }
         $service = Service::create($data);
+
         return $this->success(new ServiceResponse($service), 'Service created successfully.', 201);
     }
 
@@ -48,7 +50,7 @@ class ServiceController extends Controller
             ->where('id', $id)
             ->first();
 
-        if (!$service) {
+        if (! $service) {
             return $this->error([], 'Service not found', 404);
         }
 
@@ -64,8 +66,7 @@ class ServiceController extends Controller
             ->where('id', $id)
             ->first();
 
-
-        if (!$service) {
+        if (! $service) {
             return $this->error([], 'Service not found', 404);
         }
 
@@ -84,16 +85,14 @@ class ServiceController extends Controller
         }
 
         if ($request->hasFile('image')) {
-            $file = $request->file('image');
-
-            // Delete existing file before updating
-            if ($service->image) {
+            // Delete old image if exists
+            if ($service->image && Storage::disk('public')->exists($service->image)) {
                 Storage::disk('public')->delete($service->image);
             }
 
-            $data['image'] = $file->store('image', 'public');
+            $path = $request->file('image')->store('services', 'public');
+            $validated['image'] = $path;
         }
-
 
         $service->update($data);
 
@@ -109,7 +108,7 @@ class ServiceController extends Controller
             ->where('id', $id)
             ->first();
 
-        if (!$service) {
+        if (! $service) {
             return $this->error([], 'Service not found', 404);
         }
 
@@ -134,7 +133,7 @@ class ServiceController extends Controller
             ->where('id', $id)
             ->first();
 
-        if (!$service) {
+        if (! $service) {
             return $this->error([], 'Service not found', 404);
         }
 
@@ -150,12 +149,12 @@ class ServiceController extends Controller
             }
         }
 
-        $service->is_active = !$service->is_active;
+        $service->is_active = ! $service->is_active;
         $service->save();
 
         return $this->success(
             new ServiceResponse($service),
-            'Service ' . ($service->is_active ? 'activated' : 'deactivated') . ' successfully.'
+            'Service '.($service->is_active ? 'activated' : 'deactivated').' successfully.'
         );
     }
 

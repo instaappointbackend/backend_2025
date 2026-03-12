@@ -25,7 +25,6 @@ class UserFavorite extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-
     /**
      * Get the vendor who was favorited.
      */

@@ -3,17 +3,19 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
-
-use function Laravel\Prompts\error;
+use Illuminate\Support\Facades\Log;
 
 class PhonePeController extends Controller
 {
     protected $merchantId;
+
     protected $saltKey;
+
     protected $saltIndex;
+
     protected $isProduction;
+
     protected $baseUrl;
 
     public function __construct()
@@ -43,12 +45,12 @@ class PhonePeController extends Controller
             'name' => 'required|string|max:100',
             'email' => 'required|email',
             'phone' => 'required|string|min:10|max:12',
-            'amount' => 'required|numeric|min:1'
+            'amount' => 'required|numeric|min:1',
         ]);
 
         try {
             // Create a unique transaction ID
-            $transactionId = 'ORDER_' . time() . '_' . rand(100, 999);
+            $transactionId = 'ORDER_'.time().'_'.rand(100, 999);
 
             // Format mobile number - ensure it's 10 digits
             $mobileNumber = $request->phone;
@@ -57,21 +59,21 @@ class PhonePeController extends Controller
             }
 
             // Convert amount to paise (PhonePe requires amount in paise)
-            $amountInPaise = (int)($request->amount * 100);
+            $amountInPaise = (int) ($request->amount * 100);
 
             // Create the payload
             $payload = [
                 'merchantId' => $this->merchantId,
                 'merchantTransactionId' => $transactionId,
-                'merchantUserId' => 'MUID_' . time(),
+                'merchantUserId' => 'MUID_'.time(),
                 'amount' => $amountInPaise,
                 'redirectUrl' => route('phonepe.callback'),
                 'redirectMode' => 'POST',
                 'callbackUrl' => route('phonepe.webhook'),
                 'mobileNumber' => $mobileNumber,
                 'paymentInstrument' => [
-                    'type' => 'PAY_PAGE'
-                ]
+                    'type' => 'PAY_PAGE',
+                ],
             ];
 
             // Store transaction info in session
@@ -80,7 +82,7 @@ class PhonePeController extends Controller
                 'payment_amount' => $request->amount,
                 'payment_name' => $request->name,
                 'payment_email' => $request->email,
-                'payment_phone' => $request->phone
+                'payment_phone' => $request->phone,
             ]);
 
             // Convert payload to JSON
@@ -91,32 +93,32 @@ class PhonePeController extends Controller
 
             // Generate checksum
             $checksumPath = '/pg/v1/pay';
-            $string = $payloadBase64 . $checksumPath . $this->saltKey;
-            $checksum = hash('sha256', $string) . "###" . $this->saltIndex;
+            $string = $payloadBase64.$checksumPath.$this->saltKey;
+            $checksum = hash('sha256', $string).'###'.$this->saltIndex;
 
             // Prepare final API request URL
-            $requestUrl = $this->baseUrl . '/pg/v1/pay';
+            $requestUrl = $this->baseUrl.'/pg/v1/pay';
 
             // Log the request for debugging
             Log::info('PhonePe payment initiation', [
                 'url' => $requestUrl,
                 'transaction_id' => $transactionId,
                 'amount' => $request->amount,
-                'payload' => $payload
+                'payload' => $payload,
             ]);
 
             // Make the API call to PhonePe
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
-                'X-VERIFY' => $checksum
+                'X-VERIFY' => $checksum,
             ])->post($requestUrl, [
-                'request' => $payloadBase64
+                'request' => $payloadBase64,
             ]);
 
             // Log the response
             Log::info('PhonePe initiate response', [
                 'status' => $response->status(),
-                'body' => $response->json()
+                'body' => $response->json(),
             ]);
 
             // Parse the response
@@ -135,21 +137,20 @@ class PhonePeController extends Controller
             } else {
                 // If payment initiation failed
                 Log::error('PhonePe payment initiation failed', [
-                    'error' => $responseData
+                    'error' => $responseData,
                 ]);
 
-
                 return redirect()->route('phonepe.form')
-                    ->with('error', 'Failed to initialize payment: ' . ($responseData['message'] ?? 'Unknown error'));
+                    ->with('error', 'Failed to initialize payment: '.($responseData['message'] ?? 'Unknown error'));
             }
         } catch (\Exception $e) {
             Log::error('Exception in PhonePe payment process', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return redirect()->route('phonepe.form')
-                ->with('error', 'An error occurred: ' . $e->getMessage());
+                ->with('error', 'An error occurred: '.$e->getMessage());
         }
     }
 
@@ -158,15 +159,15 @@ class PhonePeController extends Controller
     {
         Log::info('PhonePe callback received', [
             'data' => $request->all(),
-            'headers' => $request->header()
+            'headers' => $request->header(),
         ]);
 
         // Get the transaction ID from the callback
         $transactionId = $request->input('transactionId', session('payment_transaction_id'));
 
-        if (!$transactionId) {
+        if (! $transactionId) {
             return view('phonepe.failed', [
-                'message' => 'Invalid transaction ID'
+                'message' => 'Invalid transaction ID',
             ]);
         }
 
@@ -190,23 +191,23 @@ class PhonePeController extends Controller
 
                 return view('phonepe.success', [
                     'transaction' => $paymentDetails,
-                    'payment' => $status
+                    'payment' => $status,
                 ]);
             } else {
                 // Payment failed or is pending
                 return view('phonepe.failed', [
                     'message' => $status['message'] ?? 'Payment was not successful',
-                    'status' => $status
+                    'status' => $status,
                 ]);
             }
         } catch (\Exception $e) {
             Log::error('Error processing PhonePe callback', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return view('phonepe.failed', [
-                'message' => 'An error occurred while processing your payment'
+                'message' => 'An error occurred while processing your payment',
             ]);
         }
     }
@@ -216,7 +217,7 @@ class PhonePeController extends Controller
     {
         Log::info('PhonePe webhook received', [
             'data' => $request->all(),
-            'headers' => $request->header()
+            'headers' => $request->header(),
         ]);
 
         try {
@@ -224,10 +225,10 @@ class PhonePeController extends Controller
             $webhookData = $request->all();
             $transactionId = $webhookData['merchantTransactionId'] ?? null;
 
-            if (!$transactionId) {
+            if (! $transactionId) {
                 return response()->json([
                     'status' => 'FAILURE',
-                    'message' => 'Missing transaction ID'
+                    'message' => 'Missing transaction ID',
                 ], 400);
             }
 
@@ -238,17 +239,17 @@ class PhonePeController extends Controller
             // Return success response to PhonePe
             return response()->json([
                 'status' => 'SUCCESS',
-                'message' => 'Webhook processed successfully'
+                'message' => 'Webhook processed successfully',
             ]);
         } catch (\Exception $e) {
             Log::error('Error processing PhonePe webhook', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'status' => 'FAILURE',
-                'message' => 'Webhook processing failed: ' . $e->getMessage()
+                'message' => 'Webhook processing failed: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -258,29 +259,29 @@ class PhonePeController extends Controller
     {
         try {
             // Construct the API URL
-            $apiUrl = $this->baseUrl . '/pg/v1/status/' . $this->merchantId . '/' . $transactionId;
+            $apiUrl = $this->baseUrl.'/pg/v1/status/'.$this->merchantId.'/'.$transactionId;
 
             // Generate checksum
-            $string = '/pg/v1/status/' . $this->merchantId . '/' . $transactionId . $this->saltKey;
-            $checksum = hash('sha256', $string) . '###' . $this->saltIndex;
+            $string = '/pg/v1/status/'.$this->merchantId.'/'.$transactionId.$this->saltKey;
+            $checksum = hash('sha256', $string).'###'.$this->saltIndex;
 
             // Log the request
             Log::info('PhonePe status check request', [
                 'url' => $apiUrl,
-                'transaction_id' => $transactionId
+                'transaction_id' => $transactionId,
             ]);
 
             // Make the API call to PhonePe
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
                 'X-VERIFY' => $checksum,
-                'X-MERCHANT-ID' => $this->merchantId
+                'X-MERCHANT-ID' => $this->merchantId,
             ])->get($apiUrl);
 
             // Log the response
             Log::info('PhonePe status check response', [
                 'status' => $response->status(),
-                'body' => $response->json()
+                'body' => $response->json(),
             ]);
 
             // Parse the response
@@ -293,10 +294,10 @@ class PhonePeController extends Controller
 
                 if (isset($responseData['data']['paymentState'])) {
                     $paymentState = $responseData['data']['paymentState'];
-                } else if (isset($responseData['code'])) {
+                } elseif (isset($responseData['code'])) {
                     if ($responseData['code'] === 'PAYMENT_SUCCESS') {
                         $paymentState = 'COMPLETED';
-                    } else if ($responseData['code'] === 'PAYMENT_ERROR') {
+                    } elseif ($responseData['code'] === 'PAYMENT_ERROR') {
                         $paymentState = 'FAILED';
                     }
                 }
@@ -309,7 +310,7 @@ class PhonePeController extends Controller
                     'message' => 'Payment status retrieved successfully',
                     'providerReferenceId' => $responseData['data']['providerReferenceId'] ?? null,
                     'responseCode' => $responseData['code'] ?? null,
-                    'responseData' => $responseData['data'] ?? []
+                    'responseData' => $responseData['data'] ?? [],
                 ];
             } else {
                 // Failed to get status
@@ -318,20 +319,20 @@ class PhonePeController extends Controller
                     'transactionId' => $transactionId,
                     'paymentState' => 'UNKNOWN',
                     'message' => $responseData['message'] ?? 'Failed to check payment status',
-                    'responseCode' => $responseData['code'] ?? null
+                    'responseCode' => $responseData['code'] ?? null,
                 ];
             }
         } catch (\Exception $e) {
             Log::error('Exception in PhonePe status check', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return [
                 'success' => false,
                 'transactionId' => $transactionId,
                 'paymentState' => 'ERROR',
-                'message' => 'Error checking payment status: ' . $e->getMessage()
+                'message' => 'Error checking payment status: '.$e->getMessage(),
             ];
         }
     }

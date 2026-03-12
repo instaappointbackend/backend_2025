@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Http\Requests;
 
 use App\Traits\ApiResponseTrait;
@@ -10,7 +9,6 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 
 class ContactRequest extends FormRequest
 {
-
     use ApiResponseTrait;
 
     /**

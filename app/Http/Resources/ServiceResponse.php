@@ -15,7 +15,7 @@ class ServiceResponse extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
-            'image' => $this->image ? asset('storage/' . $this->image) : null,
+            'image' => $this->image ? asset('storage/'.$this->image) : null,
             'duration' => $this->duration,
             'formatted_duration' => $this->formattedDuration,
             'price' => $this->price,

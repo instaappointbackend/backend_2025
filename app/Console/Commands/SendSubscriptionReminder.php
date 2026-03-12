@@ -3,14 +3,15 @@
 namespace App\Console\Commands;
 
 use App\Models\Subscription;
-use Illuminate\Console\Command;
 use App\Models\User;
 use App\Notifications\SubscriptionReminderNotification;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
 
 class SendSubscriptionReminder extends Command
 {
     protected $signature = 'notify:subscriptions {days_before}';
+
     protected $description = 'Send subscription reminders X days before expiry';
 
     public function handle()
@@ -20,7 +21,7 @@ class SendSubscriptionReminder extends Command
         $targetDate = $today->copy()->addDays($daysBefore)->toDateString();
         $formated_date = $today->copy()->addDays($daysBefore)->format('d M Y');
 
-        //dd($targetDate);
+        // dd($targetDate);
         if ($daysBefore === 999) {
             // Monthly reminder on 1st of month
             $subscriptions = Subscription::whereNotNull('expires_at')->where('status', 'active')->get();
@@ -28,6 +29,7 @@ class SendSubscriptionReminder extends Command
                 $subscription->user->notify(new SubscriptionReminderNotification('Your subscription is active this month.'));
             }
             $this->info('Monthly active reminders sent.');
+
             return;
         }
 
@@ -36,6 +38,7 @@ class SendSubscriptionReminder extends Command
 
         if ($subscriptions->isEmpty()) {
             $this->info("No users found for {$daysBefore}-day reminder.");
+
             return;
         }
 
@@ -43,9 +46,9 @@ class SendSubscriptionReminder extends Command
             $message = match ($daysBefore) {
                 30 => 'Your subscription will expire in 1 month.',
                 15 => 'Your subscription will expire in 15 days.',
-                7  => 'Your subscription will expire in 1 week.',
-                1  => 'Your subscription will expire tomorrow.',
-                0  => 'Your subscription expires today!',
+                7 => 'Your subscription will expire in 1 week.',
+                1 => 'Your subscription will expire tomorrow.',
+                0 => 'Your subscription expires today!',
                 default => "Your subscription ends in {$daysBefore} days."
             };
 

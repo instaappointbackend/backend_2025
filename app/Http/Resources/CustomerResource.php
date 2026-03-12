@@ -2,8 +2,8 @@
 
 namespace App\Http\Resources;
 
-use Illuminate\Http\Resources\Json\JsonResource;
 use Carbon\Carbon;
+use Illuminate\Http\Resources\Json\JsonResource;
 
 class CustomerResource extends JsonResource
 {
@@ -16,22 +16,22 @@ class CustomerResource extends JsonResource
     public function toArray($request)
     {
         // Format profile picture URL if it exists
-        $profilePicture = $this->profile_picture 
-            ? asset('storage/' . $this->profile_picture) 
+        $profilePicture = $this->profile_picture
+            ? asset('storage/'.$this->profile_picture)
             : null;
 
         // Format last visit date if it exists
         $lastVisitDate = null;
-        if (!empty($this->lastAppointmentDate)) {
+        if (! empty($this->lastAppointmentDate)) {
             $appointmentDate = Carbon::parse($this->lastAppointmentDate);
             $now = Carbon::now();
-            
+
             if ($appointmentDate->isToday()) {
                 $lastVisitDate = 'Today';
             } elseif ($appointmentDate->isYesterday()) {
                 $lastVisitDate = 'Yesterday';
             } elseif ($appointmentDate->diffInDays($now) < 7) {
-                $lastVisitDate = $appointmentDate->diffInDays($now) . ' days ago';
+                $lastVisitDate = $appointmentDate->diffInDays($now).' days ago';
             } else {
                 $lastVisitDate = $appointmentDate->format('M d, Y');
             }
@@ -51,12 +51,12 @@ class CustomerResource extends JsonResource
             'state' => $this->state,
             'country' => $this->country,
             'postal_code' => $this->postal_code,
-            
+
             // Customer-specific fields
             'totalVisits' => $this->when(isset($this->totalVisits), $this->totalVisits),
             'lastVisit' => $this->when(isset($this->lastVisit), $this->lastVisit ?: $lastVisitDate),
             'lastAppointmentDate' => $this->when(isset($this->lastAppointmentDate), $this->lastAppointmentDate),
-            
+
             // Timestamps
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

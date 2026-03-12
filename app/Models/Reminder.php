@@ -23,14 +23,14 @@ class Reminder extends Model
         'target_id', // Could be customer ID or appointment ID the reminder is about (optional)
         'target_type', // 'customer', 'appointment', etc. (optional)
         'is_read', // Boolean to mark if notification has been read
-        'notification_sent' // Boolean to track if notification has been sent
+        'notification_sent', // Boolean to track if notification has been sent
     ];
 
     protected $casts = [
         'reminder_date' => 'date',
         'recurrence_end_date' => 'date',
         'is_read' => 'boolean',
-        'notification_sent' => 'boolean'
+        'notification_sent' => 'boolean',
     ];
 
     // Relationship with User
@@ -59,6 +59,7 @@ class Reminder extends Model
         } elseif ($this->target_type === 'appointment') {
             return $this->appointment;
         }
+
         return null;
     }
 

@@ -28,25 +28,25 @@ class ReviewResponse extends JsonResource
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
 
             // Include vendor details if loaded
-            'vendor' => $this->whenLoaded('vendor', function() {
+            'vendor' => $this->whenLoaded('vendor', function () {
                 return [
                     'id' => $this->vendor->id,
                     'name' => $this->vendor->name,
-                    'profile_picture' => $this->vendor->profile_picture ? asset('storage/' . $this->vendor->profile_picture) : null,
+                    'profile_picture' => $this->vendor->profile_picture ? asset('storage/'.$this->vendor->profile_picture) : null,
                 ];
             }),
 
             // Include user details if loaded
-            'user' => $this->whenLoaded('user', function() {
+            'user' => $this->whenLoaded('user', function () {
                 return [
                     'id' => $this->user->id,
                     'name' => $this->user->name,
-                    'profile_picture' => $this->user->profile_picture ? asset('storage/' . $this->user->profile_picture) : null,
+                    'profile_picture' => $this->user->profile_picture ? asset('storage/'.$this->user->profile_picture) : null,
                 ];
             }),
 
             // Include service details if loaded
-            'service' => $this->whenLoaded('service', function() {
+            'service' => $this->whenLoaded('service', function () {
                 return [
                     'id' => $this->service->id,
                     'name' => $this->service->name,

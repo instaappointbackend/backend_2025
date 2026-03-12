@@ -18,7 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'web' => \App\Http\Middleware\SecurityHeaders::class,
             'role' => \App\Http\Middleware\CheckRole::class,
             'permission' => \App\Http\Middleware\CheckPermission::class,
-			'custom_guest' => \App\Http\Middleware\RedirectIfAuthenticatedCustom::class,
+            'custom_guest' => \App\Http\Middleware\RedirectIfAuthenticatedCustom::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

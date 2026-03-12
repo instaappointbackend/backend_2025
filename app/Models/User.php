@@ -2,14 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -45,10 +49,19 @@ class User extends Authenticatable
         'experience',
         'terms_accepted',
         'refresh_token',
-        'refresh_token_expires_at'
+        'refresh_token_expires_at',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
+        'two_factor_confirmed_at',
     ];
 
-    protected $hidden = ['password', 'remember_token', 'refresh_token'];
+    protected $hidden = [
+        'password',
+        'remember_token',
+        'refresh_token',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
+    ];
 
     protected $casts = [
         'email_verified_at' => 'datetime',
@@ -58,7 +71,21 @@ class User extends Authenticatable
         'is_kyc_completed' => 'boolean',
         'status' => 'boolean',
         'terms_accepted' => 'boolean',
+        'two_factor_confirmed_at' => 'datetime',
     ];
+
+    protected $dates = ['deleted_at'];
+
+    protected static function booted()
+    {
+        // static::deleted(function ($user) {
+        //     DB::table('deleted_users')->insert([
+        //         'data' => $user->toJson(),   // store full user row
+        //         'created_at' => now(),
+        //         'updated_at' => now(),
+        //     ]);
+        // });
+    }
 
     /**
      * Get the role that owns the user.
@@ -169,8 +196,10 @@ class User extends Authenticatable
     {
         if ($this->otp === $otp && $this->otp_expires_at->gt(now())) {
             $this->clearOtp(); // Clear OTP after successful verification
+
             return true;
         }
+
         return false;
     }
 
@@ -406,5 +435,32 @@ class User extends Authenticatable
     public function payments()
     {
         return $this->hasMany(Payment::class, 'user_id');
+    }
+
+    // Check if 2FA is enabled
+    public function hasTwoFactorEnabled(): bool
+    {
+        return ! is_null($this->two_factor_secret) &&
+            ! is_null($this->two_factor_confirmed_at);
+    }
+
+    // Get decrypted recovery codes
+    public function getRecoveryCodes(): Collection
+    {
+        if (is_null($this->two_factor_recovery_codes)) {
+            return collect();
+        }
+
+        return collect(json_decode(Crypt::decryptString($this->two_factor_recovery_codes), true));
+    }
+
+    // Replace a used recovery code
+    public function replaceRecoveryCode(string $code): void
+    {
+        $codes = $this->getRecoveryCodes()->filter(fn ($c) => $c !== $code)->values();
+
+        $this->update([
+            'two_factor_recovery_codes' => Crypt::encryptString(json_encode($codes->toArray())),
+        ]);
     }
 }

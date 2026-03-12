@@ -1,59 +1,81 @@
 <?php
 
-use App\Http\Controllers\Admin\AuthController;
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\PermissionController;
-use App\Http\Controllers\Admin\RoleController;
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\ServiceController;
-use App\Http\Controllers\Admin\AppointmentController;
-use App\Http\Controllers\Admin\KycController;
-use App\Http\Controllers\Admin\BlogController;
-use App\Http\Controllers\Admin\FAQController;
-use App\Http\Controllers\Admin\BusinessCategoryController;
-use App\Http\Controllers\Admin\ReportController;
-use App\Http\Controllers\Admin\SettingController;
-use App\Http\Controllers\Admin\PageController;
-use App\Http\Controllers\Admin\NewsletterController;
-use App\Http\Controllers\Admin\ContactController;
-use App\Http\Controllers\Admin\AdminPayoutController;
-use App\Http\Controllers\Admin\AdminNotificationController;
-use App\Http\Controllers\Admin\PaymentController;
-use App\Http\Controllers\Admin\PayoutController;
-use App\Http\Controllers\Admin\PayoutApiController;
 use App\Http\Controllers\Admin\AdminOfferController;
+use App\Http\Controllers\Admin\AppointmentController;
+use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\BlogController;
+use App\Http\Controllers\Admin\BusinessCategoryController;
+use App\Http\Controllers\Admin\ContactController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\FAQController;
+use App\Http\Controllers\Admin\KycController;
+use App\Http\Controllers\Admin\NewsletterController;
+use App\Http\Controllers\Admin\PageController;
+use App\Http\Controllers\Admin\PaymentController;
+use App\Http\Controllers\Admin\PayoutApiController;
+use App\Http\Controllers\Admin\PayoutController;
+use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\ServiceController;
+use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\SubscriptionController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Auth\TwoFactorChallengeController;
+use App\Http\Controllers\TwoFactorController;
 use App\Http\Controllers\WebBlogController;
 use Illuminate\Support\Facades\Route;
 
 // Admin Auth Routes
 Route::prefix('admin')->name('admin.')->group(function () {
+
+    // 2FA Challenge Routes (guest)
+
+    Route::get('/two-factor-challenge', [TwoFactorChallengeController::class, 'show'])
+        ->name('two-factor.challenge');
+    Route::post('/two-factor-challenge', [TwoFactorChallengeController::class, 'store'])
+        ->name('two-factor-verify');
+    Route::post('/user/two-factor-disabled', [TwoFactorChallengeController::class, 'disabled2fa'])
+        ->name('two-factor.disabled');
+
+    // 2FA Management Routes (authenticated)
+    Route::get('/user/two-factor-authentication', [TwoFactorController::class, 'index'])
+        ->name('two-factor.index');
+    Route::post('/user/two-factor-authentication', [TwoFactorController::class, 'enable'])
+        ->name('two-factor.enable');
+    Route::post('/user/confirmed-two-factor-authentication', [TwoFactorController::class, 'confirm'])
+        ->name('two-factor.confirm');
+    Route::delete('/user/two-factor-authentication', [TwoFactorController::class, 'disable'])
+        ->name('two-factor.disable');
+    Route::post('/user/two-factor-recovery-codes', [TwoFactorController::class, 'regenerateRecoveryCodes'])
+        ->name('two-factor.regenerate');
+
     // Guest Routes
     Route::middleware('custom_guest')->group(function () {
         Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
         Route::get('/password-login', [AuthController::class, 'showPasswordLoginForm'])->name('password.login.form');
         Route::post('/password-login', [AuthController::class, 'passwordLogin'])->name('password.login');
-        //dd('admin route  1');
+        // dd('admin route  1');
 
         Route::post('/login', [AuthController::class, 'sendOtp'])->name('send.otp');
         Route::get('/verify-otp', [AuthController::class, 'showOtpForm'])->name('otp.form');
         Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->name('verify.otp');
     });
 
-    //Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+    // Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
     // Authenticated Admin Routes
     Route::middleware(['admin'])->group(function () {
 
         // Dashboard access
-        //Route::middleware(['permission:dashboard_view_dashboard'])->group(function () {
+        // Route::middleware(['permission:dashboard_view_dashboard'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        //});
+        // });
 
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-
         // User Management
-        Route::middleware(['permission:users_view_users'])->group(function () {
+        Route::middleware(['permission:users_view_users', 'permission:deleted_user'])->group(function () {
             Route::middleware(['permission:users_create_users'])->group(function () {
                 Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
                 Route::post('/users', [UserController::class, 'store'])->name('users.store');
@@ -63,15 +85,37 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
                 Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
                 Route::patch('/users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
+                Route::patch('/users/{id}/restore', [UserController::class, 'restoreDeletedVendor'])->name('users.restore');
             });
 
             Route::middleware(['permission:users_delete_users'])->group(function () {
                 Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+                Route::delete('/delete-customer/{id}', [UserController::class, 'destroyCustomer'])->name('customer.destroy');
             });
             Route::get('/users', [UserController::class, 'index'])->name('users.index');
             Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
             Route::get('/vendors', [UserController::class, 'vendors'])->name('users.vendors');
+
+            Route::get('/deleted-vendors', [UserController::class, 'deletedVendors'])->name('users.deleted.vendors');
+
             Route::get('/customers', [UserController::class, 'customers'])->name('users.customers');
+            Route::get('/deleted-customers', [UserController::class, 'deletedCustomersList'])->name('users.deleted.customers');
+
+            Route::middleware(['permission:export_vendors'])->group(function () {
+                Route::get('/vendors/export', [UserController::class, 'exportVendors'])->name('vendor.export');
+            });
+
+            Route::middleware(['permission:export_customers'])->group(function () {
+                Route::get('/customers/export', [UserController::class, 'exportCustomers'])->name('customer.export');
+            });
+
+            Route::middleware(['permission:export_deleted_vendors'])->group(function () {
+                Route::get('/deleted-vendors/export', [UserController::class, 'exportDeletedVendors'])->name('deletedVendor.export');
+            });
+
+            Route::middleware(['permission:export_deleted_customers'])->group(function () {
+                Route::get('/deleted-customers/export', [UserController::class, 'exportDeletedCustomers'])->name('deletedCustomer.export');
+            });
         });
 
         // KYC Management
@@ -110,7 +154,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::middleware(['permission:services_view_services'])->group(function () {
             Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
 
-
             Route::middleware(['permission:services_create_services'])->group(function () {
                 Route::get('/services/create', [ServiceController::class, 'create'])->name('services.create');
                 Route::post('/services', [ServiceController::class, 'store'])->name('services.store');
@@ -146,8 +189,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::patch('/appointments/{appointment}/status/{status}', [AppointmentController::class, 'status'])->name('appointments.status')->where('status', 'pending|confirmed|completed|cancelled');
             });
 
+            // Route::middleware(['permission:appointments_delete_appointments'])->group(function () {
+            //     Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy'])->name('appointments.destroy');
+            // });
             Route::middleware(['permission:appointments_delete_appointments'])->group(function () {
-                Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy'])->name('appointments.destroy');
+                Route::post('/appointments/{appointment}', [AppointmentController::class, 'destroy'])->name('appointments.destroy');
             });
             Route::get('/appointments/{appointment}', [AppointmentController::class, 'show'])->name('appointments.show');
         });
@@ -171,7 +217,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Business Categories
         Route::middleware(['permission:business_categories_view'])->group(function () {
             Route::get('/business-categories', [BusinessCategoryController::class, 'index'])->name('business-categories.index');
-
 
             Route::middleware(['permission:business_categories_create'])->group(function () {
                 Route::get('/business-categories/create', [BusinessCategoryController::class, 'create'])->name('business-categories.create');
@@ -283,7 +328,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::middleware(['permission:payments_view_payments'])->group(function () {
             Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
 
-
             Route::middleware(['permission:payments_export_payments'])->group(function () {
                 Route::get('/payments/reports', [PaymentController::class, 'reports'])->name('payments.reports');
                 Route::get('/payments/export', [PaymentController::class, 'export'])->name('payments.export');
@@ -379,7 +423,16 @@ Route::prefix('admin')->name('admin.')->group(function () {
             });
             Route::get('/permissions/{permission}', [PermissionController::class, 'show'])->name('permissions.show');
         });
+
+        // Permission Management
+        Route::middleware(['permission:subscriptions'])->group(function () {
+            Route::get('/subscriptions', [SubscriptionController::class, 'index'])->name('subscription.index');
+        });
     });
 
-    //dd('here');
+    Route::fallback(function () {
+        abort(404);
+    });
+
+    // dd('here');
 });

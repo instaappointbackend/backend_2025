@@ -8,7 +8,6 @@ use App\Http\Resources\TeamMemberResponse;
 use App\Models\User;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class TeamMemberController extends Controller
@@ -23,8 +22,8 @@ class TeamMemberController extends Controller
     {
         $vendor = Auth::user();
 
-
         $teamMembers = User::where('vendor_id', $vendor->id)->get();
+
         return $this->success(TeamMemberResponse::collection($teamMembers), 'Members retrieved successfully.');
     }
 
@@ -35,13 +34,11 @@ class TeamMemberController extends Controller
     {
         $vendor = Auth::user();
 
-
-
-
         $data = $request->only(['name', 'email', 'mobile',  'gender', 'dob', 'address', 'full_address', 'street', 'city', 'state', 'country', 'postal_code', 'latitude', 'longitude']);
-        
-        $data['vendor_id']  = $vendor->id;
-        $data['role']       = 'vendor_team';
+
+        $data['vendor_id'] = $vendor->id;
+        $data['role'] = 'vendor_team';
+        $data['business_category_id'] = $vendor->business_category_id;
         if ($request->hasFile('profile_picture')) {
             $path = $request->file('profile_picture')->store('profile_pictures', 'public');
             $data['profile_picture'] = $path;
@@ -72,11 +69,9 @@ class TeamMemberController extends Controller
             $teamMember = $loggedInUser;
         }
 
-        if (!$teamMember) {
+        if (! $teamMember) {
             return $this->error([], 'Team member not found.', 404);
         }
-
-
 
         $data = $request->only(['name', 'email', 'mobile',  'gender', 'dob', 'address', 'full_address', 'street', 'city', 'state', 'country', 'postal_code', 'latitude', 'longitude']);
         if ($request->hasFile('profile_picture')) {
@@ -84,7 +79,7 @@ class TeamMemberController extends Controller
 
             $data['profile_picture'] = $path;
         }
-
+        $data['business_category_id'] = $loggedInUser->business_category_id;
         $teamMember->update($data);
 
         return $this->success(new TeamMemberResponse($teamMember), 'Team member updated successfully.');
@@ -97,13 +92,13 @@ class TeamMemberController extends Controller
     {
         $vendor = Auth::user();
 
-        if (!is_null($vendor->vendor_id)) {
+        if (! is_null($vendor->vendor_id)) {
             return $this->error([], 'Access denied.', 403);
         }
 
         $teamMember = User::where('id', $id)->where('vendor_id', $vendor->id)->first();
 
-        if (!$teamMember) {
+        if (! $teamMember) {
             return $this->error([], 'Team member not found.', 404);
         }
 

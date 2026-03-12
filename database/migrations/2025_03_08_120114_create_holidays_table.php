@@ -17,7 +17,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->boolean('is_recurring')->default(false);
             $table->timestamps();
-            
+
             // Each user can only have one holiday per date
             $table->unique(['user_id', 'date']);
         });

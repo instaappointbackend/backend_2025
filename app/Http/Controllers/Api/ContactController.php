@@ -5,12 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ContactRequest;
 use App\Http\Resources\ContactResource;
-use App\Models\Contact;
-use App\Traits\ApiResponseTrait;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use App\Mail\ContactFormSubmission;
 use App\Models\AppSetting;
+use App\Models\Contact;
+use App\Traits\ApiResponseTrait;
+use Illuminate\Support\Facades\Mail;
 
 class ContactController extends Controller
 {
@@ -24,13 +23,13 @@ class ContactController extends Controller
     public function index()
     {
         $contacts = Contact::where('user_id', auth()->id())->latest()->get();
+
         return $this->success(ContactResource::collection($contacts), 'Contact messages retrieved successfully.');
     }
 
     /**
      * Store a newly created contact message in storage.
      *
-     * @param  \App\Http\Requests\ContactRequest  $request
      * @return \Illuminate\Http\Response
      */
     public function store(ContactRequest $request)
@@ -44,14 +43,14 @@ class ContactController extends Controller
                 'message' => $request->message,
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
-                'status' => 'unread'
+                'status' => 'unread',
             ]);
 
             // Get admin email from app_settings
             $adminEmail = AppSetting::where('key', 'admin_email')->value('value');
-            
+
             // If admin email is not found, fall back to the config value
-            if (!$adminEmail) {
+            if (! $adminEmail) {
                 $adminEmail = config('mail.from.address');
             }
 
@@ -80,6 +79,7 @@ class ContactController extends Controller
     public function show($id)
     {
         $contact = Contact::where('user_id', auth()->id())->findOrFail($id);
+
         return $this->success(new ContactResource($contact), 'Contact message retrieved successfully.');
     }
 

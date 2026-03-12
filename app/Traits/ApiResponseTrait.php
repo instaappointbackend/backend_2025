@@ -7,12 +7,12 @@ trait ApiResponseTrait
     /**
      * Return a success response.
      *
-     * @param string $message
-     * @param array|null $data
-     * @param int $status
+     * @param  string  $message
+     * @param  array|null  $data
+     * @param  int  $status
      * @return \Illuminate\Http\JsonResponse
      */
-    protected function success($data = [],$message,  $status = 200)
+    protected function success($data, $message, $status = 200)
     {
         return response()->json([
             'status' => true,
@@ -24,12 +24,12 @@ trait ApiResponseTrait
     /**
      * Return an error response.
      *
-     * @param string $message
-     * @param int $status
-     * @param array|null $errors
+     * @param  string  $message
+     * @param  int  $status
+     * @param  array|null  $errors
      * @return \Illuminate\Http\JsonResponse
      */
-    protected function error($errors = [],$message,$status = 400)
+    protected function error($errors, $message, $status = 400)
     {
         return response()->json([
             'status' => false,

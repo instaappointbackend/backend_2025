@@ -3,16 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\Service;
 use App\Models\BusinessCategory;
 use App\Models\KycDocument;
 use App\Models\SearchHistory;
+use App\Models\Service;
+use App\Models\User;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 
 class SearchController extends Controller
@@ -22,7 +21,6 @@ class SearchController extends Controller
     /**
      * Search for services, service providers, and businesses.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function search(Request $request)
@@ -81,15 +79,15 @@ class SearchController extends Controller
             $matchingCategory = BusinessCategory::find($businessTypeId);
         } else {
             // Otherwise check if the query matches a category name
-            $matchingCategory = BusinessCategory::where('name', 'like', '%' . $query . '%')->first();
+            $matchingCategory = BusinessCategory::where('name', 'like', '%'.$query.'%')->first();
         }
 
         if ($matchingCategory) {
             $searchCategory = [
                 'id' => $matchingCategory->id,
                 'name' => $matchingCategory->name,
-                'description' => $matchingCategory->description ?? 'Browse ' . $matchingCategory->name . ' service providers',
-                'image' => $matchingCategory->image ? asset('storage/' . $matchingCategory->image) : null
+                'description' => $matchingCategory->description ?? 'Browse '.$matchingCategory->name.' service providers',
+                'image' => $matchingCategory->image ? asset('storage/'.$matchingCategory->image) : null,
             ];
             // If it's a category search, filter by that category
             $businessTypeId = $matchingCategory->id;
@@ -104,7 +102,7 @@ class SearchController extends Controller
                 ->where('users.is_registered', true)
                 ->where('users.is_kyc_completed', true)
                 ->where('users.status', true)
-                ->where(function($q) use ($query) {
+                ->where(function ($q) use ($query) {
                     $q->whereRaw('LOWER(kyc_documents.business_name) = ?', [strtolower($query)]);
                 });
 
@@ -118,10 +116,10 @@ class SearchController extends Controller
             if ($businessMatch) {
                 // This is a direct business match - prioritize business results
                 $searchCategory = [
-                    'id' => 'business-' . $businessMatch->id,
+                    'id' => 'business-'.$businessMatch->id,
                     'name' => $businessMatch->business_name,
-                    'description' => 'View services and information about ' . $businessMatch->business_name,
-                    'type' => 'business'
+                    'description' => 'View services and information about '.$businessMatch->business_name,
+                    'type' => 'business',
                 ];
             }
         }
@@ -129,13 +127,13 @@ class SearchController extends Controller
         // SECOND PASS: Check if search query directly matches a provider name
         // Only perform if 'provider' is in the allowed types
         $providerMatch = null;
-        if (in_array('provider', $types) && !$businessMatch) {
+        if (in_array('provider', $types) && ! $businessMatch) {
             $providerMatchQuery = User::join('kyc_documents', 'users.id', '=', 'kyc_documents.user_id')
                 ->where('users.role', 'vendor')
                 ->where('users.is_registered', true)
                 ->where('users.is_kyc_completed', true)
                 ->where('users.status', true)
-                ->where(function($q) use ($query) {
+                ->where(function ($q) use ($query) {
                     $q->whereRaw('LOWER(users.name) = ?', [strtolower($query)]);
                 });
 
@@ -149,10 +147,10 @@ class SearchController extends Controller
             if ($providerMatch) {
                 // This is a direct provider match - prioritize provider results
                 $searchCategory = [
-                    'id' => 'provider-' . $providerMatch->id,
+                    'id' => 'provider-'.$providerMatch->id,
                     'name' => $providerMatch->name,
-                    'description' => 'View services offered by ' . $providerMatch->name,
-                    'type' => 'provider'
+                    'description' => 'View services offered by '.$providerMatch->name,
+                    'type' => 'provider',
                 ];
             }
         }
@@ -160,13 +158,13 @@ class SearchController extends Controller
         // THIRD PASS: Check if search query directly matches a service name
         // Only perform if 'service' is in the allowed types
         $serviceMatch = null;
-        if (in_array('service', $types) && !$businessMatch && !$providerMatch) {
+        if (in_array('service', $types) && ! $businessMatch && ! $providerMatch) {
             $serviceMatchQuery = Service::join('users', 'services.user_id', '=', 'users.id')
                 ->join('kyc_documents', 'users.id', '=', 'kyc_documents.user_id')
                 ->where('services.is_active', true)
                 ->where('users.status', true)
                 ->where('users.is_kyc_completed', true)
-                ->where(function($q) use ($query) {
+                ->where(function ($q) use ($query) {
                     $q->whereRaw('LOWER(services.name) = ?', [strtolower($query)]);
                 });
 
@@ -180,10 +178,10 @@ class SearchController extends Controller
             if ($serviceMatch) {
                 // This is a direct service match - add context to search
                 $searchCategory = [
-                    'id' => 'service-' . $serviceMatch->id,
+                    'id' => 'service-'.$serviceMatch->id,
                     'name' => $serviceMatch->name,
-                    'description' => 'Providers offering ' . $serviceMatch->name,
-                    'type' => 'service'
+                    'description' => 'Providers offering '.$serviceMatch->name,
+                    'type' => 'service',
                 ];
             }
         }
@@ -209,26 +207,26 @@ class SearchController extends Controller
                     'kyc_documents.description',
                     'business_categories.name as business_category_name',
                     DB::raw("'provider' as type"),
-                    DB::raw("$distanceSQL as distance")
+                    DB::raw("$distanceSQL as distance"),
                 ])
                 ->where('users.role', 'vendor')
                 ->where('users.is_registered', true)
                 ->where('users.is_kyc_completed', true)
                 ->where('users.status', true)
-                ->where(function($q) use ($query) {
+                ->where(function ($q) use ($query) {
                     // Search in user table
-                    $q->whereRaw('LOWER(users.name) LIKE ?', ['%' . strtolower($query) . '%']);
+                    $q->whereRaw('LOWER(users.name) LIKE ?', ['%'.strtolower($query).'%']);
 
                     // Search in KYC document fields
-                    $q->orWhereRaw('LOWER(kyc_documents.business_name) LIKE ?', ['%' . strtolower($query) . '%'])
-                        ->orWhereRaw('LOWER(kyc_documents.address) LIKE ?', ['%' . strtolower($query) . '%'])
-                        ->orWhereRaw('LOWER(kyc_documents.full_address) LIKE ?', ['%' . strtolower($query) . '%'])
-                        ->orWhereRaw('LOWER(kyc_documents.city) LIKE ?', ['%' . strtolower($query) . '%'])
-                        ->orWhereRaw('LOWER(kyc_documents.state) LIKE ?', ['%' . strtolower($query) . '%'])
-                        ->orWhereRaw('LOWER(kyc_documents.country) LIKE ?', ['%' . strtolower($query) . '%']);
+                    $q->orWhereRaw('LOWER(kyc_documents.business_name) LIKE ?', ['%'.strtolower($query).'%'])
+                        ->orWhereRaw('LOWER(kyc_documents.address) LIKE ?', ['%'.strtolower($query).'%'])
+                        ->orWhereRaw('LOWER(kyc_documents.full_address) LIKE ?', ['%'.strtolower($query).'%'])
+                        ->orWhereRaw('LOWER(kyc_documents.city) LIKE ?', ['%'.strtolower($query).'%'])
+                        ->orWhereRaw('LOWER(kyc_documents.state) LIKE ?', ['%'.strtolower($query).'%'])
+                        ->orWhereRaw('LOWER(kyc_documents.country) LIKE ?', ['%'.strtolower($query).'%']);
 
                     // Search in business category name
-                    $q->orWhereRaw('LOWER(business_categories.name) LIKE ?', ['%' . strtolower($query) . '%']);
+                    $q->orWhereRaw('LOWER(business_categories.name) LIKE ?', ['%'.strtolower($query).'%']);
                 })
                 ->whereNotNull('kyc_documents.latitude')
                 ->whereNotNull('kyc_documents.longitude')
@@ -249,7 +247,7 @@ class SearchController extends Controller
                 $usersWithKyc->orderByRaw('kyc_documents.user_id = ? DESC', [$businessMatch->user_id]);
             }
             // If we have a direct provider match, prioritize that provider
-            else if ($providerMatch) {
+            elseif ($providerMatch) {
                 $usersWithKyc->orderByRaw('users.id = ? DESC', [$providerMatch->id]);
             }
 
@@ -264,8 +262,8 @@ class SearchController extends Controller
                     'description' => $user->description ?? '',
                     'address' => $user->full_address ?? $user->address,
                     'rating' => $user->rating ?? 0,
-                    'image' => $user->profile_picture ? asset('storage/' . $user->profile_picture) : null,
-                    'distance' => round($user->distance, 1) . ' km',
+                    'image' => $user->profile_picture ? asset('storage/'.$user->profile_picture) : null,
+                    'distance' => round($user->distance, 1).' km',
                     'businessType' => $user->business_category_name,
                     'businessTypeId' => $user->business_category_id,
                     'businessName' => $user->business_name,
@@ -294,7 +292,7 @@ class SearchController extends Controller
                 'users.profile_picture',
                 'users.rating',
                 DB::raw("'service' as type"),
-                DB::raw("$distanceSQL as distance")
+                DB::raw("$distanceSQL as distance"),
             ])
                 ->join('users', 'services.user_id', '=', 'users.id')
                 ->join('kyc_documents', 'users.id', '=', 'kyc_documents.user_id')
@@ -303,7 +301,7 @@ class SearchController extends Controller
                 ->where('users.status', true)
                 ->where('users.is_kyc_completed', true)
                 ->whereRaw('LOWER(services.name) LIKE ? OR LOWER(services.description) LIKE ?',
-                    ['%' . strtolower($query) . '%', '%' . strtolower($query) . '%'])
+                    ['%'.strtolower($query).'%', '%'.strtolower($query).'%'])
                 ->whereNotNull('kyc_documents.latitude')
                 ->whereNotNull('kyc_documents.longitude')
                 ->having('distance', '<=', $maxDistance);
@@ -334,8 +332,8 @@ class SearchController extends Controller
                     'description' => $service->description,
                     'address' => $service->full_address ?? $service->address,
                     'rating' => $service->rating ?? 0,
-                    'image' => $service->profile_picture ? asset('storage/' . $service->profile_picture) : null,
-                    'distance' => round($service->distance, 1) . ' km',
+                    'image' => $service->profile_picture ? asset('storage/'.$service->profile_picture) : null,
+                    'distance' => round($service->distance, 1).' km',
                     'businessType' => $service->business_category_name,
                     'businessTypeId' => $service->business_category_id,
                     'price' => $service->price,
@@ -368,7 +366,7 @@ class SearchController extends Controller
                 'users.profile_picture',
                 'users.rating',
                 DB::raw("'service' as type"),
-                DB::raw("$distanceSQL as distance")
+                DB::raw("$distanceSQL as distance"),
             ])
                 ->join('users', 'services.user_id', '=', 'users.id')
                 ->join('kyc_documents', 'users.id', '=', 'kyc_documents.user_id')
@@ -396,8 +394,8 @@ class SearchController extends Controller
                     'description' => $service->description,
                     'address' => $service->full_address ?? $service->address,
                     'rating' => $service->rating ?? 0,
-                    'image' => $service->profile_picture ? asset('storage/' . $service->profile_picture) : null,
-                    'distance' => round($service->distance, 1) . ' km',
+                    'image' => $service->profile_picture ? asset('storage/'.$service->profile_picture) : null,
+                    'distance' => round($service->distance, 1).' km',
                     'businessType' => $service->business_category_name,
                     'businessTypeId' => $service->business_category_id,
                     'price' => $service->price,
@@ -420,11 +418,11 @@ class SearchController extends Controller
                     'distance' => $maxDistance,
                     'rating' => $minRating,
                     'business_type' => $businessTypeId,
-                    'sort' => $sort
+                    'sort' => $sort,
                 ],
                 'businessMatch' => $businessMatch ? $businessMatch->business_name : null,
                 'matchingCategory' => $matchingCategory ? $matchingCategory->name : null,
-                'search_category' => $searchCategory
+                'search_category' => $searchCategory,
             ];
         }
 
@@ -435,12 +433,12 @@ class SearchController extends Controller
 
         foreach ($results as $result) {
             if ($result['type'] === 'provider') {
-                if (!isset($seenUserIds[$result['id']])) {
+                if (! isset($seenUserIds[$result['id']])) {
                     $seenUserIds[$result['id']] = true;
                     $uniqueResults[] = $result;
                 }
             } elseif ($result['type'] === 'service') {
-                if (!isset($seenServiceIds[$result['id']])) {
+                if (! isset($seenServiceIds[$result['id']])) {
                     $seenServiceIds[$result['id']] = true;
                     $uniqueResults[] = $result;
                 }
@@ -449,19 +447,20 @@ class SearchController extends Controller
 
         // Sort results
         if ($sort === 'distance') {
-            usort($uniqueResults, function($a, $b) {
-                return (float)$a['distance'] <=> (float)$b['distance'];
+            usort($uniqueResults, function ($a, $b) {
+                return (float) $a['distance'] <=> (float) $b['distance'];
             });
         } elseif ($sort === 'rating') {
-            usort($uniqueResults, function($a, $b) {
+            usort($uniqueResults, function ($a, $b) {
                 return $b['rating'] <=> $a['rating'];
             });
         } elseif ($sort === 'price' && in_array('service', $types)) {
             // Only sort by price if services are included
-            usort($uniqueResults, function($a, $b) {
+            usort($uniqueResults, function ($a, $b) {
                 // Handle cases where price might not be set for non-service types
                 $priceA = isset($a['price']) ? $a['price'] : PHP_FLOAT_MAX;
                 $priceB = isset($b['price']) ? $b['price'] : PHP_FLOAT_MAX;
+
                 return $priceA <=> $priceB;
             });
         }
@@ -477,12 +476,12 @@ class SearchController extends Controller
             'current_page' => $page,
             'last_page' => ceil(count($uniqueResults) / $limit),
             'from' => $offset + 1,
-            'to' => min($offset + $limit, count($uniqueResults))
+            'to' => min($offset + $limit, count($uniqueResults)),
         ];
 
         $response = [
             'data' => $paginatedResults,
-            'pagination' => $pagination
+            'pagination' => $pagination,
         ];
 
         // Add search category information if available
@@ -503,7 +502,6 @@ class SearchController extends Controller
     /**
      * Get search suggestions based on query.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function getSuggestions(Request $request)
@@ -540,7 +538,7 @@ class SearchController extends Controller
             ->where('services.is_active', true)
             ->where('users.status', true)
             ->where('users.is_kyc_completed', true)
-            ->whereRaw('LOWER(services.name) LIKE ?', ['%' . strtolower($query) . '%'])
+            ->whereRaw('LOWER(services.name) LIKE ?', ['%'.strtolower($query).'%'])
             ->whereNotNull('kyc_documents.latitude')
             ->whereNotNull('kyc_documents.longitude')
             ->selectRaw("$distanceSQL as distance")
@@ -556,7 +554,7 @@ class SearchController extends Controller
             ->where('users.is_registered', true)
             ->where('users.is_kyc_completed', true)
             ->where('users.status', true)
-            ->whereRaw('LOWER(users.name) LIKE ?', ['%' . strtolower($query) . '%'])
+            ->whereRaw('LOWER(users.name) LIKE ?', ['%'.strtolower($query).'%'])
             ->whereNotNull('kyc_documents.latitude')
             ->whereNotNull('kyc_documents.longitude')
             ->selectRaw("$distanceSQL as distance")
@@ -570,7 +568,7 @@ class SearchController extends Controller
             ->join('users', 'kyc_documents.user_id', '=', 'users.id')
             ->where('users.status', true)
             ->where('users.is_kyc_completed', true)
-            ->whereRaw('LOWER(business_name) LIKE ?', ['%' . strtolower($query) . '%'])
+            ->whereRaw('LOWER(business_name) LIKE ?', ['%'.strtolower($query).'%'])
             ->whereNotNull('kyc_documents.latitude')
             ->whereNotNull('kyc_documents.longitude')
             ->selectRaw("$distanceSQL as distance")
@@ -581,7 +579,7 @@ class SearchController extends Controller
 
         // Get business category suggestions
         $businessCategorySuggestions = BusinessCategory::select('name')
-            ->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($query) . '%'])
+            ->whereRaw('LOWER(name) LIKE ?', ['%'.strtolower($query).'%'])
             ->limit(3)
             ->pluck('name')
             ->toArray();
@@ -591,10 +589,10 @@ class SearchController extends Controller
             ->join('users', 'kyc_documents.user_id', '=', 'users.id')
             ->where('users.status', true)
             ->where('users.is_kyc_completed', true)
-            ->where(function($q) use ($query) {
-                $q->whereRaw('LOWER(kyc_documents.city) LIKE ?', ['%' . strtolower($query) . '%'])
-                    ->orWhereRaw('LOWER(kyc_documents.state) LIKE ?', ['%' . strtolower($query) . '%'])
-                    ->orWhereRaw('LOWER(kyc_documents.address) LIKE ?', ['%' . strtolower($query) . '%']);
+            ->where(function ($q) use ($query) {
+                $q->whereRaw('LOWER(kyc_documents.city) LIKE ?', ['%'.strtolower($query).'%'])
+                    ->orWhereRaw('LOWER(kyc_documents.state) LIKE ?', ['%'.strtolower($query).'%'])
+                    ->orWhereRaw('LOWER(kyc_documents.address) LIKE ?', ['%'.strtolower($query).'%']);
             })
             ->whereNotNull('kyc_documents.city')
             ->whereNotNull('kyc_documents.state')
@@ -648,7 +646,7 @@ class SearchController extends Controller
      */
     private function saveSearchHistory($query)
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return;
         }
 
@@ -666,7 +664,7 @@ class SearchController extends Controller
             // Create a new search history entry
             SearchHistory::create([
                 'user_id' => $user->id,
-                'query' => $query
+                'query' => $query,
             ]);
 
             // Delete old searches if more than 20
@@ -685,7 +683,6 @@ class SearchController extends Controller
     /**
      * Save a search query to history.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function saveSearch(Request $request)

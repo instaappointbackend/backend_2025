@@ -82,7 +82,8 @@ class ComboServiceController extends Controller
             );
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->error([], 'Failed to create combo service: ' . $e->getMessage(), 500);
+
+            return $this->error([], 'Failed to create combo service: '.$e->getMessage(), 500);
         }
     }
 
@@ -96,7 +97,7 @@ class ComboServiceController extends Controller
             ->where('id', $id)
             ->first();
 
-        if (!$comboService) {
+        if (! $comboService) {
             return $this->error([], 'Combo service not found', 404);
         }
 
@@ -115,7 +116,7 @@ class ComboServiceController extends Controller
             ->where('id', $id)
             ->first();
 
-        if (!$comboService) {
+        if (! $comboService) {
             return $this->error([], 'Combo service not found', 404);
         }
 
@@ -164,7 +165,8 @@ class ComboServiceController extends Controller
             );
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->error([], 'Failed to update combo service: ' . $e->getMessage(), 500);
+
+            return $this->error([], 'Failed to update combo service: '.$e->getMessage(), 500);
         }
     }
 
@@ -177,7 +179,7 @@ class ComboServiceController extends Controller
             ->where('id', $id)
             ->first();
 
-        if (!$comboService) {
+        if (! $comboService) {
             return $this->error([], 'Combo service not found', 404);
         }
 
@@ -205,7 +207,8 @@ class ComboServiceController extends Controller
             );
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->error([], 'Failed to delete combo service: ' . $e->getMessage(), 500);
+
+            return $this->error([], 'Failed to delete combo service: '.$e->getMessage(), 500);
         }
     }
 
@@ -218,7 +221,7 @@ class ComboServiceController extends Controller
             ->where('id', $id)
             ->first();
 
-        if (!$comboService) {
+        if (! $comboService) {
             return $this->error([], 'Combo service not found', 404);
         }
 
@@ -234,7 +237,7 @@ class ComboServiceController extends Controller
             }
         }
 
-        $comboService->is_active = !$comboService->is_active;
+        $comboService->is_active = ! $comboService->is_active;
         $comboService->save();
 
         // Load the services relation
@@ -242,7 +245,7 @@ class ComboServiceController extends Controller
 
         return $this->success(
             new ComboServiceResponse($comboService),
-            'Combo service ' . ($comboService->is_active ? 'activated' : 'deactivated') . ' successfully.'
+            'Combo service '.($comboService->is_active ? 'activated' : 'deactivated').' successfully.'
         );
     }
 

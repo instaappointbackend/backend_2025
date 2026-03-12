@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Carbon\Carbon;
 
 class TimeSlot extends Model
 {
@@ -21,7 +21,7 @@ class TimeSlot extends Model
         'status',
         'blocked_until',
         'blocked_for_appointment_id',
-        'blocked_reason'
+        'blocked_reason',
     ];
 
     protected $casts = [
@@ -34,7 +34,9 @@ class TimeSlot extends Model
 
     // Status constants
     const STATUS_AVAILABLE = 'available';
+
     const STATUS_TEMPORARILY_BLOCKED = 'temporarily_blocked';
+
     const STATUS_BOOKED = 'booked';
 
     /**
@@ -52,6 +54,7 @@ class TimeSlot extends Model
             $this->blocked_until->isPast()) {
             // Auto-release expired slot
             $this->releaseBlock();
+
             return true;
         }
 
@@ -68,7 +71,7 @@ class TimeSlot extends Model
             'blocked_until' => now()->addMinutes($durationMinutes),
             'blocked_for_appointment_id' => $appointmentId,
             'blocked_reason' => $reason,
-            'is_available' => false
+            'is_available' => false,
         ]);
     }
 
@@ -81,7 +84,7 @@ class TimeSlot extends Model
             'status' => self::STATUS_BOOKED,
             'blocked_until' => null,
             'blocked_reason' => 'confirmed_booking',
-            'is_available' => false
+            'is_available' => false,
         ]);
     }
 
@@ -95,7 +98,7 @@ class TimeSlot extends Model
             'blocked_until' => null,
             'blocked_for_appointment_id' => null,
             'blocked_reason' => null,
-            'is_available' => true
+            'is_available' => true,
         ]);
     }
 
@@ -178,8 +181,8 @@ class TimeSlot extends Model
         }
 
         // Convert slot times to datetime for comparison
-        $slotStart = Carbon::parse($this->date->format('Y-m-d') . ' ' . $this->start_time->format('H:i:s'));
-        $slotEnd = Carbon::parse($this->date->format('Y-m-d') . ' ' . $this->end_time->format('H:i:s'));
+        $slotStart = Carbon::parse($this->date->format('Y-m-d').' '.$this->start_time->format('H:i:s'));
+        $slotEnd = Carbon::parse($this->date->format('Y-m-d').' '.$this->end_time->format('H:i:s'));
 
         // Find any appointment that overlaps with this time slot
         $overlappingAppointments = Appointment::where('user_id', $this->user_id)
@@ -189,8 +192,8 @@ class TimeSlot extends Model
 
         foreach ($overlappingAppointments as $appointment) {
             // Convert appointment times to datetime for comparison
-            $apptStart = Carbon::parse($appointment->date->format('Y-m-d') . ' ' . $appointment->start_time->format('H:i:s'));
-            $apptEnd = Carbon::parse($appointment->date->format('Y-m-d') . ' ' . $appointment->end_time->format('H:i:s'));
+            $apptStart = Carbon::parse($appointment->date->format('Y-m-d').' '.$appointment->start_time->format('H:i:s'));
+            $apptEnd = Carbon::parse($appointment->date->format('Y-m-d').' '.$appointment->end_time->format('H:i:s'));
 
             // Check if there's any overlap between the appointment and this time slot
             // Overlap occurs when one interval starts before the other ends
@@ -223,7 +226,7 @@ class TimeSlot extends Model
      */
     public function getBlockTimeRemaining()
     {
-        if (!$this->isTemporarilyBlocked() || !$this->blocked_until) {
+        if (! $this->isTemporarilyBlocked() || ! $this->blocked_until) {
             return 0;
         }
 
@@ -235,7 +238,7 @@ class TimeSlot extends Model
      */
     public function isBlockExpired()
     {
-        if (!$this->isTemporarilyBlocked() || !$this->blocked_until) {
+        if (! $this->isTemporarilyBlocked() || ! $this->blocked_until) {
             return false;
         }
 
@@ -252,7 +255,7 @@ class TimeSlot extends Model
             'blocked_until' => null,
             'blocked_for_appointment_id' => null,
             'blocked_reason' => null,
-            'is_available' => true
+            'is_available' => true,
         ]);
     }
 }

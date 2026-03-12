@@ -13,7 +13,7 @@ class Role extends Model
         'name',
         'display_name',
         'description',
-        'is_system'
+        'is_system',
     ];
 
     protected $casts = [
@@ -62,6 +62,7 @@ class Role extends Model
     public function givePermissionTo($permissions)
     {
         $permissions = is_array($permissions) ? $permissions : [$permissions];
+
         return $this->permissions()->syncWithoutDetaching($permissions);
     }
 
@@ -71,6 +72,7 @@ class Role extends Model
     public function revokePermissionTo($permissions)
     {
         $permissions = is_array($permissions) ? $permissions : [$permissions];
+
         return $this->permissions()->detach($permissions);
     }
 }

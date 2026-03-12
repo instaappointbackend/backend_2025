@@ -13,38 +13,38 @@ class ReceiptService
     /**
      * Generate a PDF receipt for an appointment or payment
      *
-     * @param mixed $appointment Appointment object or ID
-     * @param mixed $payment Payment object or null
-     * @param array $businessInfo Business information
+     * @param  mixed  $appointment  Appointment object or ID
+     * @param  mixed  $payment  Payment object or null
+     * @param  array  $businessInfo  Business information
      * @return string Path to the generated PDF file
      */
     public function generatePDF($appointment, $payment = null, $businessInfo = null)
     {
         // Make sure we have an appointment object
-        if (!($appointment instanceof Appointment)) {
+        if (! ($appointment instanceof Appointment)) {
             $appointment = Appointment::with(['service', 'comboService', 'client', 'user', 'payment'])
                 ->findOrFail($appointment);
         }
 
         // Get payment information if not provided
-        if (!$payment && $appointment->payment) {
+        if (! $payment && $appointment->payment) {
             $payment = $appointment->payment;
         }
 
         // If we still don't have a payment and have a payment_id, get it
-        if (!$payment && $appointment->payment_id) {
+        if (! $payment && $appointment->payment_id) {
             $payment = Payment::find($appointment->payment_id);
         }
 
         // If business info is not provided, create a default one
-        if (!$businessInfo) {
+        if (! $businessInfo) {
             $provider = $appointment->user;
             $businessInfo = [
                 'name' => $provider->business_name ?? $provider->name,
                 'address' => $provider->business_address ?? '',
                 'phone' => $provider->phone ?? '',
                 'email' => $provider->email ?? '',
-                'logo' => $provider->logo_url ?? null
+                'logo' => $provider->logo_url ?? null,
             ];
         }
 
@@ -86,11 +86,11 @@ class ReceiptService
                 'duration' => $appointment->service ? $appointment->service->duration :
                     ($appointment->comboService ? $appointment->comboService->total_duration : null),
                 'price' => $appointment->service ? $appointment->service->price :
-                    ($appointment->comboService ? $appointment->comboService->discounted_price : null)
+                    ($appointment->comboService ? $appointment->comboService->discounted_price : null),
             ],
             'payment' => $paymentDetails,
             'business' => $businessInfo,
-            'receipt_number' => 'RCT-' . $appointment->id . '-' . date('Ymd'),
+            'receipt_number' => 'RCT-'.$appointment->id.'-'.date('Ymd'),
             'receipt_date' => Carbon::now()->format('F d, Y'),
             'appointment_date' => Carbon::parse($appointment->date)->format('F d, Y'),
             'appointment_time' => $appointment->formatted_time,
@@ -100,8 +100,8 @@ class ReceiptService
         $pdf = PDF::loadView('pdf.receipt', $data);
 
         // Generate a unique filename
-        $filename = 'receipt_' . $appointment->id . '_' . time() . '.pdf';
-        $path = 'receipts/' . $filename;
+        $filename = 'receipt_'.$appointment->id.'_'.time().'.pdf';
+        $path = 'receipts/'.$filename;
 
         // Save PDF to storage
         Storage::disk('public')->put($path, $pdf->output());
@@ -109,17 +109,17 @@ class ReceiptService
         return $path;
     }
 
-
     /**
      * Format currency with symbol
      *
-     * @param float $amount
-     * @param string $currency
+     * @param  float  $amount
+     * @param  string  $currency
      * @return string
      */
     private function formatCurrency($amount, $currency = 'INR')
     {
         $symbol = $currency === 'INR' ? '₹' : '$';
-        return $symbol . number_format($amount, 2);
+
+        return $symbol.number_format($amount, 2);
     }
 }

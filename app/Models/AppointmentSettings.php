@@ -55,17 +55,17 @@ class AppointmentSettings extends Model
     public function getFormattedDurationAttribute()
     {
         if ($this->appointment_duration < 60) {
-            return $this->appointment_duration . ' minutes';
+            return $this->appointment_duration.' minutes';
         }
 
         $hours = floor($this->appointment_duration / 60);
         $minutes = $this->appointment_duration % 60;
 
         if ($minutes === 0) {
-            return $hours . ' hour' . ($hours > 1 ? 's' : '');
+            return $hours.' hour'.($hours > 1 ? 's' : '');
         }
 
-        return $hours . ' hour' . ($hours > 1 ? 's' : '') . ' ' . $minutes . ' minute' . ($minutes > 1 ? 's' : '');
+        return $hours.' hour'.($hours > 1 ? 's' : '').' '.$minutes.' minute'.($minutes > 1 ? 's' : '');
     }
 
     /**
@@ -73,6 +73,6 @@ class AppointmentSettings extends Model
      */
     public function getFormattedBufferTimeAttribute()
     {
-        return $this->buffer_time . ' minutes';
+        return $this->buffer_time.' minutes';
     }
 }

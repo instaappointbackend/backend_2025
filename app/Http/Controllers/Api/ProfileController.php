@@ -3,15 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ProfileRequest;
 use App\Http\Resources\ProfileResponse;
-use Illuminate\Http\Client\Request;
+use App\Traits\ApiResponseTrait;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Traits\ApiResponseTrait;
-use App\Http\Requests\ProfileRequest;
-
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -23,6 +21,7 @@ class ProfileController extends Controller
     public function getProfile()
     {
         $user = Auth::user();
+
         return $this->success(new ProfileResponse($user), 'Profile retrieved successfully.');
     }
 
@@ -32,23 +31,30 @@ class ProfileController extends Controller
      */
     public function updateProfile(ProfileRequest $request)
     {
-
         $user = Auth::user();
 
+        DB::transaction(function () use ($request, $user) {
+
+            // Update profile image
             if ($request->hasFile('profile_picture')) {
-                $path = $request->file('profile_picture')->store('profile_pictures', 'public');
-                $user->profile_picture = $path;
+
+                // Delete old image (extra safety)
+                if ($user->profile_picture) {
+                    Storage::disk('public')->delete($user->profile_picture);
+                }
+
+                $user->profile_picture = $request
+                    ->file('profile_picture')
+                    ->store('profile_pictures', 'public');
             }
 
+            // Update other fields
+            $user->fill($request->safe()->except('profile_picture'));
 
+            $user->save();
+        });
 
-
-            $user->update($request->only(['name', 'email', 'gender', 'dob','address','full_address',
-        'street','city','state','country','postal_code','latitude','longitude','business_category_id','experience']));
-
-            return $this->success(new ProfileResponse($user), 'Profile updated successfully.');
-
-
+        return $this->success(new ProfileResponse($user), 'Profile updated successfully.');
     }
 
     /**
@@ -59,14 +65,14 @@ class ProfileController extends Controller
     {
         try {
             $user = Auth::user();
-            
+
             DB::beginTransaction();
 
             // Log the deletion attempt
             Log::info('User account deletion initiated', [
                 'user_id' => $user->id,
                 'mobile' => $user->mobile,
-                'role' => $user->role
+                'role' => $user->role,
             ]);
 
             // Delete user's payout requests first (foreign key constraint)
@@ -165,18 +171,17 @@ class ProfileController extends Controller
 
             Log::info('User account deleted successfully', [
                 'user_id' => $user->id,
-                'mobile' => $user->mobile
+                'mobile' => $user->mobile,
             ]);
 
             return $this->success([], 'Account deleted successfully.');
-
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             Log::error('Error deleting user account', [
                 'user_id' => Auth::id(),
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return $this->error([], 'Failed to delete account. Please try again.', 500);

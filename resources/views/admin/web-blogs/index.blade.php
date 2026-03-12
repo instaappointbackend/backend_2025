@@ -47,6 +47,11 @@
                             </option>
                         @endforeach
                     </select>
+                    <div class="col-md-1">
+                        <a href="{{ route('admin.web-blogs.index') }}" class="btn btn-secondary ml-2">
+                            <i class="fas fa-sync"></i>
+                        </a>
+                    </div>
                 </form>
             </div>
         </div>
@@ -55,6 +60,7 @@
                 <table class="table table-hover">
                     <thead>
                         <tr>
+                            <th width="5%">Sr No</th>
                             <th width="5%">ID</th>
                             <th width="35%">Title</th>
                             <th width="35%">Sub Title</th>
@@ -66,8 +72,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($blogs as $blog)
+                        @forelse($blogs as $index=>$blog)
                             <tr>
+                                <td>{{ $blogs->firstItem() + $index }}</td>
                                 <td>{{ $blog->id }}</td>
                                 <td>
                                     <a href="{{ route('admin.web-blogs.show', $blog->id) }}"
@@ -104,21 +111,7 @@
                                         <span class="text-muted">Unknown</span>
                                     @endif
                                 </td>
-                                {{-- <td>
-                                    @if ($blog->attachment)
-                                        @if ($blog->attachment_type == 'image')
-                                            <span class="badge bg-info">
-                                                <i class="fas fa-image me-1"></i> Image
-                                            </span>
-                                        @else
-                                            <span class="badge bg-secondary">
-                                                <i class="fas fa-file-alt me-1"></i> Document
-                                            </span>
-                                        @endif
-                                    @else
-                                        <span class="badge bg-light text-dark">None</span>
-                                    @endif
-                                </td> --}}
+
                                 <td>
                                     <span
                                         class="badge bg-{{ $blog->status == 'published' ? 'success' : 'warning text-dark' }}">
@@ -157,9 +150,18 @@
                 </table>
             </div>
 
-            <div class="d-flex justify-content-end mt-3">
-                {{ $blogs->links() }}
-            </div>
+            @if ($blogs->hasPages())
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>
+                        Showing {{ $blogs->firstItem() ?? 0 }} to {{ $blogs->lastItem() ?? 0 }} of
+                        {{ $blogs->total() }}
+                        blogs
+                    </div>
+                    <div class="d-flex justify-content-end mt-3">
+                        {{ $blogs->onEachSide(5)->links() }}
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 @endsection

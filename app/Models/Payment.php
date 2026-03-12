@@ -17,7 +17,7 @@ class Payment extends Model
         'discount_amount', 'discount_percentage', 'home_visit_fee',
         'additional_services_fee', 'net_amount', 'coupon_code',
         'offer_title', 'vendor_offer_id', 'admin_offer_id', 'offer_type',
-        'additional_notes', 'vendor_earnings', 'admin_earnings'
+        'additional_notes', 'vendor_earnings', 'admin_earnings',
     ];
 
     protected $casts = [
@@ -37,13 +37,15 @@ class Payment extends Model
         'payment_details' => 'json',
     ];
 
-
     /**
      * Payment status constants.
      */
     const STATUS_PENDING = 'pending';
+
     const STATUS_PAID = 'paid';
+
     const STATUS_FAILED = 'failed';
+
     const STATUS_REFUNDED = 'refunded';
 
     /**
@@ -108,7 +110,8 @@ class Payment extends Model
     public function getFormattedAmountAttribute(): string
     {
         $symbol = $this->currency === 'INR' ? '₹' : '$';
-        return $symbol . number_format($this->amount, 2);
+
+        return $symbol.number_format($this->amount, 2);
     }
 
     /**
@@ -117,7 +120,8 @@ class Payment extends Model
     public function getFormattedOriginalPriceAttribute(): string
     {
         $symbol = $this->currency === 'INR' ? '₹' : '$';
-        return $symbol . number_format($this->original_price, 2);
+
+        return $symbol.number_format($this->original_price, 2);
     }
 
     /**
@@ -126,7 +130,8 @@ class Payment extends Model
     public function getFormattedBookingPriceAttribute(): string
     {
         $symbol = $this->currency === 'INR' ? '₹' : '$';
-        return $symbol . number_format($this->booking_price, 2);
+
+        return $symbol.number_format($this->booking_price, 2);
     }
 
     /**
@@ -135,7 +140,8 @@ class Payment extends Model
     public function getFormattedPlatformFeeAttribute(): string
     {
         $symbol = $this->currency === 'INR' ? '₹' : '$';
-        return $symbol . number_format($this->platform_fee, 2);
+
+        return $symbol.number_format($this->platform_fee, 2);
     }
 
     /**
@@ -144,7 +150,8 @@ class Payment extends Model
     public function getFormattedOtherChargesAttribute(): string
     {
         $symbol = $this->currency === 'INR' ? '₹' : '$';
-        return $symbol . number_format($this->other_charges, 2);
+
+        return $symbol.number_format($this->other_charges, 2);
     }
 
     /**
@@ -153,7 +160,8 @@ class Payment extends Model
     public function getFormattedGstAmountAttribute(): string
     {
         $symbol = $this->currency === 'INR' ? '₹' : '$';
-        return $symbol . number_format($this->gst_amount, 2);
+
+        return $symbol.number_format($this->gst_amount, 2);
     }
 
     /**
@@ -162,7 +170,8 @@ class Payment extends Model
     public function getFormattedDiscountAmountAttribute(): string
     {
         $symbol = $this->currency === 'INR' ? '₹' : '$';
-        return $symbol . number_format($this->discount_amount, 2);
+
+        return $symbol.number_format($this->discount_amount, 2);
     }
 
     /**
@@ -171,7 +180,8 @@ class Payment extends Model
     public function getFormattedHomeVisitFeeAttribute(): string
     {
         $symbol = $this->currency === 'INR' ? '₹' : '$';
-        return $symbol . number_format($this->home_visit_fee, 2);
+
+        return $symbol.number_format($this->home_visit_fee, 2);
     }
 
     /**
@@ -180,7 +190,8 @@ class Payment extends Model
     public function getFormattedAdditionalServicesFeeAttribute(): string
     {
         $symbol = $this->currency === 'INR' ? '₹' : '$';
-        return $symbol . number_format($this->additional_services_fee, 2);
+
+        return $symbol.number_format($this->additional_services_fee, 2);
     }
 
     /**
@@ -189,7 +200,8 @@ class Payment extends Model
     public function getFormattedNetAmountAttribute(): string
     {
         $symbol = $this->currency === 'INR' ? '₹' : '$';
-        return $symbol . number_format($this->net_amount, 2);
+
+        return $symbol.number_format($this->net_amount, 2);
     }
 
     /**
@@ -198,7 +210,8 @@ class Payment extends Model
     public function getFormattedVendorEarningsAttribute(): string
     {
         $symbol = $this->currency === 'INR' ? '₹' : '$';
-        return $symbol . number_format($this->vendor_earnings ?? $this->booking_price, 2);
+
+        return $symbol.number_format($this->vendor_earnings ?? $this->booking_price, 2);
     }
 
     /**
@@ -209,7 +222,8 @@ class Payment extends Model
         $symbol = $this->currency === 'INR' ? '₹' : '$';
         $adminEarnings = $this->admin_earnings ??
             ($this->platform_fee + $this->other_charges + $this->gst_amount);
-        return $symbol . number_format($adminEarnings, 2);
+
+        return $symbol.number_format($adminEarnings, 2);
     }
 
     /**
@@ -223,10 +237,11 @@ class Payment extends Model
             'upi' => 'UPI',
             'wallet' => 'Wallet',
             'netbanking' => 'Net Banking',
-            'cash' => 'Cash'
+            'cash' => 'Cash',
         ];
 
         $method = strtolower($this->payment_method);
+
         return $methods[$method] ?? $this->payment_method;
     }
 

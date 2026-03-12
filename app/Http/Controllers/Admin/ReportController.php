@@ -57,7 +57,7 @@ class ReportController extends Controller
         // Get appointments within date range
         $appointments = Appointment::with(['client', 'user', 'service'])
             ->whereBetween('created_at', [$startDate, $endDate])
-            ->when($request->filled('status'), function($query) use ($request) {
+            ->when($request->filled('status'), function ($query) use ($request) {
                 return $query->where('status', $request->input('status'));
             })
             ->latest()
@@ -100,7 +100,7 @@ class ReportController extends Controller
 
         // Get users within date range
         $users = User::whereBetween('created_at', [$startDate, $endDate])
-            ->when($request->filled('role'), function($query) use ($request) {
+            ->when($request->filled('role'), function ($query) use ($request) {
                 return $query->where('role', $request->input('role'));
             })
             ->latest()
@@ -156,7 +156,7 @@ class ReportController extends Controller
         // Get payments within date range
         $payments = Payment::with(['user', 'provider', 'appointment'])
             ->whereBetween('created_at', [$startDate, $endDate])
-            ->when($request->filled('status'), function($query) use ($request) {
+            ->when($request->filled('status'), function ($query) use ($request) {
                 return $query->where('status', $request->input('status'));
             })
             ->latest()
@@ -211,7 +211,7 @@ class ReportController extends Controller
         // Get payouts within date range
         $payouts = PayoutRequest::with(['user', 'bankAccount'])
             ->whereBetween('created_at', [$startDate, $endDate])
-            ->when($request->filled('status'), function($query) use ($request) {
+            ->when($request->filled('status'), function ($query) use ($request) {
                 return $query->where('status', $request->input('status'));
             })
             ->latest()
@@ -258,11 +258,11 @@ class ReportController extends Controller
      */
     public function getAppointmentChartData($startDate = null, $endDate = null)
     {
-        if (!$startDate) {
+        if (! $startDate) {
             $startDate = Carbon::now()->subDays(30);
         }
 
-        if (!$endDate) {
+        if (! $endDate) {
             $endDate = Carbon::now();
         }
 
@@ -299,11 +299,11 @@ class ReportController extends Controller
      */
     public function getUserChartData($startDate = null, $endDate = null)
     {
-        if (!$startDate) {
+        if (! $startDate) {
             $startDate = Carbon::now()->subDays(30);
         }
 
-        if (!$endDate) {
+        if (! $endDate) {
             $endDate = Carbon::now();
         }
 
@@ -340,11 +340,11 @@ class ReportController extends Controller
      */
     public function getRevenueChartData($startDate = null, $endDate = null)
     {
-        if (!$startDate) {
+        if (! $startDate) {
             $startDate = Carbon::now()->subDays(30);
         }
 
-        if (!$endDate) {
+        if (! $endDate) {
             $endDate = Carbon::now();
         }
 
@@ -382,11 +382,11 @@ class ReportController extends Controller
      */
     public function getPayoutChartData($startDate = null, $endDate = null)
     {
-        if (!$startDate) {
+        if (! $startDate) {
             $startDate = Carbon::now()->subDays(30);
         }
 
-        if (!$endDate) {
+        if (! $endDate) {
             $endDate = Carbon::now();
         }
 
@@ -428,7 +428,7 @@ class ReportController extends Controller
 
         $appointments = Appointment::with(['client', 'user', 'service'])
             ->whereBetween('created_at', [$startDate, $endDate])
-            ->when($request->filled('status'), function($query) use ($request) {
+            ->when($request->filled('status'), function ($query) use ($request) {
                 return $query->where('status', $request->input('status'));
             })
             ->latest()
@@ -436,8 +436,17 @@ class ReportController extends Controller
 
         $csvData = [];
         $csvData[] = [
-            'ID', 'Service', 'Customer', 'Vendor', 'Date', 'Start Time', 'End Time',
-            'Status', 'Payment Status', 'Payment Amount', 'Created At'
+            'ID',
+            'Service',
+            'Customer',
+            'Vendor',
+            'Date',
+            'Start Time',
+            'End Time',
+            'Status',
+            'Payment Status',
+            'Payment Amount',
+            'Created At',
         ];
 
         foreach ($appointments as $appointment) {
@@ -456,7 +465,7 @@ class ReportController extends Controller
             ];
         }
 
-        $filename = 'appointments_report_' . date('Y-m-d') . '.csv';
+        $filename = 'appointments_report_'.date('Y-m-d').'.csv';
 
         return $this->generateCsv($csvData, $filename);
     }
@@ -470,7 +479,7 @@ class ReportController extends Controller
         $endDate = $request->input('end_date') ? Carbon::parse($request->input('end_date'))->endOfDay() : Carbon::now()->endOfDay();
 
         $users = User::whereBetween('created_at', [$startDate, $endDate])
-            ->when($request->filled('role'), function($query) use ($request) {
+            ->when($request->filled('role'), function ($query) use ($request) {
                 return $query->where('role', $request->input('role'));
             })
             ->latest()
@@ -478,7 +487,14 @@ class ReportController extends Controller
 
         $csvData = [];
         $csvData[] = [
-            'ID', 'Name', 'Email', 'Mobile', 'Role', 'Status', 'KYC Status', 'Created At'
+            'ID',
+            'Name',
+            'Email',
+            'Mobile',
+            'Role',
+            'Status',
+            'KYC Status',
+            'Created At',
         ];
 
         foreach ($users as $user) {
@@ -494,7 +510,7 @@ class ReportController extends Controller
             ];
         }
 
-        $filename = 'users_report_' . date('Y-m-d') . '.csv';
+        $filename = 'users_report_'.date('Y-m-d').'.csv';
 
         return $this->generateCsv($csvData, $filename);
     }
@@ -509,7 +525,7 @@ class ReportController extends Controller
 
         $payments = Payment::with(['user', 'provider', 'appointment'])
             ->whereBetween('created_at', [$startDate, $endDate])
-            ->when($request->filled('status'), function($query) use ($request) {
+            ->when($request->filled('status'), function ($query) use ($request) {
                 return $query->where('status', $request->input('status'));
             })
             ->latest()
@@ -517,8 +533,16 @@ class ReportController extends Controller
 
         $csvData = [];
         $csvData[] = [
-            'ID', 'Transaction ID', 'Customer', 'Vendor', 'Amount', 'Admin Earnings',
-            'Vendor Earnings', 'Payment Method', 'Status', 'Created At'
+            'ID',
+            'Transaction ID',
+            'Customer',
+            'Vendor',
+            'Amount',
+            'Admin Earnings',
+            'Vendor Earnings',
+            'Payment Method',
+            'Status',
+            'Created At',
         ];
 
         foreach ($payments as $payment) {
@@ -536,7 +560,7 @@ class ReportController extends Controller
             ];
         }
 
-        $filename = 'revenue_report_' . date('Y-m-d') . '.csv';
+        $filename = 'revenue_report_'.date('Y-m-d').'.csv';
 
         return $this->generateCsv($csvData, $filename);
     }
@@ -551,7 +575,7 @@ class ReportController extends Controller
 
         $payouts = PayoutRequest::with(['user', 'bankAccount'])
             ->whereBetween('created_at', [$startDate, $endDate])
-            ->when($request->filled('status'), function($query) use ($request) {
+            ->when($request->filled('status'), function ($query) use ($request) {
                 return $query->where('status', $request->input('status'));
             })
             ->latest()
@@ -559,13 +583,19 @@ class ReportController extends Controller
 
         $csvData = [];
         $csvData[] = [
-            'ID', 'Vendor', 'Bank Account', 'Amount', 'Status', 'Transaction ID',
-            'Transaction Date', 'Created At'
+            'ID',
+            'Vendor',
+            'Bank Account',
+            'Amount',
+            'Status',
+            'Transaction ID',
+            'Transaction Date',
+            'Created At',
         ];
 
         foreach ($payouts as $payout) {
             $bankAccountDetails = $payout->bankAccount ?
-                $payout->bankAccount->bank_name . ' - ' .
+                $payout->bankAccount->bank_name.' - '.
                 $payout->bankAccount->account_number : '';
 
             $csvData[] = [
@@ -580,7 +610,7 @@ class ReportController extends Controller
             ];
         }
 
-        $filename = 'payouts_report_' . date('Y-m-d') . '.csv';
+        $filename = 'payouts_report_'.date('Y-m-d').'.csv';
 
         return $this->generateCsv($csvData, $filename);
     }
@@ -619,7 +649,7 @@ class ReportController extends Controller
 
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ];
 
         return Response::make($content, 200, $headers);

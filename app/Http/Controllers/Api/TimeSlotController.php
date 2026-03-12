@@ -7,8 +7,8 @@ use App\Http\Requests\TimeSlotRequest;
 use App\Http\Resources\TimeSlotResponse;
 use App\Models\Appointment;
 use App\Models\AppointmentSettings;
-use App\Models\Service;
 use App\Models\ComboService;
+use App\Models\Service;
 use App\Models\TimeSlot;
 use App\Models\WorkingHours;
 use App\Services\TimeSlotBlockingService;
@@ -45,9 +45,8 @@ class TimeSlotController extends Controller
         $comboServiceId = $request->input('combo_service_id');
         $userId = Auth::id();
 
-
         // Auto-cleanup expired slots before showing available slots
-        $timeSlotService = new TimeSlotBlockingService();
+        $timeSlotService = new TimeSlotBlockingService;
         $timeSlotService->cleanupExpiredSlots();
 
         // Get time slots for the requested date
@@ -76,7 +75,7 @@ class TimeSlotController extends Controller
 
         $timeSlots = TimeSlot::where('user_id', $userId)
             ->where('date', $date)
-            //->where('end_time', '>', Carbon::now()->format('H:i:s')) // ✅ only future slots
+            // ->where('end_time', '>', Carbon::now()->format('H:i:s')) // ✅ only future slots
             ->orderBy('start_time')
             ->get();
 
@@ -147,7 +146,8 @@ class TimeSlotController extends Controller
             //     $timeSlots = $filteredSlots;
             // }
         }
-        //dd($timeSlots->toArray());
+
+        // dd($timeSlots->toArray());
         return $this->success(
             TimeSlotResponse::collection($timeSlots),
             'Time slots retrieved successfully.'
@@ -192,7 +192,7 @@ class TimeSlotController extends Controller
             ->where('day_of_week', $dayOfWeek)
             ->first();
 
-        if (!$workingHours || !$workingHours->is_working_day) {
+        if (! $workingHours || ! $workingHours->is_working_day) {
             return $this->error([], 'This day is not a working day.', 422);
         }
 
@@ -240,8 +240,8 @@ class TimeSlotController extends Controller
                 }
             }
 
-            if (!$overlapsBreak) {
-                $slot = new TimeSlot();
+            if (! $overlapsBreak) {
+                $slot = new TimeSlot;
                 $slot->user_id = $userId;
                 $slot->date = $date;
                 $slot->start_time = $this->minutesToTime($slotStart);
@@ -276,14 +276,14 @@ class TimeSlotController extends Controller
             ->where('id', $id)
             ->first();
 
-        if (!$timeSlot) {
+        if (! $timeSlot) {
             return $this->error([], 'Time slot not found', 404);
         }
 
         // Check if there's an appointment for this time slot
         $hasAppointment = $timeSlot->isBooked();
 
-        if ($hasAppointment && !$request->input('is_available')) {
+        if ($hasAppointment && ! $request->input('is_available')) {
             return $this->error([], 'Cannot block a time slot with an existing appointment.', 422);
         }
 
@@ -321,7 +321,7 @@ class TimeSlotController extends Controller
         }
 
         // If blocking slots, check for existing appointments
-        if (!$isAvailable) {
+        if (! $isAvailable) {
             foreach ($timeSlots as $timeSlot) {
                 if ($timeSlot->isBooked()) {
                     return $this->error([], 'Cannot block time slots with existing appointments.', 422);
@@ -349,16 +349,18 @@ class TimeSlotController extends Controller
      */
     private function timeToMinutes($timeString)
     {
-        if (!$timeString) {
+        if (! $timeString) {
             return 0;
         }
 
         // Parse time using Carbon for more robust handling
         try {
             $carbon = Carbon::parse($timeString);
+
             return $carbon->hour * 60 + $carbon->minute;
         } catch (\Exception $e) {
-            \Log::error('Error parsing time: ' . $timeString . ', Error: ' . $e->getMessage());
+            \Log::error('Error parsing time: '.$timeString.', Error: '.$e->getMessage());
+
             return 0;
         }
     }
@@ -370,6 +372,7 @@ class TimeSlotController extends Controller
     {
         $hours = floor($minutes / 60);
         $mins = $minutes % 60;
+
         return sprintf('%02d:%02d', $hours, $mins);
     }
 }

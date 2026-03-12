@@ -2,11 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Offer;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use App\Models\Offer;
 
 class OfferRequest extends FormRequest
 {
@@ -32,13 +32,13 @@ class OfferRequest extends FormRequest
             'start_date' => 'required|date|date_format:Y-m-d',
             'end_date' => 'required|date|date_format:Y-m-d|after_or_equal:start_date',
             'is_active' => 'sometimes|boolean',
-            'offer_type' => 'required|in:' . Offer::TYPE_ADMIN . ',' . Offer::TYPE_PROVIDER,
+            'offer_type' => 'required|in:'.Offer::TYPE_ADMIN.','.Offer::TYPE_PROVIDER,
         ];
 
         // Add coupon code validation for admin offers only
         if ($this->input('offer_type') === Offer::TYPE_ADMIN) {
-            $rules['coupon_code'] = 'required|string|unique:offers,coupon_code' . 
-                ($this->isMethod('PUT') ? ',' . $this->route('id') : '');
+            $rules['coupon_code'] = 'required|string|unique:offers,coupon_code'.
+                ($this->isMethod('PUT') ? ','.$this->route('id') : '');
             $rules['usage_limit'] = 'nullable|integer|min:1';
         }
 

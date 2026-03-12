@@ -17,7 +17,7 @@ class UserLocation extends Model
         'longitude',
         'is_favorite',
         'is_current',
-        'last_used_at'
+        'last_used_at',
     ];
 
     protected $casts = [
@@ -25,7 +25,7 @@ class UserLocation extends Model
         'longitude' => 'float',
         'is_favorite' => 'boolean',
         'is_current' => 'boolean',
-        'last_used_at' => 'datetime'
+        'last_used_at' => 'datetime',
     ];
 
     public function user()
