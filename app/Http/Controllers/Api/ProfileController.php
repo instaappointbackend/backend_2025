@@ -53,6 +53,7 @@ class ProfileController extends Controller
 
             $user->save();
         });
+        $user->refresh();
 
         return $this->success(new ProfileResponse($user), 'Profile updated successfully.');
     }
