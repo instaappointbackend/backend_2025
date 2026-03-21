@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-@php
+{{-- @php
 
     use App\Enums\PlanEnum;
     use App\Enums\SocialPlanEnum;
@@ -12,7 +12,8 @@
     if (in_array($selected_plan, $plans_slugs)) {
         $plans = SocialPlanEnum::getAllPlans();
     }
-@endphp
+@endphp --}}
+
 
 <head>
     <meta charset="UTF-8">
@@ -638,18 +639,17 @@
                         </label> --}}
 
                         @foreach ($plans as $plan)
-                            <input type="radio" id="{{ $plan['slug'] }}" name="plan_name"
-                                value="{{ $plan['title'] }}" {{ $selected_plan == $plan['slug'] ? 'checked' : '' }}>
+                            <input type="radio" id="{{ $plan->slug }}" name="plan_name"
+                                value="{{ $plan->slug }}" {{ $selected_plan == $plan->slug ? 'checked' : '' }}>
 
-                            <label for="{{ $plan['slug'] }}">
-                                {{ $plan['title'] }}<br>
+                            <label for="{{ $plan->slug }}">
+                                {{ $plan->title }}<br>
                                 <span class="plan-amount">
-                                    <span class="original-price">₹{{ number_format($plan['original_price']) }}</span>
-                                    <span
-                                        class="discounted-price">₹{{ number_format($plan['discounted_price']) }}</span>
+                                    <span class="original-price">₹{{ number_format($plan->original_price) }}</span>
+                                    <span class="discounted-price">₹{{ number_format($plan->discounted_price) }}</span>
                                 </span>
-                                @if (!empty($plan['badge']))
-                                    <span class="badge">{{ $plan['badge'] }}</span>
+                                @if (!empty($plan->badge))
+                                    <span class="badge">{{ $plan->badge }}</span>
                                 @endif
                             </label>
 

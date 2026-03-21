@@ -5,6 +5,7 @@ namespace App\Services\Payments;
 use App\Enums\PlanEnum;
 use App\Enums\SocialPlanEnum;
 use App\Models\BaseSubscription;
+use App\Models\Plan;
 use App\Models\Subscription;
 use App\Models\SocialSubscription;
 use App\Models\User;
@@ -34,6 +35,7 @@ class SubscriptionService
 
         try {
             $plan = $this->resolvePlan($data['plan_name']);
+
             $modelClass = $this->resolveSubscriptionModel($plan['slug']);
 
             $user = $this->findOrCreateUser([
@@ -194,13 +196,21 @@ class SubscriptionService
 
     private function resolvePlan(string $planName)
     {
-        $plan = PlanEnum::getPlanByTitle($planName);
+        // $plan = PlanEnum::getPlanByTitle($planName);
 
-        if (! $plan) {
-            $plan = SocialPlanEnum::getPlanByTitle($planName);
-        }
+        // if (! $plan) {
+        //     $plan = SocialPlanEnum::getPlanByTitle($planName);
+        // }
 
-        if (! $plan || $plan['title'] !== $planName) {
+        // if (! $plan || $plan['title'] !== $planName) {
+        //     throw new \Exception('Selected plan not found.');
+        // }
+
+        // return $plan;
+
+        $plan = Plan::where('slug', $planName)->first()->toArray();
+
+        if (count($plan) === 0) {
             throw new \Exception('Selected plan not found.');
         }
 
@@ -209,7 +219,13 @@ class SubscriptionService
 
     private function resolveSubscriptionModel(string $slug)
     {
-        $socialSlugs = SocialPlanEnum::getSlugs();
+        // $socialSlugs = SocialPlanEnum::getSlugs();
+
+        // return in_array($slug, $socialSlugs)
+        //     ? SocialSubscription::class
+        //     : Subscription::class;
+
+        $socialSlugs = Plan::where('type', 'social')->pluck('slug')->toArray();
 
         return in_array($slug, $socialSlugs)
             ? SocialSubscription::class
