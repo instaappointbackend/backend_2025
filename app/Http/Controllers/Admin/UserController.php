@@ -294,7 +294,7 @@ class UserController extends Controller
 
         $vendors = $query->with(['businessCategory'])
             ->latest()
-            ->paginate(15);
+            ->paginate(15)->withQueryString();;
 
         $businessCategories = BusinessCategory::all();
 

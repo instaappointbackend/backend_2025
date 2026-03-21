@@ -285,6 +285,15 @@
             </li>
         @endif
 
+        @if (hasPermission('plans'))
+            <li class="menu-item {{ request()->routeIs('admin.pages*') ? 'active' : '' }}">
+                <a href="{{ route('admin.plans.index') }}">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Plans</span>
+                </a>
+            </li>
+        @endif
+
         @if (hasPermission('content_manage_faqs'))
             <li class="menu-item {{ request()->routeIs('admin.faqs*') ? 'active' : '' }}">
                 <a href="{{ route('admin.faqs.index') }}">

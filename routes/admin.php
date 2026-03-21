@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\PayoutApiController;
 use App\Http\Controllers\Admin\PayoutController;
 use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\PlanController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\ServiceController;
@@ -208,6 +209,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Web Blogs
         Route::middleware(['permission:content_manage_web_blogs'])->group(function () {
             Route::resource('web-blogs', WebBlogController::class);
+        });
+
+
+        // Web Blogs
+        Route::middleware(['permission:plans'])->group(function () {
+            Route::resource('plans', PlanController::class);
         });
 
         // FAQs

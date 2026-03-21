@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Plan;
 use App\Models\Subscription;
 use App\Services\PaymentGateways\RazorpayService;
 use App\Services\Payments\SubscriptionService;
@@ -27,8 +28,18 @@ class SubscriptionController extends Controller
         }
 
         $selected_plan = $request->get('plan');
+        $normal_plan = [
+            'basic',
+            'standard',
+            'super_saving'
+        ];
+        if (in_array($selected_plan, $normal_plan)) {
+            $plans = Plan::where('type', 'normal')->get();
+        } else {
+            $plans = Plan::where('type', 'social')->get();
+        }
 
-        return view('subscriptions.index', compact('selected_plan'));
+        return view('subscriptions.index', compact('selected_plan', 'plans'));
     }
 
     public function razorpayCheckout(Request $request)

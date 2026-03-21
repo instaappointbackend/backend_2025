@@ -1,7 +1,8 @@
-@php
+{{-- @php
     use App\Enums\PlanEnum;
     $plans = PlanEnum::getAllPlans();
-@endphp
+@endphp --}}
+
 
 <style>
     .pricing-card {
@@ -72,34 +73,34 @@
         <div class="row g-4 justify-content-center">
             @foreach ($plans as $plan)
                 <div class="col-md-4">
-                    <div class="card pricing-card h-100 border {{ $plan['border_class'] }}">
+                    <div class="card pricing-card h-100 border {{ $plan->border_class }}">
                         <div class="card-body">
                             <h5 class="plan-title">
                                 {{ $plan['title'] }}
-                                @if (!empty($plan['highlight']) && $plan['highlight'])
-                                    <span class="badge-popular">{{ $plan['badge'] ?? '' }}</span>
+                                @if (!empty($plan->highlight) && $plan->highlight)
+                                    <span class="badge-popular">{{ $plan->badge ?? '' }}</span>
                                 @endif
                             </h5>
                             <div class="text-center mt-2 mb-2">
                                 <span
-                                    class="text-muted text-decoration-line-through me-2">₹{{ $plan['original_price'] }}</span>
+                                    class="text-muted text-decoration-line-through me-2">₹{{ $plan->original_price }}</span>
                                 <span
-                                    class="fw-bold {{ $plan['border_class'] === 'border-warning' ? 'text-warning' : 'text-success' }} me-2">
-                                    ₹{{ $plan['discounted_price'] }}
+                                    class="fw-bold {{ $plan->border_class === 'border-warning' ? 'text-warning' : 'text-success' }} me-2">
+                                    ₹{{ $plan->discounted_price }}
                                 </span>
-                                <span class="badge bg-danger">{{ $plan['discount'] }}</span>
+                                <span class="badge bg-danger">{{ $plan->discount }}</span>
                             </div>
-                            <p class="text-muted small mb-3">{{ $plan['duration'] }}</p>
+                            <p class="text-muted small mb-3">{{ $plan->duration }}</p>
                             <ul class="feature-list text-start">
-                                @foreach ($plan['features'] as $feature)
+                                @foreach ($plan->features as $feature)
                                     <li>
                                         <i
-                                            class="fas {{ $feature['included'] ? 'fa-check included' : 'fa-times excluded' }}"></i>
-                                        {{ $feature['text'] }}
+                                            class="fas {{ $feature->included ? 'fa-check included' : 'fa-times excluded' }}"></i>
+                                        {{ $feature->text }}
                                     </li>
                                 @endforeach
                             </ul>
-                            <a href="{{ route('subscription.form', ['plan' => $plan['slug']]) }}"
+                            <a href="{{ route('subscription.form', ['plan' => $plan->slug]) }}"
                                 class="btn mt-3 {{ $plan['button_class'] }}">{{ $plan['button_text'] }}</a>
                         </div>
                     </div>
