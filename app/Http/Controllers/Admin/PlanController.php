@@ -50,6 +50,11 @@ class PlanController extends Controller
      */
     public function store(Request $request)
     {
+        // Add slug to the request
+        $request->merge([
+            'slug' => Str::slug($request->title)
+        ]);
+
         $plan = Plan::create($request->only([
             'title',
             'slug',
