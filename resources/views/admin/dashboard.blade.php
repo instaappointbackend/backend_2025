@@ -561,9 +561,9 @@
                                             <div class="d-flex align-items-center">
                                                 <div
                                                     class="avatar avatar-sm bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center">
-                                                    <span>{{ substr($appointment->user->name, 0, 1) }}</span>
+                                                    <span>{{ substr($appointment?->user?->name, 0, 1) }}</span>
                                                 </div>
-                                                {{ $appointment->user->name ?? '-' }}
+                                                {{ $appointment?->user?->name ?? '-' }}
                                             </div>
                                         </td>
                                         <td>
@@ -606,7 +606,7 @@
             </div>
         </div>
 
-        <!-- Recent Refunds -->
+        <!-- Recent Refunds  nnn-->
         @if (hasPermission('refunds_view_refunds'))
             <div class="col-lg-4 mb-4">
                 <div class="card dashboard-card">
