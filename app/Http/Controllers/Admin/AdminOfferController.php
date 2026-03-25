@@ -71,12 +71,15 @@ class AdminOfferController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'discount_percentage' => 'required|numeric|min:0|max:100',
             'coupon_code' => 'required|string|max:50|unique:offers,coupon_code',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'is_active' => 'boolean',
             'usage_limit' => 'nullable|integer|min:1',
+            'discount_type' => 'required|in:percentage,fixed',
+            'discount_percentage' => 'required_if:discount_type,percentage|nullable|numeric|min:0|max:100',
+            'discount_fixed' => 'required_if:discount_type,fixed|nullable|numeric|min:0',
+            'new_user_only' => 'sometimes|boolean',
         ]);
 
         $validated['is_active'] = ! empty($validated['is_active']) ? true : false;
@@ -86,6 +89,33 @@ class AdminOfferController extends Controller
         // If no coupon code is provided, generate one
         if (empty($validated['coupon_code'])) {
             $validated['coupon_code'] = Str::upper(Str::random(8));
+        }
+
+        if ($request->new_user_only) {
+            $existing = Offer::where('new_user_only', true)
+                ->where('is_active', true)
+                ->whereDate('end_date', '>=', now());
+
+            if ($request->id) {
+                $existing->where('id', '!=', $request->id); // exclude current offer if updating
+            }
+
+            if ($existing->exists()) {
+                return back()->withErrors([
+                    'new_user_only' => 'Only one active New User offer is allowed at a time.'
+                ])->withInput();
+            }
+
+            // Force fixed discount for new user offers
+            $request->merge([
+                'discount_type' => 'fixed',
+                'discount_percentage' => null,
+            ]);
+        } else {
+            // Ensure discount_fixed is null if not new user offer
+            if ($request->discount_type === 'percentage') {
+                $request->merge(['discount_fixed' => null]);
+            }
         }
 
         $adminOffer = Offer::create($validated);
@@ -134,11 +164,15 @@ class AdminOfferController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'discount_percentage' => 'required|numeric|min:0|max:100',
-            'coupon_code' => 'required|string|max:50|unique:offers,coupon_code,'.$offer->id,
+            'coupon_code' => 'required|string|max:50|unique:offers,coupon_code,' . $offer->id,
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'is_active' => 'boolean',
             'usage_limit' => 'nullable|integer|min:1',
+            'discount_type' => 'required|in:percentage,fixed',
+            'discount_percentage' => 'required_if:discount_type,percentage|nullable|numeric|min:0|max:100',
+            'discount_fixed' => 'required_if:discount_type,fixed|nullable|numeric|min:0',
+            'new_user_only' => 'sometimes|boolean',
         ]);
 
         $validated['is_active'] = ! empty($validated['is_active']) ? true : false;

@@ -21,22 +21,27 @@ class Offer extends Model
         'offer_type',       // 'admin' or 'vendor'
         'title',
         'description',
+        'discount_type',
         'discount_percentage',
+        'discount_fixed',
         'coupon_code',      // Required for admin offers, optional for provider offers
         'start_date',
         'end_date',
         'is_active',
         'usage_limit',      // NULL for unlimited (default for provider offers)
         'used_count',       // Tracking usage (always start at 0)
+        'new_user_only',
     ];
 
     protected $casts = [
         'discount_percentage' => 'decimal:2',
+        'discount_fixed' => 'decimal:2',
         'start_date' => 'date',
         'end_date' => 'date',
         'is_active' => 'boolean',
         'usage_limit' => 'integer',
         'used_count' => 'integer',
+        'new_user_only' => 'boolean',
     ];
 
     /**
@@ -153,5 +158,26 @@ class Offer extends Model
     public function isProviderOffer()
     {
         return $this->offer_type === self::TYPE_PROVIDER;
+    }
+
+    /**
+     * Calculate discount amount based on offer type
+     */
+    public function calculateDiscount($amount)
+    {
+        if ($this->discount_type === 'percentage') {
+            return ($amount * $this->discount_percentage) / 100;
+        }
+
+        if ($this->discount_type === 'fixed') {
+            return min($this->discount_fixed, $amount);
+        }
+
+        return 0;
+    }
+
+    public function isNewUserOffer(): bool
+    {
+        return $this->new_user_only === true;
     }
 }

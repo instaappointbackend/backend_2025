@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\AppointmentPayments;
 
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
+use App\Models\User;
 use App\Services\Payments\AppointmentPaymentService;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
@@ -34,7 +35,7 @@ class PhonePeBridgeController extends Controller
             'gateway' => 'nullable|string|in:phonepe,razorpay', // Optional gateway selection
         ]);
         if ($validator->fails()) {
-            return $this->renderError('Invalid request. '.$validator->errors()->first());
+            return $this->renderError('Invalid request. ' . $validator->errors()->first());
         }
 
         $paymentResult = Payment::where('appointment_id', $request->get('appointment_id'))->first();
@@ -105,6 +106,7 @@ class PhonePeBridgeController extends Controller
             // Redirect to payment gateway
             return redirect()->away($paymentResponse['payment_url']);
         } catch (\Exception $e) {
+            dd($e);
             Log::error('Payment processing error', [
                 'error' => $e->getMessage(),
                 'payment_id' => $request->payment_id,
@@ -147,6 +149,7 @@ class PhonePeBridgeController extends Controller
 
             // Render success or failure page
             if ($result['success']) {
+
                 return $this->renderSuccess(
                     $result['payment'],
                     $result['appointment'],
@@ -268,7 +271,7 @@ class PhonePeBridgeController extends Controller
 
         $queryString = http_build_query($params);
 
-        return $baseUrl.$separator.$queryString;
+        return $baseUrl . $separator . $queryString;
     }
 
     /**
@@ -276,7 +279,8 @@ class PhonePeBridgeController extends Controller
      */
     private function getCallbackUrl(string $gateway): string
     {
-        return route('phonepe.bridge.payment.callback', ['gateway' => $gateway]);
+        //return route('phonepe.bridge.payment.callback', ['gateway' => $gateway]);
+        return route('phonepe.bridge.callback', ['gateway' => $gateway]);
     }
 
     /**

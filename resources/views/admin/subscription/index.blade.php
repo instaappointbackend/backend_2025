@@ -7,7 +7,8 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb m-0">
             <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Subscription</li>
+            <li class="breadcrumb-item active" aria-current="page">{{ $isSocial ? 'Social Subscription' : 'Subscription' }}
+            </li>
         </ol>
     </nav>
 @endsection
@@ -24,7 +25,9 @@
             <h5 class="mb-0">Subscription</h5>
 
             <div class="search-filter">
-                <form action="{{ route('admin.subscription.index') }}" method="GET" class="d-flex gap-2">
+                <form
+                    action="{{ $isSocial ? route('admin.social-subscription.index') : route('admin.subscription.index') }}"
+                    method="GET" class="d-flex gap-2">
                     <div class="input-group">
                         <input type="text" name="search" class="form-control" placeholder="Search..."
                             value="{{ request('search') }}">
@@ -41,9 +44,16 @@
                     </select>
 
                     <div class="col-md-1">
-                        <a href="{{ route('admin.subscription.index') }}" class="btn btn-secondary ml-2">
-                            <i class="fas fa-sync"></i>
-                        </a>
+                        @if ($isSocial)
+                            <a href="{{ route('admin.social-subscription.index') }}" class="btn btn-secondary ml-2">
+                                <i class="fas fa-sync"></i>
+                            </a>
+                        @else
+                            <a href="{{ route('admin.subscription.index') }}" class="btn btn-secondary ml-2">
+                                <i class="fas fa-sync"></i>
+                            </a>
+                        @endif
+
                     </div>
                 </form>
             </div>

@@ -183,6 +183,7 @@ class UserController extends Controller
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
             'password' => 'nullable|min:8|confirmed',
+            'status' => 'nullable'
         ]);
 
         // Handle password update (only if provided)
@@ -234,7 +235,7 @@ class UserController extends Controller
                 ->with('success', 'User deleted successfully.');
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Failed to delete user: '.$e->getMessage());
+                ->with('error', 'Failed to delete user: ' . $e->getMessage());
         }
     }
 
@@ -293,7 +294,7 @@ class UserController extends Controller
 
         $vendors = $query->with(['businessCategory'])
             ->latest()
-            ->paginate(15);
+            ->paginate(15)->withQueryString();;
 
         $businessCategories = BusinessCategory::all();
 
@@ -371,8 +372,8 @@ class UserController extends Controller
         }
 
         // Create filename
-        $filename = 'vendors_export_'.date('Y-m-d_H-i-s').'.csv';
-        $filepath = storage_path('app/public/exports/'.$filename);
+        $filename = 'vendors_export_' . date('Y-m-d_H-i-s') . '.csv';
+        $filepath = storage_path('app/public/exports/' . $filename);
 
         // Ensure directory exists
         if (! file_exists(storage_path('app/public/exports/'))) {
@@ -515,8 +516,8 @@ class UserController extends Controller
         }
 
         // File name + path
-        $filename = 'deleted_vendors_export_'.date('Y-m-d_H-i-s').'.csv';
-        $filepath = storage_path('app/public/exports/'.$filename);
+        $filename = 'deleted_vendors_export_' . date('Y-m-d_H-i-s') . '.csv';
+        $filepath = storage_path('app/public/exports/' . $filename);
 
         // Ensure directory exists
         if (! file_exists(storage_path('app/public/exports/'))) {
@@ -545,7 +546,7 @@ class UserController extends Controller
                 ->with('success', 'User restored successfully.');
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Failed to restore user: '.$e->getMessage());
+                ->with('error', 'Failed to restore user: ' . $e->getMessage());
         }
     }
 
@@ -631,8 +632,8 @@ class UserController extends Controller
         }
 
         // File name + path
-        $filename = 'customers_export_'.date('Y-m-d_H-i-s').'.csv';
-        $filepath = storage_path('app/public/exports/'.$filename);
+        $filename = 'customers_export_' . date('Y-m-d_H-i-s') . '.csv';
+        $filepath = storage_path('app/public/exports/' . $filename);
 
         // Ensure directory exists
         if (! file_exists(storage_path('app/public/exports/'))) {
@@ -724,8 +725,8 @@ class UserController extends Controller
         }
 
         // Filename + path
-        $filename = 'deleted_customers_export_'.date('Y-m-d_H-i-s').'.csv';
-        $filepath = storage_path('app/public/exports/'.$filename);
+        $filename = 'deleted_customers_export_' . date('Y-m-d_H-i-s') . '.csv';
+        $filepath = storage_path('app/public/exports/' . $filename);
 
         // Ensure directory exists
         if (! file_exists(storage_path('app/public/exports/'))) {
@@ -755,7 +756,7 @@ class UserController extends Controller
                 ->with('success', 'User deleted successfully.');
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Failed to delete user: '.$e->getMessage());
+                ->with('error', 'Failed to delete user: ' . $e->getMessage());
         }
     }
 }

@@ -35,6 +35,17 @@ class ProfileRequest extends FormRequest
             'profile_picture' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:5120',
             'gender' => 'sometimes|required|in:male,female,other',
             'dob' => 'sometimes|required|date',
+            'address' => 'sometimes|required',
+            'full_address' => 'sometimes|required',
+            'street' => 'sometimes|required',
+            'city' => 'sometimes|required',
+            'state' => 'sometimes|required',
+            'country' => 'sometimes|required',
+            'postal_code' => 'sometimes|required',
+            'latitude' => 'sometimes|required',
+            'longitude' => 'sometimes|required',
+            'business_category_id' => 'sometimes|required',
+            'experience' => 'sometimes|required',
         ];
     }
 

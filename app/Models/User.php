@@ -53,6 +53,8 @@ class User extends Authenticatable
         'two_factor_secret',
         'two_factor_recovery_codes',
         'two_factor_confirmed_at',
+        "new_user_coupon_started_at",
+        'new_user_coupon_used',
     ];
 
     protected $hidden = [
@@ -61,6 +63,7 @@ class User extends Authenticatable
         'refresh_token',
         'two_factor_secret',
         'two_factor_recovery_codes',
+        //'new_user_coupon_used' => 'boolean',
     ];
 
     protected $casts = [
@@ -72,6 +75,8 @@ class User extends Authenticatable
         'status' => 'boolean',
         'terms_accepted' => 'boolean',
         'two_factor_confirmed_at' => 'datetime',
+        'new_user_coupon_used' => 'boolean',
+        "new_user_coupon_started_at" => 'datetime'
     ];
 
     protected $dates = ['deleted_at'];
@@ -457,10 +462,21 @@ class User extends Authenticatable
     // Replace a used recovery code
     public function replaceRecoveryCode(string $code): void
     {
-        $codes = $this->getRecoveryCodes()->filter(fn ($c) => $c !== $code)->values();
+        $codes = $this->getRecoveryCodes()->filter(fn($c) => $c !== $code)->values();
 
         $this->update([
             'two_factor_recovery_codes' => Crypt::encryptString(json_encode($codes->toArray())),
         ]);
+    }
+
+    public function canUseNewUserCoupon(): bool
+    {
+        if ($this->new_user_coupon_used) {
+            return false;
+        }
+
+        $startDate = $this->new_user_coupon_started_at ?? $this->created_at;
+
+        return $startDate->copy()->addMonth()->isFuture();
     }
 }

@@ -25,6 +25,28 @@
 @endsection
 
 @section('content')
+    <style>
+        .main-content,
+        .content-wrapper {
+            overflow-x: auto !important;
+        }
+
+        table {
+            min-width: 1400px;
+            /* force width */
+        }
+
+        table th,
+        table td {
+            white-space: nowrap;
+        }
+
+        /* .plans-table .col-description {
+                white-space: normal !important;
+                min-width: 250px;
+                max-width: 400px;
+            } */
+    </style>
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">All Vendors</h5>

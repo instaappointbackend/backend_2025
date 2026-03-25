@@ -26,7 +26,7 @@ class ProfileResponse extends JsonResource
             'gender' => $this->gender,
             'dob' => $this->dob ? date('Y-m-d', strtotime($this->dob)) : null,
             'role' => $this->role,
-            'profile_picture' => $this->profile_picture ? asset('storage/'.$this->profile_picture) : null,
+            'profile_picture' => $this->profile_picture ? asset('storage/' . $this->profile_picture) : null,
             'rating' => $this->role == 'vendor' ? number_format(Review::getAverageRatingForProvider($this->id), 1) : '',
             'referral_code' => $this->referral_code,
             'is_registered' => (bool) $this->name,
@@ -56,6 +56,8 @@ class ProfileResponse extends JsonResource
             'experience' => $this->experience,
             'terms_accepted' => (bool) $this->terms_accepted,
             'member_since' => $this->created_at ? date('M, Y', strtotime($this->created_at)) : null,
+            'new_user_coupon_started_at' => $this->new_user_coupon_started_at,
+            'new_user_coupon_used' => $this->new_user_coupon_used,
         ];
     }
 
