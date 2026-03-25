@@ -15,11 +15,13 @@ use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\PayoutApiController;
 use App\Http\Controllers\Admin\PayoutController;
 use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\PlanController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\SubscriptionController;
+use App\Http\Controllers\Admin\SocialSubscriptionController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\TwoFactorController;
@@ -209,6 +211,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::resource('web-blogs', WebBlogController::class);
         });
 
+
+        // Web Blogs
+        Route::middleware(['permission:plans'])->group(function () {
+            Route::resource('plans', PlanController::class);
+        });
+
         // FAQs
         Route::middleware(['permission:content_manage_faqs'])->group(function () {
             Route::resource('faqs', FAQController::class);
@@ -284,7 +292,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Admin offers routes
         Route::middleware(['permission:offers_view_offers'])->group(function () {
             Route::get('/offers', [AdminOfferController::class, 'index'])->name('offers.index');
-            Route::get('/offers/{offer}', [AdminOfferController::class, 'show'])->name('offers.show');
 
             Route::middleware(['permission:offers_create_offers'])->group(function () {
                 Route::get('/offers/create', [AdminOfferController::class, 'create'])->name('offers.create');
@@ -300,6 +307,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::middleware(['permission:offers_delete_offers'])->group(function () {
                 Route::delete('/offers/{offer}', [AdminOfferController::class, 'destroy'])->name('offers.destroy');
             });
+            Route::get('/offers/{offer}', [AdminOfferController::class, 'show'])->name('offers.show');
         });
 
         // Admin Payout Management
@@ -427,6 +435,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Permission Management
         Route::middleware(['permission:subscriptions'])->group(function () {
             Route::get('/subscriptions', [SubscriptionController::class, 'index'])->name('subscription.index');
+        });
+
+        // Permission Management
+        Route::middleware(['permission:social_subscriptions'])->group(function () {
+            Route::get('/social-subscriptions', [SocialSubscriptionController::class, 'index'])->name('social-subscription.index');
         });
     });
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\AppointmentPayments;
 
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
+use App\Models\User;
 use App\Services\PaymentGateways\RazorpayService;
 use App\Services\Payments\AppointmentPaymentService;
 use App\Traits\ApiResponseTrait;
@@ -107,7 +108,7 @@ class RazorpayMobileController extends Controller
                 'appointment_id' => $request->appointment_id,
             ]);
 
-            return $this->error(null, 'Failed to create payment order: '.$e->getMessage(), 500);
+            return $this->error(null, 'Failed to create payment order: ' . $e->getMessage(), 500);
         }
     }
 
@@ -200,7 +201,7 @@ class RazorpayMobileController extends Controller
                 $payment->update(['status' => 'failed']);
             }
 
-            return $this->error(null, 'Payment verification failed: '.$e->getMessage(), 500);
+            return $this->error(null, 'Payment verification failed: ' . $e->getMessage(), 500);
         }
     }
 

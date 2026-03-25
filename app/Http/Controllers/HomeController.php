@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AppSetting;
 use App\Models\Page;
+use App\Models\Plan;
 use Illuminate\Support\Facades\Cache;
 
 class HomeController extends Controller
@@ -26,7 +27,9 @@ class HomeController extends Controller
             'social_linkedin' => $this->getSetting('social_linkedin', null),
         ];
 
-        return view('welcome', compact('contactInfo'));
+        $plans = Plan::with('features')->where('type', 'normal')->get();
+
+        return view('public.homePage.welcome', compact('contactInfo', 'plans'));
     }
 
     /**
@@ -67,5 +70,12 @@ class HomeController extends Controller
     public function downloadApk()
     {
         return view('downloadApk');
+    }
+
+    public function socialPlans()
+    {
+        $plans = Plan::with('features')->where('type', 'social')->get();
+
+        return view('public.socialPage.socialPage', compact('plans'));
     }
 }

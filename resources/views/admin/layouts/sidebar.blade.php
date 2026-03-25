@@ -249,6 +249,15 @@
             </li>
         @endif
 
+        @if (hasPermission('social_subscriptions'))
+            <li class="menu-item {{ request()->routeIs('admin.social-subscription.index*') ? 'active' : '' }}">
+                <a href="{{ route('admin.social-subscription.index') }}">
+                    <i class="fas  fa-user-check"></i>
+                    <span>Social Subscriptions</span>
+                </a>
+            </li>
+        @endif
+
 
 
         <!-- Content Management -->
@@ -272,6 +281,15 @@
                 <a href="{{ route('admin.web-blogs.index') }}">
                     <i class="fas fa-blog"></i>
                     <span>Blog Web Posts</span>
+                </a>
+            </li>
+        @endif
+
+        @if (hasPermission('plans'))
+            <li class="menu-item {{ request()->routeIs('admin.pages*') ? 'active' : '' }}">
+                <a href="{{ route('admin.plans.index') }}">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Plans</span>
                 </a>
             </li>
         @endif

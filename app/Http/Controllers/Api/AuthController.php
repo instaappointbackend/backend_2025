@@ -76,7 +76,7 @@ class AuthController extends Controller
             return $this->success([
                 'minutes_left' => $otpExpireMinutes,
                 'message' => $enableSmsApi ? 'OTP sent to your mobile number' : 'OTP generated for development',
-            ], 'OTP '.($enableSmsApi ? 'sent' : 'generated').' successfully.');
+            ], 'OTP ' . ($enableSmsApi ? 'sent' : 'generated') . ' successfully.');
         } catch (\Exception $e) {
             Log::error('Error in sendOtp', [
                 'mobile' => $request->mobile,
@@ -130,7 +130,7 @@ class AuthController extends Controller
                 $queryParams['templateid'] = $templateId;
             }
 
-            $url = $apiUrl.'?'.http_build_query($queryParams);
+            $url = $apiUrl . '?' . http_build_query($queryParams);
 
             // Send the SMS via API with timeout
             $response = Http::timeout(30)->get($url);
@@ -426,7 +426,7 @@ class AuthController extends Controller
 
             if (! $user) {
                 Log::warning('Invalid or expired refresh token attempt', [
-                    'token' => substr($request->refresh_token, 0, 10).'...',
+                    'token' => substr($request->refresh_token, 0, 10) . '...',
                 ]);
 
                 return $this->error([], 'Invalid or expired refresh token.', 401);
@@ -663,7 +663,7 @@ class AuthController extends Controller
 
             if ($attempts >= $maxAttempts) {
                 // Fallback to timestamp-based code
-                $code = Str::upper(Str::random(4).substr(time(), -4));
+                $code = Str::upper(Str::random(4) . substr(time(), -4));
                 break;
             }
         } while (User::where('referral_code', $code)->exists());
@@ -688,7 +688,7 @@ class AuthController extends Controller
                 'gender' => $user->gender,
                 'dob' => $user->dob ? date('Y-m-d', strtotime($user->dob)) : null,
                 'role' => $user->role,
-                'profile_picture' => $user->profile_picture ? asset('storage/'.$user->profile_picture) : null,
+                'profile_picture' => $user->profile_picture ? asset('storage/' . $user->profile_picture) : null,
                 'rating' => $user->role == 'vendor' ? number_format(\App\Models\Review::getAverageRatingForProvider($user->id), 1) : '',
                 'referral_code' => $user->referral_code,
                 'is_registered' => (bool) $user->name,
@@ -717,6 +717,8 @@ class AuthController extends Controller
                 'experience' => $user->experience,
                 'terms_accepted' => (bool) $user->terms_accepted,
                 'member_since' => $user->created_at ? date('M, Y', strtotime($user->created_at)) : null,
+                'new_user_coupon_started_at' => $user->new_user_coupon_started_at,
+                'new_user_coupon_used' => $user->new_user_coupon_used,
             ];
 
             // Final verification log

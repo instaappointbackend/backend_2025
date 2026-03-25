@@ -7,12 +7,13 @@ use Illuminate\Support\Facades\Request;
 enum NavbarLink: string
 {
     case FEATURES = '#features';
-    // case DOWNLOAD = '#download';
+        // case DOWNLOAD = '#download';
     case ABOUT = '#about';
     case CONTACT = '#contact';
     case PRICING = '#pricing';
     case BLOGS = '/blogs';
     case VENDOR_REGISTER = '/vendor/register';
+    case SOCIAL_MEDIA = '/social-plans';
 
     public function label(): string
     {
@@ -24,6 +25,7 @@ enum NavbarLink: string
             self::PRICING => 'Pricing',
             self::BLOGS => 'Blogs',
             self::VENDOR_REGISTER => 'Vendor Register',
+            self::SOCIAL_MEDIA => 'Social Plans',
         };
     }
 
@@ -31,7 +33,7 @@ enum NavbarLink: string
     {
         // Hash-based sections should always point to homepage
         if (str_starts_with($this->value, '#')) {
-            return url('/').$this->value;
+            return url('/') . $this->value;
         }
 
         return url($this->value);
@@ -52,9 +54,14 @@ enum NavbarLink: string
             return Request::is('vendor/register');
         }
 
+        // Vendor register page
+        if ($this === self::SOCIAL_MEDIA) {
+            return Request::is('social-plans');
+        }
+
         // Home page hash sections
         if (str_starts_with($this->value, '#')) {
-            return Request::is('/') && request()->getRequestUri() === '/'.$this->value;
+            return Request::is('/') && request()->getRequestUri() === '/' . $this->value;
         }
 
         return false;

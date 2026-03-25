@@ -30,8 +30,8 @@ class SubscriptionController extends Controller
             ->latest();
 
         $users = $query->paginate(10)->withQueryString();
-
+        $isSocial = false;
         // dd($users);
-        return view('admin.subscription.index', compact('users'));
+        return view('admin.subscription.index', compact('users', 'isSocial'));
     }
 }

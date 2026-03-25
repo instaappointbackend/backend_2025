@@ -1,7 +1,40 @@
 @php
     use App\Enums\NavbarLink;
 @endphp
+<style>
+    .navbar-nav .nav-link {
+        position: relative;
+        font-weight: 500;
+        color: #6c757d;
+        transition: all 0.3s ease;
+    }
 
+    .navbar-nav .nav-link:hover {
+        color: #0d6efd;
+    }
+
+    .navbar-nav .nav-link.active {
+        color: #0d6efd;
+        font-weight: 600;
+    }
+
+    /* Modern animated underline */
+    .navbar-nav .nav-link::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        bottom: 0;
+        width: 0%;
+        height: 2px;
+        background: #0d6efd;
+        transition: all 0.3s ease;
+        transform: translateX(-50%);
+    }
+
+    .navbar-nav .nav-link.active::after {
+        width: 60%;
+    }
+</style>
 <ul class="navbar-nav ms-auto">
     @foreach (NavbarLink::cases() as $link)
         <li class="nav-item">
@@ -22,8 +55,11 @@
 
 <script>
     function setActiveHash() {
-        const hash = window.location.hash;
+        let hash = window.location.pathname;
 
+        if (hash === '/') {
+            hash = window.location.hash;
+        }
         document.querySelectorAll('[data-hash]').forEach(link => {
             link.classList.remove('active');
 

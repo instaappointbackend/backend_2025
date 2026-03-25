@@ -549,19 +549,21 @@
                                         </td>
                                         <td>
                                             <div class="d-flex align-items-center">
-                                                {{-- <div class="avatar avatar-sm bg-light rounded-circle me-2 d-flex align-items-center justify-content-center">
-                                                    <span class="text-dark">{{ substr($appointment->client->name, 0, 1) }}</span>
-                                                </div> --}}
-                                                {{ $appointment->client->name ?? '' }}
+                                                <div
+                                                    class="avatar avatar-sm bg-light rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                                    <span
+                                                        class="text-dark">{{ substr($appointment->client->name, 0, 1) }}</span>
+                                                </div>
+                                                {{ $appointment->client->name }}
                                             </div>
                                         </td>
                                         <td>
                                             <div class="d-flex align-items-center">
-                                                {{-- <div
+                                                <div
                                                     class="avatar avatar-sm bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center">
                                                     <span>{{ substr($appointment->user->name, 0, 1) }}</span>
-                                                </div> --}}
-                                                {{ $appointment->user->name }}
+                                                </div>
+                                                {{ $appointment->user->name ?? '-' }}
                                             </div>
                                         </td>
                                         <td>
