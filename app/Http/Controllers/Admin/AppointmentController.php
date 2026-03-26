@@ -26,7 +26,10 @@ class AppointmentController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Appointment::with(['user', 'client', 'service']);
+        $query = Appointment::with(['user', 'client', 'service'])
+            ->whereHas('user')
+            ->whereHas('client')
+            ->whereHas('service');
 
         // Search functionality
         if ($request->has('search') && ! empty($request->search)) {
@@ -105,9 +108,9 @@ class AppointmentController extends Controller
             ->map(function ($appointment) {
                 return [
                     'id' => $appointment->id,
-                    'title' => ! empty($appointment->service->name) ? $appointment->service->name : $appointment->comboService->name.' - '.$appointment->client->name,
-                    'start' => $appointment->date->format('Y-m-d').'T'.$appointment->start_time->format('H:i:s'),
-                    'end' => $appointment->date->format('Y-m-d').'T'.$appointment->end_time->format('H:i:s'),
+                    'title' => ! empty($appointment->service->name) ? $appointment->service->name : $appointment->comboService->name . ' - ' . $appointment->client->name,
+                    'start' => $appointment->date->format('Y-m-d') . 'T' . $appointment->start_time->format('H:i:s'),
+                    'end' => $appointment->date->format('Y-m-d') . 'T' . $appointment->end_time->format('H:i:s'),
                     'url' => route('admin.appointments.show', $appointment->id),
                     'className' => $this->getStatusClass($appointment->status),
                     'extendedProps' => [
@@ -195,7 +198,7 @@ class AppointmentController extends Controller
             'date' => 'required|date',
             'start_time' => 'required',
             'end_time' => 'required|after:start_time',
-            'status' => 'required|in:'.implode(',', [
+            'status' => 'required|in:' . implode(',', [
                 Appointment::STATUS_PENDING,
                 Appointment::STATUS_CONFIRMED,
                 Appointment::STATUS_COMPLETED,
@@ -238,7 +241,7 @@ class AppointmentController extends Controller
                         'appointment_id' => $appointment->id,
                         'user_id' => $appointment->client_id,
                         'provider_id' => $appointment->user_id,
-                        'transaction_id' => 'ADMIN_'.uniqid(),
+                        'transaction_id' => 'ADMIN_' . uniqid(),
                         'payment_method' => $validated['payment_method'] ?? 'cash',
                         'payment_mode' => $validated['payment_method'] ?? 'cash',
                         'amount' => $validated['payment_amount'] ?? 0,
@@ -450,7 +453,7 @@ class AppointmentController extends Controller
                             'visit_type' => $appointment->visit_type,
                             'amount' => $appointment->payment_amount,
                             'payment_method' => $appointment->payment_method,
-                            'refund_id' => $appointment->payment_id ? 'REF_'.$appointment->payment_id : null,
+                            'refund_id' => $appointment->payment_id ? 'REF_' . $appointment->payment_id : null,
                             'appointmentId' => $appointment->id,
                             'screenName' => 'AppointmentDetails',
                         ];
@@ -502,7 +505,7 @@ class AppointmentController extends Controller
             DB::rollBack();
 
             return redirect()->back()
-                ->with('error', 'Failed to update appointment: '.$e->getMessage())
+                ->with('error', 'Failed to update appointment: ' . $e->getMessage())
                 ->withInput();
         }
     }
@@ -761,7 +764,7 @@ class AppointmentController extends Controller
             // Rollback transaction on error
             DB::rollBack();
 
-            return redirect()->back()->with('error', 'Failed to update appointment status: '.$e->getMessage());
+            return redirect()->back()->with('error', 'Failed to update appointment status: ' . $e->getMessage());
         }
     }
 }
