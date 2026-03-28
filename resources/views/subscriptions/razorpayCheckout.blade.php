@@ -86,10 +86,12 @@
 
             modal: {
                 ondismiss: function() {
+
                     // Show loader again when modal is closed
                     loadingDiv.style.display = 'block';
 
-                    window.location.href = callbackUrl + '?status=cancelled';
+                    window.location.href =
+                        "{{ route('subscription.status', ['status' => 'failed', 'message' => 'Subscription canceled']) }}";
                 }
             }
         };

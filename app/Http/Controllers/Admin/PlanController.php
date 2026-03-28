@@ -50,9 +50,18 @@ class PlanController extends Controller
      */
     public function store(Request $request)
     {
-        // Add slug to the request
+        $slug = Str::slug($request->title);
+
+        // Check if slug already exists
+        if (Plan::where('slug', $slug)->exists()) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'A plan with similar title already exists.');
+        }
+
+        // Add slug to request
         $request->merge([
-            'slug' => Str::slug($request->title)
+            'slug' => $slug
         ]);
 
         $plan = Plan::create($request->only([
@@ -113,10 +122,19 @@ class PlanController extends Controller
             'features.*.included' => 'nullable|boolean',
         ]);
 
+        $slug = Str::slug($request->title);
+
+        // Ignore current plan ID
+        if (Plan::where('slug', $slug)->where('id', '!=', $id)->exists()) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'A plan with similar title already exists.');
+        }
+
         // ✅ Update plan
         $plan->update([
             'type' => $request->type,
-            'slug' => Str::slug($request->title),
+            'slug' => $slug,
             'title' => $request->title,
             'original_price' => $request->original_price,
             'discounted_price' => $request->discounted_price,
