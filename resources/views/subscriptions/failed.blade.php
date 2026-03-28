@@ -184,7 +184,7 @@
                 </div>
             @endif
 
-            <a href="{{ route('subscription.form') }}" class="btn btn-retry btn-lg">Try Again</a>
+            <a href="{{ route('subscription.form', ['plan' => $slug]) }}" class="btn btn-retry btn-lg">Try Again</a>
         </div>
     </div>
 

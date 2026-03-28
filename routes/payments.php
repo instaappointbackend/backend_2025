@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AppointmentPayments\RazorpayMobileController;
 use App\Http\Controllers\PhonePeController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\RazorpayTestController;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 
 /*
 |--------------------------------------------------------------------------
@@ -76,7 +77,7 @@ Route::prefix('subscription')->name('subscription.')
     ->group(function () {
         Route::post('/payment/callback', [SubscriptionController::class, 'callback'])->name('callback');
         Route::get('/check-payment-status/{merchantTransactionId}', [SubscriptionController::class, 'checkStatus'])->name('checkStatus');
-        Route::post('/webhook', [SubscriptionController::class, 'webhook'])->name('webhook');
+        Route::post('/webhook', [SubscriptionController::class, 'webhook'])->name('webhook')->withoutMiddleware([VerifyCsrfToken::class]);;
     });
 
 /*
