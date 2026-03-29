@@ -143,6 +143,7 @@ class SubscriptionController extends Controller
                 'payment_id',
                 'signature',
             ]);
+
             if ($result['success']) {
                 return redirect()->route('subscription.status', ['status' => 'success']);
             }
@@ -166,6 +167,7 @@ class SubscriptionController extends Controller
 
     public function subscriptionStatus(Request $request, $status)
     {
+        $slug = session('slug');
         if ($status === 'success') {
             $paymentDetails = [
                 'transaction_id' => session('payment_transaction_id'),
@@ -176,15 +178,54 @@ class SubscriptionController extends Controller
                 'phone' => session('payment_phone'),
             ];
 
-            return view('subscriptions.success', compact('paymentDetails', 'status'));
+            return view('subscriptions.success', compact('paymentDetails', 'status', 'slug'));
         }
 
         if ($status === 'failed' || $status === 'error') {
             $message = $request->get('message', 'Payment failed. Please try again.');
 
-            return view('subscriptions.failed', compact('message'));
+            return view('subscriptions.failed', compact('message', 'slug'));
         }
 
         return redirect()->route('subscribe.index');
+    }
+
+
+    public function webhook(Request $request)
+    {
+        Log::info('Webhook received', [
+            'headers' => $request->headers->all(),
+            'payload' => $request->all(),
+        ]);
+
+        try {
+
+            // // Detect gateway
+            if ($this->isRazorpayWebhook($request)) {
+                $result = $this->subscriptionService->processWebhook($request->all());
+            }
+
+            // if ($this->isPhonePeWebhook($request)) {
+            //     return $this->subscriptionService->processWebhook($request->all());
+            // }
+
+            // return response()->json(['message' => 'Unknown webhook source'], 400);
+        } catch (\Throwable $e) {
+            Log::error('Webhook processing failed', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json(['message' => 'Webhook error'], 500);
+        }
+    }
+
+    private function isRazorpayWebhook(Request $request)
+    {
+        return $request->header('X-Razorpay-Signature') !== null;
+    }
+
+    private function isPhonePeWebhook(Request $request)
+    {
+        return isset($request->event) || isset($request->payload);
     }
 }

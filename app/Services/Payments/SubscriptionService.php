@@ -68,7 +68,7 @@ class SubscriptionService
                 $transactionId
             );
 
-            $this->storeSessionData($data, $transactionId, $plan['discounted_price']);
+            $this->storeSessionData($data, $transactionId, $plan);
 
             DB::commit();
 
@@ -272,15 +272,16 @@ class SubscriptionService
         return $subscription;
     }
 
-    private function storeSessionData($data, $transactionId, $amount)
+    private function storeSessionData($data, $transactionId, $plan)
     {
         session([
             'payment_transaction_id' => $transactionId,
-            'payment_amount' => $amount,
+            'payment_amount' => $plan['discounted_price'],
             'payment_name' => $data['name'],
             'payment_email' => $data['email'],
             'payment_phone' => $data['mobile'],
             'plan_name' => $data['plan_name'],
+            'slug' => $plan['slug'],
         ]);
     }
 }
