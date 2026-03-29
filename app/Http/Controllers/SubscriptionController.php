@@ -201,9 +201,9 @@ class SubscriptionController extends Controller
         try {
 
             // // Detect gateway
-            // if ($this->isRazorpayWebhook($request)) {
-            //     $result = $this->subscriptionService->processWebhook($request->all());
-            // }
+            if ($this->isRazorpayWebhook($request)) {
+                $result = $this->subscriptionService->processWebhook($request->all());
+            }
 
             // if ($this->isPhonePeWebhook($request)) {
             //     return $this->subscriptionService->processWebhook($request->all());

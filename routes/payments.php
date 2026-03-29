@@ -80,6 +80,11 @@ Route::prefix('subscription')->name('subscription.')
         Route::post('/webhook', [SubscriptionController::class, 'webhook'])->name('webhook')->withoutMiddleware([VerifyCsrfToken::class]);;
     });
 
+// Route::post('/subscription/webhook', [SubscriptionController::class, 'webhook'])
+//     ->name('subscription.webhook')
+//     ->withoutMiddleware('web')->withoutMiddleware([VerifyCsrfToken::class]);
+
+
 /*
 |--------------------------------------------------------------------------
 | Razorpay – Webhooks & Testing
