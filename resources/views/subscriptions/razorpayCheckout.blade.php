@@ -54,6 +54,8 @@
             image: "{{ asset('logo.png') }}",
 
             handler: function(response) {
+
+                console.log('handler response')
                 // Show loader again while redirecting
                 loadingDiv1.style.display = 'block';
 
