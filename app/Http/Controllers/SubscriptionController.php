@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Plan;
+use App\Models\SocialSubscription;
 use App\Models\Subscription;
 use App\Services\PaymentGateways\RazorpayService;
 use App\Services\Payments\SubscriptionService;
@@ -103,8 +104,14 @@ class SubscriptionController extends Controller
                 'error' => $th->getMessage(),
             ]);
 
-            return back()->with('error', $th->getMessage());
+            return back()->with('error', 'Something went wrong');
         }
+    }
+
+    private function checkSubscriptionProcess($transactionId)
+    {
+        return Subscription::where('transaction_id', $transactionId)->first()
+            ?? SocialSubscription::where('transaction_id', $transactionId)->first();
     }
 
     public function callback(Request $request)
@@ -115,11 +122,20 @@ class SubscriptionController extends Controller
         // set Razorpay data
         $paymentGateway = $request->get('payment_gateway');
         if ($paymentGateway === 'razorpay') {
+            $orderId =  $request->get('razorpay_order_id');
             session([
-                'order_id' => $request->get('razorpay_order_id'),
+                'order_id' => $orderId,
                 'payment_id' => $request->get('razorpay_payment_id'),
                 'signature' => $request->get('razorpay_signature'),
             ]);
+
+            $data = $this->checkSubscriptionProcess($orderId);
+
+            if ($data->payment_status === 'payment_status') {
+                Log::info($paymentGateway . '  order process successfully ' . $orderId);
+            }
+
+            return;
         }
 
         Log::info($paymentGateway . ' callback received for subscription', [
