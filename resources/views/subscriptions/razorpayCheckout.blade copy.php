@@ -80,12 +80,6 @@
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
-
-        .check-count {
-            font-size: 12px;
-            color: #999;
-            margin-top: 10px;
-        }
     </style>
 </head>
 
@@ -95,20 +89,35 @@
         <h2 id="statusTitle">Processing Payment...</h2>
         <p id="statusMessage">Please complete the payment in the Razorpay window</p>
         <div id="additionalMessage"></div>
-        <div class="check-count" id="checkCount"></div>
     </div>
+
+    <!-- Hidden forms for POST submission -->
+    <form id="paymentSuccessForm" method="POST" action="{{ route('subscription.callback') }}" style="display:none;">
+        @csrf
+        <input type="hidden" name="razorpay_order_id" id="success_order_id">
+        <input type="hidden" name="transactionId" id="success_transaction_id">
+        <input type="hidden" name="razorpay_payment_id" id="success_payment_id">
+        <input type="hidden" name="razorpay_signature" id="success_signature">
+        <input type="hidden" name="payment_gateway" value="razorpay">
+    </form>
+
+    <form id="paymentFailedForm" method="POST" action="{{ route('subscription.razorpay.failed') }}"
+        style="display:none;">
+        @csrf
+        <input type="hidden" name="razorpay_order_id" id="failed_order_id">
+        <input type="hidden" name="razorpay_payment_id" id="failed_payment_id">
+        <input type="hidden" name="reason" id="failed_reason">
+        <input type="hidden" name="payment_gateway" value="razorpay">
+    </form>
 
     <script>
         const orderId = "{{ session('payment_transaction_id') }}";
         const razorpayKeyId = "{{ config('payment.razorpay.key_id') }}";
-        const checkStatusUrl = "{{ route('subscription.check-status') }}";
-        const callbackUrl = "{{ route('subscription.razorpay.callback') }}";
-        const callbackFailedUrl = "{{ route('subscription.razorpay.failed') }}";
+        const checkStatusUrl = "{{ route('subscription.check-status') }}"; // You need to create this route
 
         let paymentCompleted = false;
         let statusCheckInterval = null;
         let rzpInstance = null;
-        let checkCount = 0;
 
         // Update UI message
         function updateStatus(title, message, additionalMsg = '', type = 'checking') {
@@ -123,11 +132,8 @@
             }
         }
 
-        // Check payment status via AJAX and redirect directly
+        // Check payment status via AJAX
         function checkPaymentStatus() {
-            checkCount++;
-            document.getElementById('checkCount').textContent = `Checking... (${checkCount})`;
-
             console.log('Checking payment status for order:', orderId);
 
             fetch(checkStatusUrl + '?order_id=' + orderId, {
@@ -149,14 +155,20 @@
                         updateStatus(
                             'Payment Successful!',
                             'Redirecting...',
-                            'Your payment has been confirmed.',
+                            'Your payment has been confirmed. Please wait.',
                             'success'
                         );
 
-                        // Direct redirect with transaction_id
+                        // Fill success form
+                        document.getElementById('success_order_id').value = data.razorpay_order_id || orderId;
+                        document.getElementById('success_transaction_id').value = orderId;
+                        document.getElementById('success_payment_id').value = data.razorpay_payment_id || '';
+                        document.getElementById('success_signature').value = data.razorpay_signature || '';
+
+                        // Submit success form after short delay
                         setTimeout(() => {
-                            window.location.href = callbackUrl + '?transactionId=' + orderId;
-                        }, 1000);
+                            //document.getElementById('paymentSuccessForm').submit();
+                        }, 1500);
 
                     } else if (data.status === 'failed') {
                         // Payment failed
@@ -170,9 +182,14 @@
                             'failed'
                         );
 
-                        // Redirect to failure page
+                        // Fill failed form
+                        document.getElementById('failed_order_id').value = orderId;
+                        document.getElementById('failed_payment_id').value = data.razorpay_payment_id || '';
+                        document.getElementById('failed_reason').value = data.message || 'Payment failed';
+
+                        // Submit failed form after short delay
                         setTimeout(() => {
-                            window.location.href = callbackUrl + '?transactionId=' + orderId + '&status=failed';
+                            document.getElementById('paymentFailedForm').submit();
                         }, 1500);
                     }
                     // If status is 'pending', continue polling
@@ -221,8 +238,6 @@
             handler: function(response) {
                 console.log('Payment handler called:', response);
 
-                return;
-
                 // Stop polling
                 if (statusCheckInterval) {
                     clearInterval(statusCheckInterval);
@@ -237,17 +252,15 @@
                     'success'
                 );
 
-                // Direct redirect to callback with payment details
-                setTimeout(() => {
-                    const params = new URLSearchParams({
-                        transactionId: response.razorpay_order_id,
-                        razorpay_order_id: response.razorpay_order_id,
-                        razorpay_payment_id: response.razorpay_payment_id,
-                        razorpay_signature: response.razorpay_signature,
-                        payment_gateway: 'razorpay'
-                    });
+                // Fill success form
+                document.getElementById('success_order_id').value = response.razorpay_order_id;
+                document.getElementById('success_transaction_id').value = response.razorpay_order_id;
+                document.getElementById('success_payment_id').value = response.razorpay_payment_id;
+                document.getElementById('success_signature').value = response.razorpay_signature;
 
-                    window.location.href = callbackUrl + '?' + params.toString();
+                // Submit form
+                setTimeout(() => {
+                    document.getElementById('paymentSuccessForm').submit();
                 }, 1000);
             },
 
@@ -354,17 +367,15 @@
                 'failed'
             );
 
-            // Direct redirect with error details
-            setTimeout(() => {
-                const params = new URLSearchParams({
-                    razorpay_order_id: response?.error?.metadata
-                        ?.order_id,
-                    razorpay_payment_id: response?.error?.metadata
-                        ?.payment_id,
-                    reason: response?.error?.reason,
-                });
+            // Fill failed form
+            document.getElementById('failed_order_id').value = response.error.metadata?.order_id || orderId;
+            document.getElementById('failed_payment_id').value = response.error.metadata?.payment_id || '';
+            document.getElementById('failed_reason').value = response.error.reason || response.error.description ||
+                'Payment failed';
 
-                window.location.href = callbackFailedUrl + '?' + params.toString();
+            // Submit failed form
+            setTimeout(() => {
+                document.getElementById('paymentFailedForm').submit();
             }, 2000);
         });
 
