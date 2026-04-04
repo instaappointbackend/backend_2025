@@ -69,16 +69,30 @@ Route::middleware('web')->prefix('subscription')->name('subscription.')
         Route::post('/payment/process', 'subscribe')->name('process');
         Route::get('/razorpay/checkout', 'razorpayCheckout')->name('razorpay.checkout');
         Route::get('/payment/status/{status}', 'subscriptionStatus')->name('status');
-        Route::post('/razorpay/payment-failed', 'razorpayPaymentFailed')->name('razorpay.failed');
+        Route::get('/razorpay/payment-failed', 'razorpayPaymentFailed')->name('razorpay.failed');
     });
 
 Route::prefix('subscription')->name('subscription.')
     ->withoutMiddleware('web')
     ->group(function () {
-        Route::match(['get', 'post'], '/payment/callback', [SubscriptionController::class, 'callback'])->name('callback');
+        Route::match(['post'], '/payment/callback', [SubscriptionController::class, 'callback'])->name('callback');
+        Route::match(['get'], '/payment/razorpay/callback', [SubscriptionController::class, 'razorPayCallback'])->name('razorpay.callback');
         Route::get('/check-payment-status/{merchantTransactionId}', [SubscriptionController::class, 'checkStatus'])->name('checkStatus');
         Route::post('/webhook', [SubscriptionController::class, 'webhook'])->name('webhook')->withoutMiddleware([VerifyCsrfToken::class]);;
     });
+
+// NEW: Status check endpoint for AJAX polling
+Route::get('/subscription/check-status', [SubscriptionController::class, 'checkStatus'])
+    ->name('subscription.check-status');
+
+// Razorpay specific routes
+Route::post('/subscription/razorpay/failed', [SubscriptionController::class, 'razorpayFailed'])
+    ->name('razorpay.failed');
+
+// Status page
+//Route::get('/subscription/status', [SubscriptionController::class, 'showStatus'])
+//    ->name('subscription.status');
+
 
 // Route::post('/subscription/webhook', [SubscriptionController::class, 'webhook'])
 //     ->name('subscription.webhook')
@@ -90,21 +104,21 @@ Route::prefix('subscription')->name('subscription.')
 | Razorpay – Webhooks & Testing
 |--------------------------------------------------------------------------
 */
-Route::post('razorpay/webhook', [RazorpayMobileController::class, 'handleWebhook'])
-    ->withoutMiddleware(['web'])
-    ->name('razorpay.webhook');
+// Route::post('razorpay/webhook', [RazorpayMobileController::class, 'handleWebhook'])
+//     ->withoutMiddleware(['web'])
+//     ->name('razorpay.webhook');
 
-Route::prefix('razorpay/test')->group(function () {
+// Route::prefix('razorpay/test')->group(function () {
 
-    Route::get('api-tester', [RazorpayTestController::class, 'showApiTestPage'])
-        ->name('razorpay.test.api-tester');
+//     Route::get('api-tester', [RazorpayTestController::class, 'showApiTestPage'])
+//         ->name('razorpay.test.api-tester');
 
-    Route::get('/', [RazorpayTestController::class, 'showTestPage'])
-        ->name('razorpay.test.page');
+//     Route::get('/', [RazorpayTestController::class, 'showTestPage'])
+//         ->name('razorpay.test.page');
 
-    Route::match(['get', 'post'], 'checkout', [RazorpayTestController::class, 'createOrderAndPay'])
-        ->name('razorpay.test.checkout');
+//     Route::match(['get', 'post'], 'checkout', [RazorpayTestController::class, 'createOrderAndPay'])
+//         ->name('razorpay.test.checkout');
 
-    Route::post('callback', [RazorpayTestController::class, 'handleCallback'])
-        ->name('razorpay.test.callback');
-});
+//     Route::post('callback', [RazorpayTestController::class, 'handleCallback'])
+//         ->name('razorpay.test.callback');
+// });

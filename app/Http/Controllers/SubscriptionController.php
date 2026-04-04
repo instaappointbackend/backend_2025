@@ -244,4 +244,233 @@ class SubscriptionController extends Controller
     {
         return isset($request->event) || isset($request->payload);
     }
+
+
+    /**
+     * Handle payment callback (GET request with query parameters)
+     */
+    public function razorPayCallback(Request $request)
+    {
+        try {
+            //https://newinstaapp.test/subscription/payment/razorpay/callback?transactionId=order_SZQ0bBib1lAWO9&razorpay_order_id=order_SZQ0bBib1lAWO9&razorpay_payment_id=pay_SZQ0lrkwOFxS4J&razorpay_signature=44fe285ab8b83fc75d11164b0e2781ef8a5c6ce5e59d9706a7c9a36ed1e74e03&payment_gateway=razorpay
+
+
+            //https://newinstaapp.test/subscription/payment/razorpay/callback?transactionId=order_SZR0KeaZ4LrsyJ&status=failed&error=Payment+was+unsuccessful+due+to+a+temporary+issue.+If+amount+got+deducted%2C+it+will+be+refunded+within+5-7+working+days.&payment_gateway=razorpay
+
+            // Get transaction ID from query parameter
+            $transactionId = $request->input('transactionId')
+                ?? $request->input('razorpay_order_id')
+                ?? $request->input('transaction_id');
+            session([
+                'order_id' => $transactionId,
+                'payment_id' => $request->get('razorpay_payment_id'),
+                'signature' => $request->get('razorpay_signature'),
+            ]);
+
+
+            if (!$transactionId) {
+                Log::error('Callback missing transaction ID', [
+                    'request' => $request->all()
+                ]);
+
+                return redirect()->route('subscription.status', [
+                    'status' => 'failed',
+                    'message' => 'Invalid payment reference'
+                ]);
+            }
+
+            Log::info('Processing subscription callback', [
+                'transaction_id' => $transactionId,
+                'payment_gateway' => $request->input('payment_gateway', 'unknown'),
+                'all_params' => $request->all()
+            ]);
+
+            // Find subscription
+            $subscription = Subscription::where('transaction_id', $transactionId)->first();
+
+            if (!$subscription) {
+                Log::error('Subscription not found', [
+                    'transaction_id' => $transactionId
+                ]);
+
+                return redirect()->route('subscription.status', [
+                    'status' => 'failed',
+                    'message' => 'Subscription not found'
+                ]);
+            }
+
+            // If already processed, redirect to success
+            if ($subscription->payment_status === 'completed' || $subscription->status === 'active') {
+                Log::info('Subscription already completed', [
+                    'transaction_id' => $transactionId,
+                    'status' => $subscription->status
+                ]);
+
+                return view('subscription.success', [
+                    'subscription' => $subscription,
+                    'message' => 'Your subscription is already active!'
+                ]);
+            }
+
+            // Process callback through service
+            $result = $this->subscriptionService->processCallback($transactionId);
+
+            if ($result['success']) {
+                Log::info('Subscription callback successful', [
+                    'transaction_id' => $transactionId,
+                    'subscription_id' => $result['subscription']->id
+                ]);
+
+                // Store payment details if provided
+                if ($request->has('razorpay_payment_id')) {
+                    $responseData = json_decode($result['subscription']->response, true) ?? [];
+                    $responseData['razorpay_payment_id'] = $request->input('razorpay_payment_id');
+                    $responseData['razorpay_signature'] = $request->input('razorpay_signature');
+                    $responseData['callback_received_at'] = now()->toIso8601String();
+
+                    $result['subscription']->update([
+                        'response' => json_encode($responseData)
+                    ]);
+                }
+                //dd($result);
+                // return view('subscriptions.success', [
+                //     'subscription' => $result['subscription'],
+                //     'status' => $result['success'],
+                //     'message' => $result['message']
+                // ]);
+
+                if ($result['success']) {
+                    return redirect()->route('subscription.status', ['status' => 'success']);
+                }
+
+                return redirect()->route('subscription.status', [
+                    'status' => 'failed',
+                    'message' => $result['message'],
+                ]);
+            } else {
+                Log::warning('Subscription callback failed', [
+                    'transaction_id' => $transactionId,
+                    'message' => $result['message']
+                ]);
+
+                return view('subscriptions.failed', [
+                    'message' => $result['message'] ?? 'Payment verification failed',
+                    'transaction_id' => $transactionId
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Subscription callback error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->all()
+            ]);
+
+            return redirect()->route('subscription.status', [
+                'status' => 'error',
+                'message' => 'An unexpected error occurred. Please contact support',
+            ]);
+        }
+    }
+
+    /**
+     * Check payment status via AJAX
+     */
+    public function checkStatus(Request $request)
+    {
+        try {
+            $orderId = $request->input('order_id');
+
+            if (!$orderId) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Order ID is required'
+                ], 400);
+            }
+
+            $subscription = Subscription::where('transaction_id', $orderId)->first();
+
+            if (!$subscription) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Subscription not found'
+                ], 404);
+            }
+
+            // If already completed
+            if ($subscription->payment_status === 'completed' || $subscription->status === 'active') {
+                $response = json_decode($subscription->response, true) ?? [];
+
+                return response()->json([
+                    'status' => 'paid',
+                    'message' => 'Payment completed',
+                    'razorpay_order_id' => $subscription->transaction_id,
+                    'razorpay_payment_id' => $response['razorpay_payment_id'] ?? null,
+                ]);
+            }
+
+            // If failed
+            if ($subscription->payment_status === 'failed' || $subscription->status === 'failed') {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'Payment failed'
+                ]);
+            }
+
+            // For pending, check with gateway
+            try {
+                $result = $this->subscriptionService->processCallback($orderId);
+
+                if ($result['success']) {
+                    $response = json_decode($result['subscription']->response, true) ?? [];
+
+                    return response()->json([
+                        'status' => 'paid',
+                        'message' => 'Payment completed',
+                        'razorpay_order_id' => $result['subscription']->transaction_id,
+                        'razorpay_payment_id' => $response['razorpay_payment_id'] ?? null,
+                    ]);
+                } else {
+                    return response()->json([
+                        'status' => 'pending',
+                        'message' => 'Payment is still being processed'
+                    ]);
+                }
+            } catch (\Exception $e) {
+                // If gateway check fails, return pending
+                Log::warning('Status check failed, returning pending', [
+                    'order_id' => $orderId,
+                    'error' => $e->getMessage()
+                ]);
+
+                return response()->json([
+                    'status' => 'pending',
+                    'message' => 'Payment is being verified'
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Status check failed', [
+                'order_id' => $request->input('order_id'),
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to check payment status'
+            ], 500);
+        }
+    }
+
+    /**
+     * Show status page
+     */
+    public function showStatus(Request $request)
+    {
+        $status = $request->input('status', 'pending');
+        $message = $request->input('message', '');
+
+        return view('subscription.status', [
+            'status' => $status,
+            'message' => $message
+        ]);
+    }
 }

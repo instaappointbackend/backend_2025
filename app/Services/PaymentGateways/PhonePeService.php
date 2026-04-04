@@ -30,7 +30,7 @@ class PhonePeService implements PaymentGatewayInterface
             : 'https://api-preprod.phonepe.com/apis/pg-sandbox';
 
         Log::info('PhonePeService Initialized', [
-            'merchant_id' => $this->merchantId,
+            'merchant_id' => substr($this->merchantId, 0, 4) . '****',
             'environment' => $this->isProduction ? 'PRODUCTION' : 'SANDBOX',
             'base_url' => $this->baseUrl,
         ]);
