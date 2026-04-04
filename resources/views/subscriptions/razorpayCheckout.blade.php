@@ -221,8 +221,6 @@
             handler: function(response) {
                 console.log('Payment handler called:', response);
 
-                return;
-
                 // Stop polling
                 if (statusCheckInterval) {
                     clearInterval(statusCheckInterval);
