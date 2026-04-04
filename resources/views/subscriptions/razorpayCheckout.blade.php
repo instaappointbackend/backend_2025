@@ -219,7 +219,7 @@
             image: "{{ asset('logo.png') }}",
 
             handler: function(response) {
-                console.log('Payment handler called:', response);
+                //console.log('Payment handler called:', response);
 
                 // Stop polling
                 if (statusCheckInterval) {
@@ -291,6 +291,7 @@
                     console.log('Payment modal dismissed');
 
                     if (!paymentCompleted) {
+                        console.log('here');
                         updateStatus(
                             'Checking Payment Status...',
                             'Verifying if payment was completed',
@@ -299,7 +300,7 @@
                         );
 
                         // Continue checking status for 30 seconds after modal close
-                        // This handles QR code payments where user closes modal after scanning
+                        //This handles QR code payments where user closes modal after scanning
                         if (!statusCheckInterval) {
                             startStatusPolling();
                         }
@@ -309,7 +310,7 @@
                             if (!paymentCompleted) {
                                 clearInterval(statusCheckInterval);
                                 window.location.href =
-                                    "{{ route('subscription.status', ['status' => 'pending']) }}";
+                                    "{{ route('subscription.status', ['status' => 'failed', 'message' => 'Subscription canceled']) }}";
                             }
                         }, 30000);
                     }
