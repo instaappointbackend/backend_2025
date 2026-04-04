@@ -75,7 +75,7 @@ Route::middleware('web')->prefix('subscription')->name('subscription.')
 Route::prefix('subscription')->name('subscription.')
     ->withoutMiddleware('web')
     ->group(function () {
-        Route::post('/payment/callback', [SubscriptionController::class, 'callback'])->name('callback');
+        Route::match(['get', 'post'], '/payment/callback', [SubscriptionController::class, 'callback'])->name('callback');
         Route::get('/check-payment-status/{merchantTransactionId}', [SubscriptionController::class, 'checkStatus'])->name('checkStatus');
         Route::post('/webhook', [SubscriptionController::class, 'webhook'])->name('webhook')->withoutMiddleware([VerifyCsrfToken::class]);;
     });
