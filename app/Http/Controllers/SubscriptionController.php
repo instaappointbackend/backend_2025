@@ -184,6 +184,7 @@ class SubscriptionController extends Controller
     public function subscriptionStatus(Request $request, $status)
     {
         $slug = session('slug');
+        // dd($slug);
         if ($status === 'success') {
             $paymentDetails = [
                 'transaction_id' => session('payment_transaction_id'),
@@ -353,9 +354,13 @@ class SubscriptionController extends Controller
                     'message' => $result['message']
                 ]);
 
-                return view('subscriptions.failed', [
-                    'message' => $result['message'] ?? 'Payment verification failed',
-                    'transaction_id' => $transactionId
+                // return view('subscriptions.failed', [
+                //     'message' => $result['message'] ?? 'Payment verification failed',
+                //     'transaction_id' => $transactionId
+                // ]);
+                return redirect()->route('subscription.status', [
+                    'status' => 'failed',
+                    'message' => $result['message'],
                 ]);
             }
         } catch (\Exception $e) {
