@@ -111,17 +111,22 @@ class SubscriptionService
 
     public function processWebhook(array $webhookData)
     {
-        $transactionId = $webhookData['merchantTransactionId'] ?? null;
+        $orderId = data_get($webhookData, 'payload.order.entity.id');
+        $paymentStatus  = data_get($webhookData, 'payload.order.entity.status');
 
-        $subscription = $this->findSubscriptionByTransactionId($transactionId);
+        $subscription = $this->findSubscriptionByTransactionId($orderId);
 
         if (! $subscription) {
             return ['success' => false, 'message' => 'Subscription not found'];
         }
 
-        $status = $this->paymentGateway->checkPaymentStatus($transactionId);
-
-        return $this->updateSubscriptionFromStatus($subscription, $status, $webhookData);
+        //$status = $this->paymentGateway->checkPaymentStatus($transactionId);
+        if ($paymentStatus === 'captured') {
+            $status = [
+                'success' => true,
+            ];
+            return $this->updateSubscriptionFromStatus($subscription, $status, $webhookData);
+        }
     }
 
     /* ==========================================================
