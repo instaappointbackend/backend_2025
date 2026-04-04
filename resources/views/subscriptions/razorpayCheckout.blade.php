@@ -52,7 +52,7 @@
             name: "{{ config('app.name') }}",
             description: "Subscription Payment",
             image: "{{ asset('logo.png') }}",
-
+            callback_url: "{{ route('subscription.callback') }}",
             handler: function(response) {
 
                 console.log('handler response')
